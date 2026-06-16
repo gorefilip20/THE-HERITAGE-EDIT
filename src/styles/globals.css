@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+@layer base {
+  * {
+    @apply border-slate-border;
+  }
+
+  html {
+    @apply antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-white text-obsidian font-sans;
+    font-feature-settings: "kern" 1, "liga" 1;
+  }
+
+  ::selection {
+    @apply bg-heritage-green text-white;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif tracking-tight;
+  }
+
+  input, textarea, select {
+    @apply font-sans;
+  }
+}
+
+@layer components {
+  .luxury-container {
+    @apply mx-auto w-full max-w-[1440px] px-6 md:px-10 lg:px-16;
+  }
+
+  .luxury-grid {
+    @apply grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6;
+  }
+
+  .luxury-button-primary {
+    @apply inline-flex items-center justify-center h-12 px-8
+           bg-heritage-green text-white text-sm font-sans font-medium tracking-wider uppercase
+           transition-all duration-300 ease-luxury
+           hover:bg-heritage-green-600 active:scale-[0.98]
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .luxury-button-secondary {
+    @apply inline-flex items-center justify-center h-12 px-8
+           bg-transparent border border-obsidian text-obsidian text-sm font-sans font-medium tracking-wider uppercase
+           transition-all duration-300 ease-luxury
+           hover:bg-obsidian hover:text-white active:scale-[0.98]
+           disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  .luxury-button-ghost {
+    @apply inline-flex items-center justify-center h-10 px-4
+           text-obsidian text-sm font-sans font-medium tracking-wide
+           transition-colors duration-200
+           hover:text-heritage-green;
+  }
+
+  .luxury-input {
+    @apply w-full h-12 px-4 bg-transparent border border-slate-border
+           text-sm font-sans text-obsidian placeholder:text-neutral-400
+           transition-all duration-200
+           focus:outline-none focus:border-heritage-green focus:ring-1 focus:ring-heritage-green/20;
+  }
+
+  .luxury-label {
+    @apply block text-xs font-sans font-medium tracking-wider uppercase text-neutral-500 mb-2;
+  }
+
+  .editorial-heading {
+    @apply font-serif italic font-normal;
+  }
+
+  .product-price {
+    @apply font-sans font-medium tracking-wide tabular-nums;
+  }
+
+  .skeleton {
+    @apply animate-pulse bg-neutral-100 rounded;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
