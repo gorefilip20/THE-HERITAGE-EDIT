@@ -4,7 +4,6 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Create brands
   const brands = await Promise.all(
     [
       { name: "Gucci", slug: "gucci", country: "Italy" },
@@ -26,7 +25,6 @@ async function main() {
     ),
   );
 
-  // Create categories
   const categories = await Promise.all(
     [
       { name: "Coats & Jackets", slug: "coats-jackets" },
@@ -48,7 +46,6 @@ async function main() {
     ),
   );
 
-  // Create collections
   const collections = await Promise.all(
     [
       { name: "New Arrivals", slug: "new-arrivals", isFeatured: true },
@@ -66,7 +63,6 @@ async function main() {
     ),
   );
 
-  // Create admin user
   await prisma.user.upsert({
     where: { email: "admin@heritageedit.com" },
     update: {},
@@ -79,7 +75,6 @@ async function main() {
     },
   });
 
-  // Create sample products
   const gucci = brands.find((b) => b.slug === "gucci")!;
   const prada = brands.find((b) => b.slug === "prada")!;
   const bottega = brands.find((b) => b.slug === "bottega-veneta")!;
@@ -95,8 +90,7 @@ async function main() {
       sku: "GUC-COA-001",
       name: "Wool Silk Double-Breasted Blazer",
       slug: "gucci-wool-silk-double-breasted-blazer",
-      description:
-        "A masterfully tailored double-breasted blazer in a wool-silk blend, featuring the house's signature horsebit hardware at the closure.",
+      description: "A masterfully tailored double-breasted blazer in a wool-silk blend, featuring the house's signature horsebit hardware at the closure.",
       brandId: gucci.id,
       categoryId: coats.id,
       basePriceCents: 325000,
@@ -108,8 +102,7 @@ async function main() {
       sku: "PRA-DRS-001",
       name: "Re-Nylon Gabardine Midi Dress",
       slug: "prada-re-nylon-gabardine-midi-dress",
-      description:
-        "Crafted from Prada's iconic Re-Nylon fabric, this structured midi dress balances sustainable innovation with architectural precision.",
+      description: "Crafted from Prada's iconic Re-Nylon fabric, this structured midi dress balances sustainable innovation with architectural precision.",
       brandId: prada.id,
       categoryId: dresses.id,
       basePriceCents: 285000,
@@ -121,8 +114,7 @@ async function main() {
       sku: "BOT-BAG-001",
       name: "Intrecciato Leather Cassette Bag",
       slug: "bottega-veneta-intrecciato-cassette",
-      description:
-        "The iconic Cassette bag in Bottega Veneta's signature Intrecciato weave, rendered in butter-soft nappa leather with a padded silhouette.",
+      description: "The iconic Cassette bag in Bottega Veneta's signature Intrecciato weave, rendered in butter-soft nappa leather with a padded silhouette.",
       brandId: bottega.id,
       categoryId: bags.id,
       basePriceCents: 380000,
@@ -134,8 +126,7 @@ async function main() {
       sku: "SLR-SUI-001",
       name: "Grain de Poudre Tuxedo Jacket",
       slug: "saint-laurent-grain-de-poudre-tuxedo",
-      description:
-        "An impeccably cut tuxedo jacket in Saint Laurent's signature Grain de Poudre wool. The culmination of the house's Le Smoking legacy.",
+      description: "An impeccably cut tuxedo jacket in Saint Laurent's signature Grain de Poudre wool. The culmination of the house's Le Smoking legacy.",
       brandId: saintLaurent.id,
       categoryId: suits.id,
       basePriceCents: 395000,
