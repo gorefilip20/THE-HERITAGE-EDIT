@@ -6,7 +6,6 @@ import { CheckoutForm } from "@/components/checkout/CheckoutForm";
 export default function CheckoutPage() {
   return (
     <div className="min-h-screen bg-[#FBFBFA]">
-      {/* Minimal checkout header */}
       <header className="border-b border-neutral-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link
@@ -23,7 +22,6 @@ export default function CheckoutPage() {
           </div>
         </div>
       </header>
-
       <CheckoutForm />
     </div>
   );

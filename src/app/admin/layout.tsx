@@ -27,7 +27,6 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-ivory">
-      {/* Admin header */}
       <header className="bg-heritage-green text-white">
         <div className="flex items-center justify-between h-14 px-6">
           <div className="flex items-center gap-4">
@@ -47,7 +46,6 @@ export default function AdminLayout({
       </header>
 
       <div className="flex">
-        {/* Sidebar */}
         <aside className="w-56 bg-white border-r border-slate-border min-h-[calc(100vh-3.5rem)] shrink-0 hidden md:block">
           <nav className="p-4 space-y-1">
             {ADMIN_NAV.map((item) => {
@@ -73,7 +71,6 @@ export default function AdminLayout({
           </nav>
         </aside>
 
-        {/* Main content */}
         <main className="flex-1 p-6 md:p-8 max-w-6xl">{children}</main>
       </div>
     </div>
