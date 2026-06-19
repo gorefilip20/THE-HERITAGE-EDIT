@@ -128,7 +128,6 @@ export async function POST(request: NextRequest) {
       include: { items: true },
     });
 
-    // Decrement stock
     for (const item of orderItems) {
       if (item.variantId) {
         await prisma.productVariant.update({
