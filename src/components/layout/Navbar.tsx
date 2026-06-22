@@ -293,58 +293,23 @@ export function Navbar() {
 
         {/* ─ MAIN NAV BAR ─ */}
         <div className="luxury-container">
-          <div className="flex items-center justify-between h-16 lg:h-[72px]">
-            {/* Mobile toggle */}
+          {/* Mobile layout */}
+          <div className="flex lg:hidden items-center justify-between h-16">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 -ml-2 text-obsidian"
+              className="p-2 -ml-2 text-obsidian"
               aria-label="Toggle menu"
             >
               {isMobileMenuOpen ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
             </button>
 
-            {/* Logo */}
-            <Link href="/" className="lg:absolute lg:left-1/2 lg:-translate-x-1/2">
-              <span className="text-[15px] md:text-[17px] font-serif font-semibold tracking-[0.12em] text-obsidian whitespace-nowrap select-none">
+            <Link href="/">
+              <span className="text-[15px] font-serif font-semibold tracking-[0.12em] text-obsidian whitespace-nowrap select-none">
                 THE HERITAGE EDIT
               </span>
             </Link>
 
-            {/* Desktop nav links */}
-            <nav
-              className="hidden lg:flex items-center gap-0"
-              onMouseLeave={handleMegaLeave}
-            >
-              {MEGA_MENU.map((item) => (
-                <div
-                  key={item.label}
-                  onMouseEnter={() => handleMegaEnter(item.label)}
-                  className="relative"
-                >
-                  <Link
-                    href={item.href}
-                    className={cn(
-                      "relative block px-5 py-6 text-[11px] font-sans font-medium tracking-[0.14em] uppercase transition-colors duration-200",
-                      activeMega === item.label
-                        ? "text-heritage-green"
-                        : "text-obsidian/80 hover:text-obsidian",
-                    )}
-                  >
-                    {item.label}
-                    {activeMega === item.label && (
-                      <motion.span
-                        layoutId="nav-underline"
-                        className="absolute bottom-4 left-5 right-5 h-[1.5px] bg-heritage-green"
-                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                      />
-                    )}
-                  </Link>
-                </div>
-              ))}
-            </nav>
-
-            {/* Right icons */}
-            <div className="flex items-center gap-3 md:gap-5">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setIsSearchOpen(true)}
                 className="p-2 text-obsidian/60 hover:text-obsidian transition-colors"
@@ -352,20 +317,6 @@ export function Navbar() {
               >
                 <Search size={19} strokeWidth={1.5} />
               </button>
-              <Link
-                href="/wishlist"
-                className="hidden md:flex p-2 text-obsidian/60 hover:text-obsidian transition-colors"
-                aria-label="Wishlist"
-              >
-                <Heart size={19} strokeWidth={1.5} />
-              </Link>
-              <Link
-                href="/auth/login"
-                className="hidden md:flex p-2 text-obsidian/60 hover:text-obsidian transition-colors"
-                aria-label="Account"
-              >
-                <User size={19} strokeWidth={1.5} />
-              </Link>
               <button
                 onClick={openCart}
                 className="relative p-2 text-obsidian/60 hover:text-obsidian transition-colors"
@@ -382,6 +333,124 @@ export function Navbar() {
                   </motion.span>
                 )}
               </button>
+            </div>
+          </div>
+
+          {/* Desktop layout — 3-column grid: left nav | center logo | right nav + icons */}
+          <div className="hidden lg:grid grid-cols-[1fr_auto_1fr] items-center h-[72px]">
+            {/* Left nav links */}
+            <nav
+              className="flex items-center justify-start"
+              onMouseLeave={handleMegaLeave}
+            >
+              {MEGA_MENU.slice(0, 3).map((item) => (
+                <div
+                  key={item.label}
+                  onMouseEnter={() => handleMegaEnter(item.label)}
+                  className="relative"
+                >
+                  <Link
+                    href={item.href}
+                    className={cn(
+                      "relative block px-4 xl:px-5 py-6 text-[11px] font-sans font-medium tracking-[0.14em] uppercase transition-colors duration-200",
+                      activeMega === item.label
+                        ? "text-heritage-green"
+                        : "text-obsidian/80 hover:text-obsidian",
+                    )}
+                  >
+                    {item.label}
+                    {activeMega === item.label && (
+                      <motion.span
+                        layoutId="nav-underline"
+                        className="absolute bottom-4 left-4 right-4 xl:left-5 xl:right-5 h-[1.5px] bg-heritage-green"
+                        transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </Link>
+                </div>
+              ))}
+            </nav>
+
+            {/* Center logo */}
+            <Link href="/" className="px-8 xl:px-12">
+              <span className="text-[17px] font-serif font-semibold tracking-[0.12em] text-obsidian whitespace-nowrap select-none">
+                THE HERITAGE EDIT
+              </span>
+            </Link>
+
+            {/* Right nav links + icons */}
+            <div className="flex items-center justify-end">
+              <nav
+                className="flex items-center"
+                onMouseLeave={handleMegaLeave}
+              >
+                {MEGA_MENU.slice(3).map((item) => (
+                  <div
+                    key={item.label}
+                    onMouseEnter={() => handleMegaEnter(item.label)}
+                    className="relative"
+                  >
+                    <Link
+                      href={item.href}
+                      className={cn(
+                        "relative block px-4 xl:px-5 py-6 text-[11px] font-sans font-medium tracking-[0.14em] uppercase transition-colors duration-200",
+                        activeMega === item.label
+                          ? "text-heritage-green"
+                          : "text-obsidian/80 hover:text-obsidian",
+                      )}
+                    >
+                      {item.label}
+                      {activeMega === item.label && (
+                        <motion.span
+                          layoutId="nav-underline"
+                          className="absolute bottom-4 left-4 right-4 xl:left-5 xl:right-5 h-[1.5px] bg-heritage-green"
+                          transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                        />
+                      )}
+                    </Link>
+                  </div>
+                ))}
+              </nav>
+
+              <div className="flex items-center gap-4 ml-4 xl:ml-6 pl-4 xl:pl-6 border-l border-slate-border">
+                <button
+                  onClick={() => setIsSearchOpen(true)}
+                  className="p-2 text-obsidian/60 hover:text-obsidian transition-colors"
+                  aria-label="Search"
+                >
+                  <Search size={19} strokeWidth={1.5} />
+                </button>
+                <Link
+                  href="/wishlist"
+                  className="p-2 text-obsidian/60 hover:text-obsidian transition-colors"
+                  aria-label="Wishlist"
+                >
+                  <Heart size={19} strokeWidth={1.5} />
+                </Link>
+                <Link
+                  href="/auth/login"
+                  className="p-2 text-obsidian/60 hover:text-obsidian transition-colors"
+                  aria-label="Account"
+                >
+                  <User size={19} strokeWidth={1.5} />
+                </Link>
+                <button
+                  onClick={openCart}
+                  className="relative p-2 text-obsidian/60 hover:text-obsidian transition-colors"
+                  aria-label="Shopping bag"
+                >
+                  <ShoppingBag size={19} strokeWidth={1.5} />
+                  {count > 0 && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute top-0.5 right-0.5 w-[17px] h-[17px] flex items-center justify-center bg-heritage-green text-white text-[9px] font-sans font-bold rounded-full"
+                    >
+                      {count > 9 ? "9+" : count}
+                    </motion.span>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

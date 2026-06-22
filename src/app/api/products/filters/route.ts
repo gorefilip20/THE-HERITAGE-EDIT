@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { redis } from "@/lib/redis";
+import { safeRedisGet, safeRedisSet } from "@/lib/redis";
 
 const FILTER_CACHE_PREFIX = "filters:";
 const FILTER_CACHE_TTL = 60 * 15; // 15 minutes
@@ -17,18 +17,16 @@ export async function GET(request: NextRequest) {
 
   const cacheKey = `${FILTER_CACHE_PREFIX}${type}`;
 
-  try {
-    const cached = await redis.get(cacheKey);
-    if (cached) {
+  const cached = await safeRedisGet(cacheKey);
+  if (cached) {
+    try {
       return NextResponse.json(JSON.parse(cached), {
         headers: {
           "X-Cache": "HIT",
           "Cache-Control": "public, s-maxage=300, stale-while-revalidate=600",
         },
       });
-    }
-  } catch {
-    /* Redis down — continue to DB */
+    } catch { /* corrupted cache entry */ }
   }
 
   try {
@@ -51,9 +49,7 @@ export async function GET(request: NextRequest) {
         _count: b._count.products,
       }));
 
-      try {
-        await redis.set(cacheKey, JSON.stringify(result), "EX", FILTER_CACHE_TTL);
-      } catch { /* non-critical */ }
+      await safeRedisSet(cacheKey, JSON.stringify(result), FILTER_CACHE_TTL);
 
       return NextResponse.json(result, {
         headers: {
@@ -81,9 +77,7 @@ export async function GET(request: NextRequest) {
       _count: c._count.products,
     }));
 
-    try {
-      await redis.set(cacheKey, JSON.stringify(result), "EX", FILTER_CACHE_TTL);
-    } catch { /* non-critical */ }
+    await safeRedisSet(cacheKey, JSON.stringify(result), FILTER_CACHE_TTL);
 
     return NextResponse.json(result, {
       headers: {

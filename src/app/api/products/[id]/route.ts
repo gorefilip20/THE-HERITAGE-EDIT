@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { redis } from "@/lib/redis";
+import { safeRedisGet, safeRedisSet } from "@/lib/redis";
 import { getCurrentUser } from "@/lib/auth";
 
 const PDP_CACHE_PREFIX = "pdp:";
@@ -16,9 +16,9 @@ export async function GET(
     const identifier = params.id;
     const cacheKey = `${PDP_CACHE_PREFIX}${identifier}`;
 
-    try {
-      const cached = await redis.get(cacheKey);
-      if (cached) {
+    const cached = await safeRedisGet(cacheKey);
+    if (cached) {
+      try {
         const elapsed = (performance.now() - start).toFixed(1);
         return NextResponse.json(JSON.parse(cached), {
           headers: {
@@ -27,8 +27,8 @@ export async function GET(
             "Cache-Control": "public, s-maxage=60, stale-while-revalidate=180",
           },
         });
-      }
-    } catch { /* Redis down — fall through */ }
+      } catch { /* corrupted cache entry */ }
+    }
 
     const product = await prisma.product.findFirst({
       where: {
@@ -47,9 +47,7 @@ export async function GET(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    try {
-      await redis.set(cacheKey, JSON.stringify(product), "EX", PDP_CACHE_TTL);
-    } catch { /* non-critical */ }
+    await safeRedisSet(cacheKey, JSON.stringify(product), PDP_CACHE_TTL);
 
     const elapsed = (performance.now() - start).toFixed(1);
     return NextResponse.json(product, {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { redis } from "@/lib/redis";
+import { safeRedisGet, safeRedisSet, safeRedisKeys, safeRedisDel } from "@/lib/redis";
 import { createProductSchema } from "@/lib/validators";
 import { slugify, generateItemCode } from "@/lib/utils";
 import { generateHeritageNarrative } from "@/lib/heritage-ai";
@@ -17,21 +17,15 @@ function buildCacheKey(params: URLSearchParams): string {
 }
 
 async function getCachedProducts(key: string) {
-  try {
-    const cached = await redis.get(key);
-    if (cached) return JSON.parse(cached);
-  } catch {
-    /* Redis down — fall through to DB */
+  const cached = await safeRedisGet(key);
+  if (cached) {
+    try { return JSON.parse(cached); } catch { /* corrupted */ }
   }
   return null;
 }
 
 async function setCachedProducts(key: string, data: unknown) {
-  try {
-    await redis.set(key, JSON.stringify(data), "EX", PRODUCT_CACHE_TTL);
-  } catch {
-    /* non-critical */
-  }
+  await safeRedisSet(key, JSON.stringify(data), PRODUCT_CACHE_TTL);
 }
 
 export async function GET(request: NextRequest) {
@@ -283,12 +277,8 @@ export async function POST(request: NextRequest) {
     });
 
     /* Invalidate product list cache on new product */
-    try {
-      const keys = await redis.keys(`${PRODUCT_CACHE_PREFIX}*`);
-      if (keys.length > 0) await redis.del(...keys);
-    } catch {
-      /* non-critical */
-    }
+    const keys = await safeRedisKeys(`${PRODUCT_CACHE_PREFIX}*`);
+    if (keys.length > 0) await safeRedisDel(...keys);
 
     generateHeritageNarrative(product.name, brand.name, category.name)
       .then(async ({ data, model }) => {

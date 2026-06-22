@@ -22,14 +22,22 @@ export async function GET(
                 id: true,
                 name: true,
                 slug: true,
-                images: { where: { isPrimary: true }, take: 1 },
-                brand: { select: { name: true } },
+                sku: true,
+                images: { orderBy: { sortOrder: "asc" }, take: 1 },
+                brand: { select: { name: true, slug: true } },
               },
             },
             variant: { select: { size: true, color: true } },
           },
         },
         shippingAddress: true,
+        user: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
       },
     });
 
