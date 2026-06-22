@@ -359,6 +359,11 @@ export default function ProductDetailPage() {
               {product.name}
             </h1>
 
+            {/* Mytheresa-style Item Code */}
+            <p className="text-[11px] font-sans text-neutral-400 tracking-wider tabular-nums -mt-3">
+              Item No. {product.sku}
+            </p>
+
             {/* Price */}
             <div className="flex items-baseline gap-3">
               <span

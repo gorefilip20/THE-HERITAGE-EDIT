@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { redis } from "@/lib/redis";
 import { createProductSchema } from "@/lib/validators";
-import { slugify, generateSKU } from "@/lib/utils";
+import { slugify, generateItemCode } from "@/lib/utils";
 import { generateHeritageNarrative } from "@/lib/heritage-ai";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -239,7 +239,7 @@ export async function POST(request: NextRequest) {
       slug = `${slug}-${suffix}`;
     }
 
-    const sku = generateSKU(brand.name, category.name);
+    const sku = generateItemCode();
 
     const product = await prisma.product.create({
       data: {

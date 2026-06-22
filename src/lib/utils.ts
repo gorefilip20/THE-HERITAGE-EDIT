@@ -41,11 +41,14 @@ export function generateOrderNumber(): string {
   return `HE-${timestamp}-${random}`;
 }
 
-export function generateSKU(brand: string, category: string): string {
-  const b = brand.substring(0, 3).toUpperCase();
-  const c = category.substring(0, 3).toUpperCase();
-  const n = Math.random().toString().substring(2, 8);
-  return `${b}-${c}-${n}`;
+export function generateSKU(_brand: string, _category: string): string {
+  const seq = Date.now().toString().slice(-8).padStart(8, "0");
+  return `P${seq}`;
+}
+
+export function generateItemCode(): string {
+  const seq = Date.now().toString().slice(-8).padStart(8, "0");
+  return `P00${seq}`;
 }
 
 export function getImagePlaceholder(width: number, height: number): string {
