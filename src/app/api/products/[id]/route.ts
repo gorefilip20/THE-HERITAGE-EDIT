@@ -1,13 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { redis } from "@/lib/redis";
 import { getCurrentUser } from "@/lib/auth";
+
+const PDP_CACHE_PREFIX = "pdp:";
+const PDP_CACHE_TTL = 60 * 3; // 3 minutes
 
 export async function GET(
   _request: NextRequest,
   { params }: { params: { id: string } },
 ) {
+  const start = performance.now();
+
   try {
     const identifier = params.id;
+    const cacheKey = `${PDP_CACHE_PREFIX}${identifier}`;
+
+    try {
+      const cached = await redis.get(cacheKey);
+      if (cached) {
+        const elapsed = (performance.now() - start).toFixed(1);
+        return NextResponse.json(JSON.parse(cached), {
+          headers: {
+            "X-Cache": "HIT",
+            "X-Response-Time": `${elapsed}ms`,
+            "Cache-Control": "public, s-maxage=60, stale-while-revalidate=180",
+          },
+        });
+      }
+    } catch { /* Redis down — fall through */ }
 
     const product = await prisma.product.findFirst({
       where: {
@@ -26,7 +47,18 @@ export async function GET(
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
 
-    return NextResponse.json(product);
+    try {
+      await redis.set(cacheKey, JSON.stringify(product), "EX", PDP_CACHE_TTL);
+    } catch { /* non-critical */ }
+
+    const elapsed = (performance.now() - start).toFixed(1);
+    return NextResponse.json(product, {
+      headers: {
+        "X-Cache": "MISS",
+        "X-Response-Time": `${elapsed}ms`,
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=180",
+      },
+    });
   } catch (err) {
     console.error("Product fetch error:", err);
     return NextResponse.json(

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
@@ -15,25 +16,47 @@ import {
   Minus,
   Plus,
   ShoppingBag,
-  BookOpen,
-  Sparkles,
-  Star,
+  Check,
+  X,
 } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn, formatPrice, getImagePlaceholder } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import type { Product, ProductVariant } from "@/types";
 
-const SIZE_TRANSLATIONS: Record<string, Record<string, string>> = {
-  XXS: { EU: "32", UK: "4", US: "00" },
-  XS: { EU: "34", UK: "6", US: "0" },
-  S: { EU: "36–38", UK: "8–10", US: "2–4" },
-  M: { EU: "40–42", UK: "12–14", US: "6–8" },
-  L: { EU: "44–46", UK: "16–18", US: "10–12" },
-  XL: { EU: "48–50", UK: "20–22", US: "14–16" },
-  XXL: { EU: "52–54", UK: "24–26", US: "18–20" },
+/* ──────────────────────────────────────────────────────────
+   CONSTANTS
+   ────────────────────────────────────────────────────────── */
+
+const SIZE_CHART: Record<string, Record<string, string>> = {
+  XXS: { IT: "36", FR: "32", UK: "4", US: "00" },
+  XS:  { IT: "38", FR: "34", UK: "6", US: "0" },
+  S:   { IT: "40", FR: "36", UK: "8", US: "2–4" },
+  M:   { IT: "42", FR: "38", UK: "10", US: "6" },
+  L:   { IT: "44", FR: "40", UK: "12", US: "8" },
+  XL:  { IT: "46", FR: "42", UK: "14", US: "10–12" },
+  XXL: { IT: "48", FR: "44", UK: "16", US: "14" },
 };
 
-type SizeScale = "EU" | "UK" | "US";
+const ACCORDION_SECTIONS = [
+  {
+    key: "description",
+    title: "Description",
+  },
+  {
+    key: "sizefit",
+    title: "Size & Fit",
+  },
+  {
+    key: "shipping",
+    title: "Premium Shipping & Returns",
+  },
+] as const;
+
+type AccordionKey = (typeof ACCORDION_SECTIONS)[number]["key"];
+
+/* ──────────────────────────────────────────────────────────
+   PAGE COMPONENT
+   ────────────────────────────────────────────────────────── */
 
 export default function ProductDetailPage() {
   const params = useParams();
@@ -45,38 +68,75 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
-  const [sizeScale, setSizeScale] = useState<SizeScale>("EU");
+  const [sizeNotSelected, setSizeNotSelected] = useState(false);
   const [quantity, setQuantity] = useState(1);
-  const [openAccordion, setOpenAccordion] = useState<string | null>("heritage");
+  const [openAccordions, setOpenAccordions] = useState<Set<AccordionKey>>(
+    new Set(["description"]),
+  );
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+  const [isSizeDrawerOpen, setIsSizeDrawerOpen] = useState(false);
 
+  /* ── Fetch product (server-side Redis cache via API) ── */
   useEffect(() => {
+    let cancelled = false;
     async function load() {
       try {
         const res = await fetch(`/api/products/${slug}`);
-        if (res.ok) {
+        if (res.ok && !cancelled) {
           const data = await res.json();
           setProduct(data);
-          if (data.variants?.length > 0) setSelectedVariant(data.variants[0]);
         }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     }
     load();
+    return () => { cancelled = true; };
   }, [slug]);
 
+  /* ── Computed price ── */
   const finalPrice = useMemo(() => {
     if (!product) return 0;
     const base = product.salePriceCents ?? product.basePriceCents;
     return base + (selectedVariant?.priceDeltaCents ?? 0);
   }, [product, selectedVariant]);
 
-  const isOnSale = product?.salePriceCents !== null && product?.salePriceCents !== undefined;
+  const isOnSale =
+    product?.salePriceCents != null &&
+    product.salePriceCents < product.basePriceCents;
 
-  const handleAddToCart = () => {
-    if (!product || !selectedVariant) return;
+  /* ── Accordion toggle ── */
+  const toggleAccordion = useCallback((key: AccordionKey) => {
+    setOpenAccordions((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  }, []);
+
+  /* ── Size selection ── */
+  const handleSizeSelect = useCallback(
+    (variant: ProductVariant) => {
+      if (variant.stockCount <= 0) return;
+      setSelectedVariant(variant);
+      setSizeNotSelected(false);
+      setIsSizeDrawerOpen(false);
+    },
+    [],
+  );
+
+  /* ── Add to cart ── */
+  const handleAddToCart = useCallback(() => {
+    if (!product) return;
+
+    if (!selectedVariant) {
+      setSizeNotSelected(true);
+      setIsSizeDrawerOpen(true);
+      return;
+    }
+
     addItem({
       productId: product.id,
       variantId: selectedVariant.id,
@@ -89,324 +149,428 @@ export default function ProductDetailPage() {
       quantity,
       slug: product.slug,
     });
+
     setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
     openCart();
-  };
+    setTimeout(() => setAddedToCart(false), 2500);
+  }, [product, selectedVariant, finalPrice, quantity, addItem, openCart]);
 
-  const toggleAccordion = (key: string) =>
-    setOpenAccordion((prev) => (prev === key ? null : key));
-
+  /* ── Loading skeleton ── */
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-          <div className="lg:col-span-7">
-            <div className="flex gap-4">
-              <div className="flex flex-col gap-3 w-20">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="aspect-[3/4] rounded-lg bg-neutral-100 animate-pulse" />
-                ))}
-              </div>
-              <div className="flex-1 aspect-[3/4] rounded-xl bg-neutral-100 animate-pulse" />
+      <div className="luxury-container py-12 lg:py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+          <div className="flex gap-4">
+            <div className="hidden sm:flex flex-col gap-3 w-[76px] shrink-0">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="aspect-[3/4] bg-neutral-100 animate-pulse" />
+              ))}
             </div>
+            <div className="flex-1 aspect-[3/4] bg-neutral-100 animate-pulse" />
           </div>
-          <div className="lg:col-span-5 space-y-6">
-            <div className="h-4 w-24 bg-neutral-100 rounded animate-pulse" />
-            <div className="h-8 w-3/4 bg-neutral-100 rounded animate-pulse" />
-            <div className="h-6 w-32 bg-neutral-100 rounded animate-pulse" />
-            <div className="h-12 w-full bg-neutral-100 rounded-lg animate-pulse mt-8" />
+          <div className="space-y-6 pt-4">
+            <div className="h-3 w-28 bg-neutral-100 animate-pulse" />
+            <div className="h-8 w-3/4 bg-neutral-100 animate-pulse" />
+            <div className="h-6 w-32 bg-neutral-100 animate-pulse" />
+            <div className="h-14 w-full bg-neutral-100 animate-pulse mt-10" />
           </div>
         </div>
       </div>
     );
   }
 
+  /* ── Not found ── */
   if (!product) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
-        <h1 className="text-2xl font-serif text-neutral-900 mb-2">Product Not Found</h1>
-        <p className="text-sm text-neutral-500 mb-6">
-          The piece you&apos;re looking for may have been removed from our collection.
+      <div className="luxury-container py-24 text-center">
+        <h1 className="text-display-sm font-serif italic text-obsidian mb-2">
+          Piece Not Found
+        </h1>
+        <p className="text-sm font-sans text-neutral-400 mb-8 max-w-md mx-auto">
+          This item may have been removed from our collection or is currently unavailable.
         </p>
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-sm font-sans font-medium text-[#0D2C22] hover:underline"
-        >
-          Return to the Edit
+        <Link href="/shop" className="luxury-button-primary">
+          Explore the Collection
         </Link>
       </div>
     );
   }
 
-  const images = product.images.length > 0
-    ? product.images
-    : [{ id: "placeholder", url: "/placeholder-product.jpg", alt: product.name, sortOrder: 0, isPrimary: true }];
+  const images =
+    product.images.length > 0
+      ? product.images
+      : [
+          {
+            id: "ph",
+            url: getImagePlaceholder(800, 1067),
+            alt: product.name,
+            sortOrder: 0,
+            isPrimary: true,
+          },
+        ];
+
+  const inStockVariants = product.variants.filter((v) => v.stockCount > 0);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-16">
-      {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-xs font-sans text-neutral-400 mb-8">
-        <Link href="/" className="hover:text-neutral-700 transition-colors">
+    <div className="luxury-container py-8 lg:py-16">
+      {/* ── BREADCRUMB ── */}
+      <nav className="flex items-center gap-2 text-[11px] font-sans text-neutral-400 mb-8 lg:mb-12">
+        <Link href="/" className="hover:text-obsidian transition-colors">
           Home
         </Link>
         <span>/</span>
+        <Link href="/shop" className="hover:text-obsidian transition-colors">
+          Shop
+        </Link>
+        <span>/</span>
         <Link
-          href={`/collection/${product.category.slug}`}
-          className="hover:text-neutral-700 transition-colors"
+          href={`/shop?category=${product.category.slug}`}
+          className="hover:text-obsidian transition-colors"
         >
           {product.category.name}
         </Link>
         <span>/</span>
-        <span className="text-neutral-700 truncate max-w-[200px]">{product.name}</span>
+        <span className="text-obsidian truncate max-w-[180px]">{product.name}</span>
       </nav>
 
-      {/* ─── ASYMMETRIC GRID ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
-        {/* ─── LEFT: IMAGE GALLERY ─── */}
-        <div className="lg:col-span-7">
-          <div className="flex gap-4">
-            {/* Vertical thumbnail strip */}
-            <div className="hidden sm:flex flex-col gap-3 w-[72px] shrink-0">
-              {images.map((img, idx) => (
-                <button
-                  key={img.id}
-                  onClick={() => setSelectedImageIdx(idx)}
+      {/* ── TWO-COLUMN LAYOUT ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+        {/* ═══ LEFT: IMAGE GALLERY ═══ */}
+        <div className="flex gap-4">
+          {/* Vertical thumbnail strip */}
+          <div className="hidden sm:flex flex-col gap-3 w-[76px] shrink-0">
+            {images.map((img, idx) => (
+              <button
+                key={img.id}
+                onClick={() => setSelectedImageIdx(idx)}
+                className={cn(
+                  "relative aspect-[3/4] overflow-hidden border transition-all duration-200",
+                  idx === selectedImageIdx
+                    ? "border-heritage-green opacity-100"
+                    : "border-transparent opacity-50 hover:opacity-80",
+                )}
+              >
+                <Image
+                  src={img.url}
+                  alt={img.alt ?? `View ${idx + 1}`}
+                  fill
+                  sizes="76px"
+                  className="object-cover"
+                />
+              </button>
+            ))}
+          </div>
+
+          {/* Main image */}
+          <div className="flex-1 relative">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={selectedImageIdx}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                className="aspect-[3/4] overflow-hidden bg-ivory"
+              >
+                <Image
+                  src={images[selectedImageIdx]?.url ?? getImagePlaceholder(800, 1067)}
+                  alt={images[selectedImageIdx]?.alt ?? product.name}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
+                  priority={selectedImageIdx === 0}
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Sale badge */}
+            {isOnSale && (
+              <span className="absolute top-4 left-4 px-3 py-1.5 bg-heritage-purple text-white text-[9px] font-sans font-bold tracking-[0.2em] uppercase">
+                Sale
+              </span>
+            )}
+
+            {/* Action buttons */}
+            <div className="absolute top-4 right-4 flex flex-col gap-2">
+              <button
+                onClick={() => setIsWishlisted(!isWishlisted)}
+                className="w-10 h-10 flex items-center justify-center bg-white/90 backdrop-blur-sm shadow-sm hover:bg-white transition-colors"
+                aria-label="Add to wishlist"
+              >
+                <Heart
+                  size={16}
+                  strokeWidth={1.5}
                   className={cn(
-                    "relative aspect-[3/4] rounded-lg overflow-hidden border-2 transition-all duration-200",
-                    idx === selectedImageIdx
-                      ? "border-[#0D2C22] shadow-sm"
-                      : "border-transparent opacity-60 hover:opacity-100",
+                    "transition-colors",
+                    isWishlisted
+                      ? "fill-heritage-green text-heritage-green"
+                      : "text-obsidian/50",
                   )}
-                >
-                  <img
-                    src={img.url}
-                    alt={img.alt ?? `View ${idx + 1}`}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
+                />
+              </button>
+              <button
+                className="w-10 h-10 flex items-center justify-center bg-white/90 backdrop-blur-sm shadow-sm hover:bg-white transition-colors"
+                aria-label="Share"
+              >
+                <Share2 size={16} strokeWidth={1.5} className="text-obsidian/50" />
+              </button>
             </div>
 
-            {/* Main image */}
-            <div className="flex-1 relative">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={selectedImageIdx}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="aspect-[3/4] rounded-xl overflow-hidden bg-neutral-50"
-                >
-                  <img
-                    src={images[selectedImageIdx]?.url}
-                    alt={images[selectedImageIdx]?.alt ?? product.name}
-                    className="w-full h-full object-cover"
-                  />
-                </motion.div>
-              </AnimatePresence>
-
-              {isOnSale && (
-                <div className="absolute top-4 left-4 px-3 py-1.5 bg-[#2E1A47] text-white text-[10px] font-sans font-bold tracking-[0.2em] uppercase rounded-full">
-                  Sale
-                </div>
-              )}
-
-              <div className="absolute top-4 right-4 flex flex-col gap-2">
-                <button
-                  onClick={() => setIsWishlisted(!isWishlisted)}
-                  className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-sm flex items-center justify-center hover:bg-white transition-colors"
-                >
-                  <Heart
-                    size={18}
-                    className={cn(
-                      "transition-colors",
-                      isWishlisted ? "fill-red-500 text-red-500" : "text-neutral-600",
-                    )}
-                  />
-                </button>
-                <button className="w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm shadow-sm flex items-center justify-center hover:bg-white transition-colors">
-                  <Share2 size={18} className="text-neutral-600" />
-                </button>
-              </div>
-
+            {/* Mobile dots */}
+            {images.length > 1 && (
               <div className="sm:hidden flex items-center justify-center gap-2 mt-4">
                 {images.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setSelectedImageIdx(idx)}
                     className={cn(
-                      "w-2 h-2 rounded-full transition-all",
-                      idx === selectedImageIdx ? "bg-[#0D2C22] w-6" : "bg-neutral-300",
+                      "h-1.5 rounded-full transition-all duration-300",
+                      idx === selectedImageIdx
+                        ? "bg-heritage-green w-6"
+                        : "bg-neutral-300 w-1.5",
                     )}
                   />
                 ))}
               </div>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* ─── RIGHT: STICKY PRODUCT PANEL ─── */}
-        <div className="lg:col-span-5">
+        {/* ═══ RIGHT: STICKY PRODUCT PANEL ═══ */}
+        <div>
           <div className="lg:sticky lg:top-28 space-y-6">
+            {/* Brand */}
             <div>
               <Link
-                href={`/collection?brand=${product.brand.slug}`}
-                className="text-[11px] font-sans font-semibold tracking-[0.2em] uppercase text-[#2E1A47] hover:text-[#2E1A47]/70 transition-colors"
+                href={`/shop?brand=${product.brand.slug}`}
+                className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-heritage-purple hover:text-heritage-purple/70 transition-colors"
               >
                 {product.brand.name}
               </Link>
               {product.brand.country && (
-                <span className="text-[10px] font-sans text-neutral-300 ml-2 tracking-wider uppercase">
+                <span className="text-[9px] font-sans text-neutral-300 ml-2 tracking-wider uppercase">
                   {product.brand.country}
                 </span>
               )}
             </div>
 
-            <h1 className="text-2xl lg:text-3xl font-serif tracking-tight text-neutral-900 leading-tight">
+            {/* Title */}
+            <h1 className="text-2xl lg:text-[28px] font-serif tracking-tight text-obsidian leading-tight">
               {product.name}
             </h1>
 
+            {/* Price */}
             <div className="flex items-baseline gap-3">
-              <span className="text-xl font-sans font-light tabular-nums text-neutral-900">
-                {formatPrice(finalPrice)}
+              <span
+                className={cn(
+                  "text-xl font-sans font-light tabular-nums",
+                  isOnSale ? "text-heritage-purple" : "text-obsidian",
+                )}
+              >
+                {formatPrice(finalPrice, product.currency)}
               </span>
               {isOnSale && (
-                <span className="text-sm font-sans text-neutral-400 line-through tabular-nums">
-                  {formatPrice(product.basePriceCents)}
+                <span className="text-sm font-sans text-neutral-300 line-through tabular-nums">
+                  {formatPrice(
+                    product.basePriceCents +
+                      (selectedVariant?.priceDeltaCents ?? 0),
+                    product.currency,
+                  )}
                 </span>
               )}
             </div>
 
-            {product.description && (
-              <p className="text-sm font-sans text-neutral-500 leading-relaxed">
-                {product.description}
-              </p>
-            )}
+            <div className="w-full h-px bg-slate-border" />
 
-            <div className="w-full h-px bg-neutral-100" />
-
-            {/* Size selector with EU/UK/US scale translations */}
+            {/* ── SELECT SIZE DRAWER ── */}
             {product.variants.length > 0 && (
               <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[11px] font-sans font-semibold tracking-[0.15em] uppercase text-neutral-500">
-                    Select Size
-                  </span>
-                  <div className="flex items-center gap-1 bg-neutral-50 rounded-lg p-0.5">
-                    {(["EU", "UK", "US"] as SizeScale[]).map((scale) => (
-                      <button
-                        key={scale}
-                        onClick={() => setSizeScale(scale)}
-                        className={cn(
-                          "px-2.5 py-1 rounded-md text-[10px] font-sans font-bold tracking-wider transition-all duration-200",
-                          sizeScale === scale
-                            ? "bg-white shadow-sm text-[#0D2C22]"
-                            : "text-neutral-400 hover:text-neutral-600",
-                        )}
-                      >
-                        {scale}
-                      </button>
-                    ))}
+                <button
+                  onClick={() => setIsSizeDrawerOpen(!isSizeDrawerOpen)}
+                  className={cn(
+                    "w-full flex items-center justify-between h-14 px-5 border transition-all duration-200",
+                    sizeNotSelected
+                      ? "border-red-400 bg-red-50/30"
+                      : selectedVariant
+                        ? "border-heritage-green bg-heritage-green/[0.02]"
+                        : "border-slate-border hover:border-obsidian/30",
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <Ruler size={16} strokeWidth={1.5} className="text-neutral-400" />
+                    <span className="text-[13px] font-sans text-obsidian">
+                      {selectedVariant
+                        ? `Size ${selectedVariant.size}${selectedVariant.color ? ` — ${selectedVariant.color}` : ""}`
+                        : "Select Size"}
+                    </span>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-4 gap-2">
-                  {product.variants.map((v) => {
-                    const translation = SIZE_TRANSLATIONS[v.size]?.[sizeScale] ?? v.size;
-                    const isSelected = selectedVariant?.id === v.id;
-                    const outOfStock = v.stockCount <= 0;
-
-                    return (
-                      <button
-                        key={v.id}
-                        onClick={() => !outOfStock && setSelectedVariant(v)}
-                        disabled={outOfStock}
-                        className={cn(
-                          "relative h-12 rounded-lg border text-center transition-all duration-200",
-                          isSelected
-                            ? "border-[#0D2C22] bg-[#0D2C22] text-white shadow-sm"
-                            : outOfStock
-                              ? "border-neutral-100 bg-neutral-50 text-neutral-300 cursor-not-allowed"
-                              : "border-neutral-200 bg-white text-neutral-700 hover:border-[#0D2C22]/40",
-                        )}
-                      >
-                        <span className="text-sm font-sans font-medium">{translation}</span>
-                        <span className="block text-[9px] font-sans text-current opacity-50 -mt-0.5">
-                          {v.size}
-                        </span>
-                        {outOfStock && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="w-[70%] h-px bg-neutral-300 rotate-[-20deg]" />
-                          </div>
-                        )}
-                        {v.stockCount > 0 && v.stockCount <= 3 && !isSelected && (
-                          <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-amber-500 text-white text-[8px] font-bold flex items-center justify-center">
-                            {v.stockCount}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button className="flex items-center gap-1.5 mt-3 text-xs font-sans text-neutral-400 hover:text-[#0D2C22] transition-colors">
-                  <Ruler size={13} strokeWidth={1.5} />
-                  <span>View size guide</span>
+                  <div className="flex items-center gap-2">
+                    {sizeNotSelected && (
+                      <span className="text-[11px] font-sans text-red-500">Required</span>
+                    )}
+                    {selectedVariant && selectedVariant.stockCount <= 3 && (
+                      <span className="text-[10px] font-sans text-amber-600 font-medium">
+                        Only {selectedVariant.stockCount} left
+                      </span>
+                    )}
+                    <ChevronDown
+                      size={14}
+                      className={cn(
+                        "text-neutral-400 transition-transform duration-200",
+                        isSizeDrawerOpen && "rotate-180",
+                      )}
+                    />
+                  </div>
                 </button>
+
+                {/* Size drawer content */}
+                <AnimatePresence>
+                  {isSizeDrawerOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                      className="overflow-hidden border-x border-b border-slate-border"
+                    >
+                      <div className="p-4 space-y-1">
+                        {product.variants.map((v) => {
+                          const isSelected = selectedVariant?.id === v.id;
+                          const outOfStock = v.stockCount <= 0;
+                          const lowStock = v.stockCount > 0 && v.stockCount <= 3;
+                          const itSize = SIZE_CHART[v.size]?.IT;
+
+                          return (
+                            <button
+                              key={v.id}
+                              onClick={() => handleSizeSelect(v)}
+                              disabled={outOfStock}
+                              className={cn(
+                                "w-full flex items-center justify-between px-4 py-3 transition-all duration-150",
+                                isSelected
+                                  ? "bg-heritage-green/[0.04] border border-heritage-green"
+                                  : outOfStock
+                                    ? "opacity-40 cursor-not-allowed"
+                                    : "hover:bg-ivory border border-transparent",
+                              )}
+                            >
+                              <div className="flex items-center gap-3">
+                                <span className="text-[13px] font-sans font-medium text-obsidian w-10">
+                                  {v.size}
+                                </span>
+                                {itSize && (
+                                  <span className="text-[11px] font-sans text-neutral-400">
+                                    IT {itSize}
+                                  </span>
+                                )}
+                                {v.color && (
+                                  <>
+                                    <span className="text-neutral-200">·</span>
+                                    <span className="text-[11px] font-sans text-neutral-400">
+                                      {v.color}
+                                    </span>
+                                    {v.colorHex && (
+                                      <span
+                                        className="w-3 h-3 rounded-full border border-neutral-200"
+                                        style={{ backgroundColor: v.colorHex }}
+                                      />
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-3">
+                                {outOfStock && (
+                                  <span className="text-[10px] font-sans font-medium text-neutral-400 tracking-wider uppercase">
+                                    Sold Out
+                                  </span>
+                                )}
+                                {lowStock && (
+                                  <span className="text-[10px] font-sans font-medium text-amber-600">
+                                    {v.stockCount} left
+                                  </span>
+                                )}
+                                {!outOfStock && !lowStock && (
+                                  <span className="text-[10px] font-sans text-emerald-600">
+                                    In Stock
+                                  </span>
+                                )}
+                                {v.priceDeltaCents > 0 && (
+                                  <span className="text-[11px] font-sans text-neutral-400">
+                                    +{formatPrice(v.priceDeltaCents, product.currency)}
+                                  </span>
+                                )}
+                                {isSelected && (
+                                  <Check size={14} className="text-heritage-green" />
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
 
-            {/* Quantity */}
-            <div className="flex items-center gap-4">
-              <span className="text-[11px] font-sans font-semibold tracking-[0.15em] uppercase text-neutral-500">
-                Qty
+            {/* ── QUANTITY ── */}
+            <div className="flex items-center gap-5">
+              <span className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-neutral-400">
+                Quantity
               </span>
-              <div className="flex items-center border border-neutral-200 rounded-lg overflow-hidden">
+              <div className="flex items-center border border-slate-border">
                 <button
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-colors"
+                  className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-obsidian transition-colors"
                 >
                   <Minus size={14} />
                 </button>
-                <span className="w-12 text-center text-sm font-sans font-medium tabular-nums text-neutral-900">
+                <span className="w-10 text-center text-sm font-sans font-medium tabular-nums text-obsidian">
                   {quantity}
                 </span>
                 <button
-                  onClick={() => setQuantity((q) => Math.min(10, q + 1))}
-                  className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-neutral-700 hover:bg-neutral-50 transition-colors"
+                  onClick={() =>
+                    setQuantity((q) =>
+                      Math.min(
+                        10,
+                        selectedVariant ? Math.min(q + 1, selectedVariant.stockCount) : q + 1,
+                      ),
+                    )
+                  }
+                  className="w-10 h-10 flex items-center justify-center text-neutral-400 hover:text-obsidian transition-colors"
                 >
                   <Plus size={14} />
                 </button>
               </div>
             </div>
 
-            {/* Add to cart */}
+            {/* ── ADD TO BAG ── */}
             <button
               onClick={handleAddToCart}
-              disabled={!selectedVariant || (selectedVariant?.stockCount ?? 0) <= 0}
+              disabled={inStockVariants.length === 0}
               className={cn(
-                "w-full h-14 rounded-xl text-sm font-sans font-semibold tracking-wide flex items-center justify-center gap-2.5 transition-all duration-300 active:scale-[0.98]",
+                "w-full h-14 text-[13px] font-sans font-semibold tracking-wider uppercase flex items-center justify-center gap-3 transition-all duration-300 active:scale-[0.98]",
                 addedToCart
-                  ? "bg-emerald-600 text-white"
-                  : "bg-[#0D2C22] text-white hover:shadow-lg hover:shadow-[#0D2C22]/20 disabled:opacity-40 disabled:cursor-not-allowed",
+                  ? "bg-emerald-700 text-white"
+                  : "bg-heritage-green text-white hover:shadow-lg hover:shadow-heritage-green/20 disabled:opacity-40 disabled:cursor-not-allowed",
               )}
             >
               {addedToCart ? (
                 <>
-                  <ShieldCheck size={18} />
+                  <Check size={16} />
                   Added to Bag
                 </>
+              ) : inStockVariants.length === 0 ? (
+                "Currently Unavailable"
               ) : (
                 <>
-                  <ShoppingBag size={18} />
-                  Add to Bag — {formatPrice(finalPrice * quantity)}
+                  <ShoppingBag size={16} />
+                  Add to Bag — {formatPrice(finalPrice * quantity, product.currency)}
                 </>
               )}
             </button>
 
-            {/* Trust indicators */}
+            {/* ── TRUST INDICATORS ── */}
             <div className="grid grid-cols-3 gap-3">
               {[
                 { icon: Truck, label: "Complimentary\nExpress Shipping" },
@@ -415,12 +579,60 @@ export default function ProductDetailPage() {
               ].map(({ icon: Icon, label }) => (
                 <div
                   key={label}
-                  className="flex flex-col items-center text-center p-3 rounded-lg bg-neutral-50/50"
+                  className="flex flex-col items-center text-center py-4 bg-ivory/50"
                 >
-                  <Icon size={18} className="text-[#0D2C22]/40 mb-1.5" strokeWidth={1.2} />
-                  <span className="text-[10px] font-sans text-neutral-400 leading-tight whitespace-pre-line">
+                  <Icon
+                    size={18}
+                    className="text-heritage-green/30 mb-2"
+                    strokeWidth={1.2}
+                  />
+                  <span className="text-[9px] font-sans text-neutral-400 leading-tight whitespace-pre-line tracking-wide uppercase">
                     {label}
                   </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="w-full h-px bg-slate-border" />
+
+            {/* ── ACCORDIONS ── */}
+            <div className="space-y-0">
+              {ACCORDION_SECTIONS.map((section) => (
+                <div key={section.key} className="border-b border-slate-border">
+                  <button
+                    onClick={() => toggleAccordion(section.key)}
+                    className="w-full flex items-center justify-between py-5 group"
+                  >
+                    <span className="text-[12px] font-sans font-semibold tracking-[0.12em] uppercase text-obsidian group-hover:text-heritage-green transition-colors">
+                      {section.title}
+                    </span>
+                    <motion.div
+                      animate={{
+                        rotate: openAccordions.has(section.key) ? 180 : 0,
+                      }}
+                      transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                    >
+                      <ChevronDown size={14} className="text-neutral-400" />
+                    </motion.div>
+                  </button>
+                  <AnimatePresence initial={false}>
+                    {openAccordions.has(section.key) && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <div className="pb-6">
+                          <AccordionContent
+                            sectionKey={section.key}
+                            product={product}
+                          />
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
               ))}
             </div>
@@ -428,148 +640,179 @@ export default function ProductDetailPage() {
         </div>
       </div>
 
-      {/* ─── HERITAGE NARRATIVE ACCORDIONS ─── */}
-      {product.heritage && (
-        <div className="mt-16 lg:mt-24 max-w-3xl">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-8 h-8 rounded-lg bg-[#0D2C22]/[0.05] flex items-center justify-center">
-              <BookOpen size={16} className="text-[#0D2C22]/50" strokeWidth={1.5} />
-            </div>
-            <h2 className="text-lg font-serif italic text-neutral-900">
-              The Heritage Narrative
-            </h2>
+      {/* ── HERITAGE NARRATIVE ── */}
+      {product.heritage && product.heritage.isApproved && (
+        <div className="mt-20 lg:mt-28 max-w-3xl mx-auto text-center">
+          <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-heritage-purple/60 mb-4">
+            The Heritage Narrative
+          </p>
+          <h2 className="text-display-sm font-serif italic text-obsidian mb-8">
+            The Story Behind This Piece
+          </h2>
+          <div className="font-serif text-[16px] text-neutral-500 leading-[2] space-y-6 text-left">
+            {product.heritage.historyAndHeritage
+              .split("\n\n")
+              .map((para, i) => (
+                <p
+                  key={i}
+                  className={cn(
+                    i === 0 &&
+                      "first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:text-heritage-green first-letter:mr-2 first-letter:float-left first-letter:leading-[0.75]",
+                  )}
+                >
+                  {para}
+                </p>
+              ))}
           </div>
 
-          <div className="space-y-0">
-            <AccordionItem
-              title="Heritage & History"
-              icon={<Sparkles size={15} className="text-[#0D2C22]/40" />}
-              isOpen={openAccordion === "heritage"}
-              onToggle={() => toggleAccordion("heritage")}
-            >
-              <div className="font-serif text-neutral-600 leading-[1.9] space-y-4">
-                {product.heritage.historyAndHeritage
-                  .split("\n\n")
-                  .map((para, i) => (
-                    <p
-                      key={i}
-                      className={cn(
-                        "text-[15px]",
-                        i === 0 &&
-                          "first-letter:text-4xl first-letter:font-serif first-letter:font-bold first-letter:text-[#0D2C22] first-letter:mr-1.5 first-letter:float-left first-letter:leading-[0.8]",
-                      )}
-                    >
-                      {para}
-                    </p>
-                  ))}
-              </div>
-            </AccordionItem>
-
-            <AccordionItem
-              title="When to Wear"
-              icon={<Star size={15} className="text-[#0D2C22]/40" />}
-              isOpen={openAccordion === "wear"}
-              onToggle={() => toggleAccordion("wear")}
-            >
-              <div className="font-serif italic text-neutral-500 text-[15px] leading-[1.9] space-y-3">
-                {product.heritage.whenToWear
-                  .split("\n\n")
-                  .map((para, i) => (
-                    <p key={i}>{para}</p>
-                  ))}
-              </div>
-            </AccordionItem>
-
-            <AccordionItem
-              title="The Right Occasion"
-              icon={<Star size={15} className="text-[#0D2C22]/40" />}
-              isOpen={openAccordion === "occasion"}
-              onToggle={() => toggleAccordion("occasion")}
-            >
-              <div className="space-y-3">
-                {product.heritage.rightOccasion.map((occ, i) => (
-                  <div key={i} className="flex items-start gap-3 pl-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#0D2C22]/30 mt-2 shrink-0" />
-                    <span className="text-[15px] font-serif italic text-neutral-600 leading-relaxed">
-                      {occ}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </AccordionItem>
-
-            <AccordionItem
-              title="Complete the Look"
-              icon={<ShoppingBag size={15} className="text-[#0D2C22]/40" />}
-              isOpen={openAccordion === "look"}
-              onToggle={() => toggleAccordion("look")}
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {product.heritage.styleRecommendations.length > 0 && (
+            <div className="mt-12 pt-8 border-t border-slate-border">
+              <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-neutral-400 mb-5">
+                Complete the Look
+              </p>
+              <div className="flex flex-wrap justify-center gap-2">
                 {product.heritage.styleRecommendations.map((rec, i) => (
-                  <div
+                  <span
                     key={i}
-                    className="flex items-center gap-3 p-3.5 rounded-lg border border-[#0D2C22]/[0.06] bg-[#0D2C22]/[0.01] hover:border-[#0D2C22]/15 transition-colors"
+                    className="px-4 py-2 text-[12px] font-sans text-obsidian/60 border border-slate-border"
                   >
-                    <div className="w-7 h-7 rounded-md bg-[#0D2C22]/[0.04] flex items-center justify-center shrink-0">
-                      <ShoppingBag size={12} className="text-[#0D2C22]/30" />
-                    </div>
-                    <span className="text-sm font-sans text-neutral-600">{rec}</span>
-                  </div>
+                    {rec}
+                  </span>
                 ))}
               </div>
-            </AccordionItem>
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-function AccordionItem({
-  title,
-  icon,
-  isOpen,
-  onToggle,
-  children,
+/* ──────────────────────────────────────────────────────────
+   ACCORDION CONTENT
+   ────────────────────────────────────────────────────────── */
+
+function AccordionContent({
+  sectionKey,
+  product,
 }: {
-  title: string;
-  icon: React.ReactNode;
-  isOpen: boolean;
-  onToggle: () => void;
-  children: React.ReactNode;
+  sectionKey: AccordionKey;
+  product: Product;
 }) {
-  return (
-    <div className="border-b border-[#0D2C22]/[0.08]">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between py-5 group"
-      >
-        <div className="flex items-center gap-3">
-          {icon}
-          <span className="text-sm font-sans font-medium tracking-wide text-neutral-800 group-hover:text-[#0D2C22] transition-colors">
-            {title}
-          </span>
+  switch (sectionKey) {
+    case "description":
+      return (
+        <div className="text-[13px] font-sans text-neutral-500 leading-relaxed space-y-3">
+          {product.description ? (
+            product.description.split("\n\n").map((p, i) => <p key={i}>{p}</p>)
+          ) : (
+            <p>
+              A carefully curated piece from {product.brand.name}, selected by our
+              editorial team for its exceptional craftsmanship and enduring style.
+            </p>
+          )}
+          <div className="flex flex-wrap gap-x-6 gap-y-2 pt-3 text-[11px] text-neutral-400">
+            <span>SKU: {product.sku}</span>
+            <span>Category: {product.category.name}</span>
+            {product.brand.country && <span>Made in {product.brand.country}</span>}
+          </div>
         </div>
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-        >
-          <ChevronDown size={16} className="text-neutral-400" />
-        </motion.div>
-      </button>
-      <AnimatePresence initial={false}>
-        {isOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="pb-6 pl-8">{children}</div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
+      );
+
+    case "sizefit":
+      return (
+        <div className="text-[13px] font-sans text-neutral-500 leading-relaxed space-y-4">
+          <p>
+            This piece is true to size. We recommend selecting your usual{" "}
+            {product.brand.name} size. If you are between sizes, we suggest sizing
+            up for a more relaxed fit.
+          </p>
+          {product.variants.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-[11px]">
+                <thead>
+                  <tr className="border-b border-slate-border">
+                    <th className="text-left py-2 font-semibold text-obsidian tracking-wider uppercase pr-6">
+                      Size
+                    </th>
+                    <th className="text-left py-2 font-semibold text-obsidian tracking-wider uppercase pr-6">
+                      IT
+                    </th>
+                    <th className="text-left py-2 font-semibold text-obsidian tracking-wider uppercase pr-6">
+                      FR
+                    </th>
+                    <th className="text-left py-2 font-semibold text-obsidian tracking-wider uppercase pr-6">
+                      UK
+                    </th>
+                    <th className="text-left py-2 font-semibold text-obsidian tracking-wider uppercase">
+                      US
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.variants.map((v) => {
+                    const chart = SIZE_CHART[v.size];
+                    if (!chart) return null;
+                    return (
+                      <tr key={v.id} className="border-b border-slate-border/50">
+                        <td className="py-2 text-obsidian font-medium">{v.size}</td>
+                        <td className="py-2 text-neutral-400">{chart.IT ?? "—"}</td>
+                        <td className="py-2 text-neutral-400">{chart.FR ?? "—"}</td>
+                        <td className="py-2 text-neutral-400">{chart.UK ?? "—"}</td>
+                        <td className="py-2 text-neutral-400">{chart.US ?? "—"}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      );
+
+    case "shipping":
+      return (
+        <div className="text-[13px] font-sans text-neutral-500 leading-relaxed space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-start gap-3">
+              <Truck size={14} className="text-heritage-green/50 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-obsidian font-medium mb-0.5">
+                  Complimentary Express Shipping
+                </p>
+                <p>
+                  All orders ship via DHL Express. Estimated delivery: 2–4
+                  business days within the US, 3–7 business days internationally.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <RotateCcw size={14} className="text-heritage-green/50 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-obsidian font-medium mb-0.5">
+                  14-Day Return Policy
+                </p>
+                <p>
+                  Items may be returned within 14 days of delivery in their
+                  original condition with all tags attached. Final sale items are
+                  excluded.
+                </p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <ShieldCheck size={14} className="text-heritage-green/50 mt-0.5 shrink-0" />
+              <div>
+                <p className="text-obsidian font-medium mb-0.5">
+                  Certificate of Authenticity
+                </p>
+                <p>
+                  Every piece ships with a Heritage Edit certificate verifying
+                  provenance and authenticity.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+  }
 }

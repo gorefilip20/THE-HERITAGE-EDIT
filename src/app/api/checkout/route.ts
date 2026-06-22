@@ -1,151 +1,252 @@
 import { NextRequest, NextResponse } from "next/server";
+import Stripe from "stripe";
 import { prisma } from "@/lib/db";
-import { checkoutSchema } from "@/lib/validators";
 import { generateOrderNumber } from "@/lib/utils";
-import { getShippingOptions, calculateTaxAndDuty } from "@/lib/shipping";
+import { z } from "zod";
+
+/* ──────────────────────────────────────────────────────────
+   STRIPE INITIALIZATION
+   ────────────────────────────────────────────────────────── */
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
+  apiVersion: "2024-04-10",
+});
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://heritageedit.com";
+
+/* ──────────────────────────────────────────────────────────
+   REQUEST VALIDATION
+   ────────────────────────────────────────────────────────── */
+
+const checkoutItemSchema = z.object({
+  productId: z.string().min(1),
+  variantId: z.string().min(1),
+  quantity: z.number().int().positive().max(10),
+});
+
+const checkoutRequestSchema = z.object({
+  items: z.array(checkoutItemSchema).min(1).max(50),
+  email: z.string().email().optional(),
+  userId: z.string().optional(),
+});
+
+type CheckoutItem = z.infer<typeof checkoutItemSchema>;
+
+/* ──────────────────────────────────────────────────────────
+   POST — CREATE STRIPE CHECKOUT SESSION
+   ────────────────────────────────────────────────────────── */
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const parsed = checkoutSchema.safeParse(body);
+    const parsed = checkoutRequestSchema.safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: "Validation failed", issues: parsed.error.issues },
+        { error: "Invalid request", issues: parsed.error.issues },
         { status: 400 },
       );
     }
 
-    const { email, shippingAddress, shippingOptionId } = parsed.data;
-    const { items, stripePaymentIntentId } = body;
+    const { items, email, userId } = parsed.data;
 
-    if (!items || items.length === 0) {
-      return NextResponse.json(
-        { error: "Cart is empty" },
-        { status: 400 },
-      );
-    }
+    /* ── Verify prices from database (never trust frontend) ── */
+    const productIds = [...new Set(items.map((i) => i.productId))];
 
-    const productIds = items.map((i: { productId: string }) => i.productId);
     const products = await prisma.product.findMany({
-      where: { id: { in: productIds } },
-      include: { variants: true },
+      where: {
+        id: { in: productIds },
+        status: "PUBLISHED",
+      },
+      include: {
+        brand: { select: { name: true } },
+        variants: true,
+        images: {
+          where: { isPrimary: true },
+          take: 1,
+        },
+      },
     });
 
-    let subtotalCents = 0;
+    const productMap = new Map(products.map((p) => [p.id, p]));
+
+    /* ── Build verified line items + order items ── */
+    const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
     const orderItems: Array<{
       productId: string;
-      variantId: string | null;
+      variantId: string;
       quantity: number;
       unitPriceCents: number;
       totalCents: number;
     }> = [];
+    let subtotalCents = 0;
 
     for (const item of items) {
-      const product = products.find((p) => p.id === item.productId);
+      const product = productMap.get(item.productId);
       if (!product) {
         return NextResponse.json(
-          { error: `Product ${item.productId} not found` },
+          { error: `Product not found or unavailable: ${item.productId}` },
           { status: 400 },
         );
       }
 
       const variant = product.variants.find((v) => v.id === item.variantId);
-      if (variant && variant.stockCount < item.quantity) {
+      if (!variant) {
         return NextResponse.json(
-          { error: `Insufficient stock for ${product.name} (${variant.size})` },
+          { error: `Variant not found: ${item.variantId} for ${product.name}` },
           { status: 400 },
         );
       }
 
-      const unitPrice =
+      if (variant.stockCount < item.quantity) {
+        return NextResponse.json(
+          {
+            error: `Insufficient stock for ${product.name} (${variant.size}). Available: ${variant.stockCount}`,
+          },
+          { status: 400 },
+        );
+      }
+
+      const verifiedUnitPrice =
         (product.salePriceCents ?? product.basePriceCents) +
-        (variant?.priceDeltaCents ?? 0);
+        variant.priceDeltaCents;
+
+      const itemTotal = verifiedUnitPrice * item.quantity;
+      subtotalCents += itemTotal;
 
       orderItems.push({
-        productId: item.productId,
-        variantId: item.variantId ?? null,
+        productId: product.id,
+        variantId: variant.id,
         quantity: item.quantity,
-        unitPriceCents: unitPrice,
-        totalCents: unitPrice * item.quantity,
+        unitPriceCents: verifiedUnitPrice,
+        totalCents: itemTotal,
       });
 
-      subtotalCents += unitPrice * item.quantity;
+      const primaryImage = product.images[0]?.url;
+
+      lineItems.push({
+        price_data: {
+          currency: product.currency.toLowerCase(),
+          unit_amount: verifiedUnitPrice,
+          product_data: {
+            name: product.name,
+            description: `${product.brand.name} — Size ${variant.size}${variant.color ? `, ${variant.color}` : ""}`,
+            metadata: {
+              productId: product.id,
+              variantId: variant.id,
+              sku: product.sku,
+            },
+            ...(primaryImage ? { images: [primaryImage] } : {}),
+          },
+        },
+        quantity: item.quantity,
+      });
     }
 
-    const shippingOptions = getShippingOptions(
-      shippingAddress.country,
-      subtotalCents,
-    );
-    const selectedShipping = shippingOptions.find(
-      (o) => o.id === shippingOptionId,
-    );
-    const shippingCents = selectedShipping?.priceCents ?? 0;
-
-    const { taxCents, dutyCents } = calculateTaxAndDuty(
-      subtotalCents,
-      shippingAddress.country,
-      shippingAddress.state,
-    );
-
-    const totalCents = subtotalCents + shippingCents + taxCents + dutyCents;
-
-    const address = await prisma.address.create({
-      data: {
-        userId: body.userId ?? undefined,
-        firstName: shippingAddress.firstName,
-        lastName: shippingAddress.lastName,
-        line1: shippingAddress.line1,
-        line2: shippingAddress.line2,
-        city: shippingAddress.city,
-        state: shippingAddress.state,
-        postalCode: shippingAddress.postalCode,
-        country: shippingAddress.country,
-        phone: shippingAddress.phone,
-      },
-    });
+    /* ── Create pending order record ── */
+    const orderNumber = generateOrderNumber();
 
     const order = await prisma.order.create({
       data: {
-        orderNumber: generateOrderNumber(),
-        userId: body.userId ?? null,
-        guestEmail: email,
-        status: "CONFIRMED",
-        paymentStatus: stripePaymentIntentId ? "AUTHORIZED" : "PENDING",
+        orderNumber,
+        userId: userId ?? null,
+        guestEmail: email ?? null,
+        status: "PENDING",
+        paymentStatus: "PENDING",
         subtotalCents,
-        shippingCents,
-        taxCents,
-        dutyCents,
-        totalCents,
+        shippingCents: 0,
+        taxCents: 0,
+        dutyCents: 0,
+        totalCents: subtotalCents,
         currency: "USD",
-        shippingAddressId: address.id,
-        stripePaymentId: stripePaymentIntentId ?? null,
-        shippingMethod: selectedShipping?.service ?? "Standard",
+        trackingNumber: null,
+        notes: null,
         items: {
           create: orderItems,
         },
       },
-      include: { items: true },
     });
 
-    for (const item of orderItems) {
-      if (item.variantId) {
-        await prisma.productVariant.update({
-          where: { id: item.variantId },
-          data: { stockCount: { decrement: item.quantity } },
-        });
-      }
-    }
+    /* ── Create Stripe Checkout Session ── */
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      customer_email: email ?? undefined,
+
+      shipping_address_collection: {
+        allowed_countries: [
+          "US", "GB", "DE", "FR", "IT", "ES", "NL", "BE", "AT", "CH",
+          "SE", "DK", "NO", "FI", "IE", "PT", "AU", "CA", "JP", "SG",
+          "AE", "KR", "HK",
+        ],
+      },
+      phone_number_collection: { enabled: true },
+
+      payment_intent_data: {
+        metadata: {
+          orderId: order.id,
+          orderNumber: order.orderNumber,
+        },
+      },
+
+      metadata: {
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+      },
+
+      allow_promotion_codes: true,
+      billing_address_collection: "required",
+
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: { amount: 0, currency: "usd" },
+            display_name: "Complimentary Express Shipping",
+            delivery_estimate: {
+              minimum: { unit: "business_day", value: 2 },
+              maximum: { unit: "business_day", value: 5 },
+            },
+          },
+        },
+        {
+          shipping_rate_data: {
+            type: "fixed_amount",
+            fixed_amount: { amount: 3500, currency: "usd" },
+            display_name: "Priority Next-Day Delivery",
+            delivery_estimate: {
+              minimum: { unit: "business_day", value: 1 },
+              maximum: { unit: "business_day", value: 1 },
+            },
+          },
+        },
+      ],
+
+      success_url: `${APP_URL}/success?session_id={CHECKOUT_SESSION_ID}&order=${order.orderNumber}`,
+      cancel_url: `${APP_URL}/shop?checkout=cancelled`,
+
+      expires_at: Math.floor(Date.now() / 1000) + 60 * 30,
+    });
 
     return NextResponse.json({
+      sessionId: session.id,
+      sessionUrl: session.url,
       orderId: order.id,
       orderNumber: order.orderNumber,
-      totalCents: order.totalCents,
     });
   } catch (err) {
-    console.error("Checkout error:", err);
+    console.error("Checkout session creation error:", err);
+
+    if (err instanceof Stripe.errors.StripeError) {
+      return NextResponse.json(
+        { error: `Payment service error: ${err.message}` },
+        { status: 502 },
+      );
+    }
+
     return NextResponse.json(
-      { error: "Checkout failed" },
+      { error: "Failed to create checkout session" },
       { status: 500 },
     );
   }
