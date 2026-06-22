@@ -109,15 +109,38 @@ export default function NewProductPage() {
 
   useEffect(() => {
     if (!createdProduct) return;
+    if (createdProduct.heritage) return;
+    let attempts = 0;
+    const maxAttempts = 30;
     const interval = setInterval(async () => {
+      attempts++;
       try {
         const res = await fetch(`/api/products/${createdProduct.id}`);
         if (!res.ok) return;
         const data: CreatedProduct = await res.json();
         setPolledProduct(data);
+
         if (data.heritage) {
           setEditFields(data.heritage);
           clearInterval(interval);
+          return;
+        }
+
+        if (data.status === "DRAFT" || data.status === "PUBLISHED" || data.status === "ARCHIVED") {
+          clearInterval(interval);
+          setSubmitError(
+            "Heritage narrative generation failed — the product was saved as a Draft. " +
+            "Check that ANTHROPIC_API_KEY or OPENAI_API_KEY is set in your .env file, then use the Regenerate button.",
+          );
+          return;
+        }
+
+        if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          setSubmitError(
+            "Heritage generation is taking longer than expected. The product was saved — " +
+            "refresh the page or use the Regenerate button once the AI service responds.",
+          );
         }
       } catch {
         /* retry silently */
@@ -181,6 +204,9 @@ export default function NewProductPage() {
 
       const product: CreatedProduct = await res.json();
       setCreatedProduct(product);
+      if (product.heritage) {
+        setEditFields(product.heritage);
+      }
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

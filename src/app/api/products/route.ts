@@ -204,22 +204,46 @@ export async function POST(request: NextRequest) {
 
     const input = parsed.data;
 
-    const [brand, category] = await Promise.all([
-      prisma.brand.findUnique({ where: { id: input.brandId } }),
-      prisma.category.findUnique({ where: { id: input.categoryId } }),
-    ]);
+    let brand = await prisma.brand.findUnique({ where: { id: input.brandId } });
 
     if (!brand) {
-      return NextResponse.json(
-        { error: "Brand not found for the given brandId" },
-        { status: 400 },
-      );
+      brand = await prisma.brand.findFirst({
+        where: {
+          OR: [
+            { name: { equals: input.brandId, mode: "insensitive" } },
+            { slug: slugify(input.brandId) },
+          ],
+        },
+      });
+
+      if (!brand) {
+        const brandName = input.brandId.trim();
+        const brandSlug = slugify(brandName);
+        brand = await prisma.brand.create({
+          data: { name: brandName, slug: brandSlug },
+        });
+      }
     }
+
+    let category = await prisma.category.findUnique({ where: { id: input.categoryId } });
+
     if (!category) {
-      return NextResponse.json(
-        { error: "Category not found for the given categoryId" },
-        { status: 400 },
-      );
+      category = await prisma.category.findFirst({
+        where: {
+          OR: [
+            { name: { equals: input.categoryId, mode: "insensitive" } },
+            { slug: slugify(input.categoryId) },
+          ],
+        },
+      });
+
+      if (!category) {
+        const catName = input.categoryId.trim();
+        const catSlug = slugify(catName);
+        category = await prisma.category.create({
+          data: { name: catName, slug: catSlug },
+        });
+      }
     }
 
     let slug = slugify(`${brand.name}-${input.name}`);
@@ -241,8 +265,8 @@ export async function POST(request: NextRequest) {
         name: input.name.trim(),
         slug,
         description: input.description?.trim() ?? null,
-        brandId: input.brandId,
-        categoryId: input.categoryId,
+        brandId: brand.id,
+        categoryId: category.id,
         basePriceCents: input.basePriceCents,
         salePriceCents: input.salePriceCents ?? null,
         currency: input.currency,
@@ -280,35 +304,47 @@ export async function POST(request: NextRequest) {
     const keys = await safeRedisKeys(`${PRODUCT_CACHE_PREFIX}*`);
     if (keys.length > 0) await safeRedisDel(...keys);
 
-    generateHeritageNarrative(product.name, brand.name, category.name)
-      .then(async ({ data, model }) => {
-        await prisma.heritageNarrative.create({
-          data: {
-            productId: product.id,
-            historyAndHeritage: data.history_and_heritage,
-            whenToWear: data.when_to_wear,
-            rightOccasion: data.right_occasion,
-            styleRecommendations: data.style_recommendations,
-            aiModelUsed: model,
-          },
-        });
-        await prisma.product.update({
-          where: { id: product.id },
-          data: { status: "AI_REVIEW" },
-        });
-      })
-      .catch(async (err) => {
-        console.error(
-          `Heritage AI generation failed for product ${product.id}:`,
-          err,
-        );
-        await prisma.product.update({
-          where: { id: product.id },
-          data: { status: "DRAFT" },
-        });
+    let heritage = null;
+    let finalStatus: string = product.status;
+    try {
+      const { data, model } = await generateHeritageNarrative(
+        product.name,
+        brand.name,
+        category.name,
+      );
+
+      heritage = await prisma.heritageNarrative.create({
+        data: {
+          productId: product.id,
+          historyAndHeritage: data.history_and_heritage,
+          whenToWear: data.when_to_wear,
+          rightOccasion: data.right_occasion,
+          styleRecommendations: data.style_recommendations,
+          aiModelUsed: model,
+        },
       });
 
-    return NextResponse.json(product, { status: 201 });
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { status: "AI_REVIEW" },
+      });
+      finalStatus = "AI_REVIEW";
+    } catch (aiErr) {
+      console.error(
+        `Heritage AI generation failed for product ${product.id}:`,
+        aiErr,
+      );
+      await prisma.product.update({
+        where: { id: product.id },
+        data: { status: "DRAFT" },
+      });
+      finalStatus = "DRAFT";
+    }
+
+    return NextResponse.json(
+      { ...product, status: finalStatus, heritage },
+      { status: 201 },
+    );
   } catch (err) {
     console.error("Product creation error:", err);
     return NextResponse.json(

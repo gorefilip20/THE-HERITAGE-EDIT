@@ -30,37 +30,68 @@ For every product, generate a structured JSON response with exactly these keys:
 
 CRITICAL: Return ONLY valid JSON. No markdown, no code fences, no commentary outside the JSON object. Every value must be a string or array of strings.`;
 
+const AI_TIMEOUT_MS = 45_000;
+
+function getAnthropicKey(): string | null {
+  const raw = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!raw || raw.length < 10) return null;
+  return raw;
+}
+
+function getOpenAIKey(): string | null {
+  const raw = process.env.OPENAI_API_KEY?.trim();
+  if (!raw || raw.length < 10) return null;
+  return raw;
+}
+
 async function callAnthropic(
   productName: string,
   brandName: string,
   categoryName: string,
 ): Promise<string> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured");
+  const apiKey = getAnthropicKey();
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is missing or invalid");
 
-  const response = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01",
-    },
-    body: JSON.stringify({
-      model: "claude-sonnet-4-20250514",
-      max_tokens: 2048,
-      system: SYSTEM_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `Generate the Heritage Narrative for this luxury product:\n\nProduct: ${productName}\nBrand: ${brandName}\nCategory: ${categoryName}`,
-        },
-      ],
-    }),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 2048,
+        system: SYSTEM_PROMPT,
+        messages: [
+          {
+            role: "user",
+            content: `Generate the Heritage Narrative for this luxury product:\n\nProduct: ${productName}\nBrand: ${brandName}\nCategory: ${categoryName}`,
+          },
+        ],
+      }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error(`Anthropic API timed out after ${AI_TIMEOUT_MS / 1000}s`);
+    }
+    throw new Error(
+      `Anthropic API network error: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`Anthropic API error ${response.status}: ${err}`);
+    const errBody = await response.text().catch(() => "Unknown error");
+    throw new Error(`Anthropic API error ${response.status}: ${errBody}`);
   }
 
   const data = await response.json();
@@ -75,33 +106,50 @@ async function callOpenAI(
   brandName: string,
   categoryName: string,
 ): Promise<string> {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) throw new Error("OPENAI_API_KEY is not configured");
+  const apiKey = getOpenAIKey();
+  if (!apiKey) throw new Error("OPENAI_API_KEY is missing or invalid");
 
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-4o",
-      temperature: 0.7,
-      max_tokens: 2048,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: `Generate the Heritage Narrative for this luxury product:\n\nProduct: ${productName}\nBrand: ${brandName}\nCategory: ${categoryName}`,
-        },
-      ],
-    }),
-  });
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+
+  let response: Response;
+  try {
+    response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        temperature: 0.7,
+        max_tokens: 2048,
+        response_format: { type: "json_object" },
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: `Generate the Heritage Narrative for this luxury product:\n\nProduct: ${productName}\nBrand: ${brandName}\nCategory: ${categoryName}`,
+          },
+        ],
+      }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    clearTimeout(timer);
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error(`OpenAI API timed out after ${AI_TIMEOUT_MS / 1000}s`);
+    }
+    throw new Error(
+      `OpenAI API network error: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!response.ok) {
-    const err = await response.text();
-    throw new Error(`OpenAI API error ${response.status}: ${err}`);
+    const errBody = await response.text().catch(() => "Unknown error");
+    throw new Error(`OpenAI API error ${response.status}: ${errBody}`);
   }
 
   const data = await response.json();
@@ -124,24 +172,81 @@ function extractJSON(raw: string): string {
   return raw.trim();
 }
 
+export function generatePlaceholderNarrative(
+  productName: string,
+  brandName: string,
+  categoryName: string,
+): HeritageAIResponse {
+  return {
+    history_and_heritage:
+      `${brandName} has long been regarded as one of the most distinguished names in luxury fashion, ` +
+      `a house whose design philosophy marries impeccable craftsmanship with an unwavering commitment to elegance. ` +
+      `From ateliers steeped in decades of tradition, each piece emerges as a testament to the artisan's hand — ` +
+      `every stitch, seam, and silhouette considered with the precision of a master sculptor.\n\n` +
+      `The ${productName} exemplifies this heritage in its purest form. Rooted in the ${categoryName.toLowerCase()} ` +
+      `tradition, it draws upon archival references while speaking fluently in the language of contemporary fashion. ` +
+      `The construction reflects techniques handed down through generations of craftspeople, ` +
+      `ensuring that the garment not only drapes beautifully but endures season after season.\n\n` +
+      `To own a piece from ${brandName} is to possess a fragment of fashion history — ` +
+      `a wearable archive that transcends fleeting trends and speaks instead to the enduring power of considered design.`,
+    when_to_wear:
+      `The ${productName} is designed for those who understand that true style is a matter of intention, not occasion. ` +
+      `Worn with quiet confidence, it transitions effortlessly from a morning of curated gallery visits ` +
+      `to an evening aperitivo at a candlelit terrace. Pair it with understated accessories and let the ` +
+      `craftsmanship speak for itself. When the setting calls for discretion, this piece answers with authority.`,
+    right_occasion: [
+      `Private viewing at a contemporary art gallery`,
+      `Afternoon luncheon at a heritage hotel`,
+      `Evening reception at an embassy residence`,
+      `Weekend retreat to a coastal villa`,
+    ],
+    style_recommendations: [
+      `Ivory silk charmeuse camisole`,
+      `Brushed gold chain-link cuff bracelet`,
+      `Black calfskin structured tote`,
+      `Nude patent leather pointed-toe pumps`,
+    ],
+  };
+}
+
 export async function generateHeritageNarrative(
   productName: string,
   brandName: string,
   categoryName: string,
 ): Promise<{ data: HeritageAIResponse; model: string }> {
+  const anthropicKey = getAnthropicKey();
+  const openaiKey = getOpenAIKey();
+
+  if (!anthropicKey && !openaiKey) {
+    console.warn(
+      "[Heritage AI] No valid API key found — generating placeholder narrative.",
+    );
+    return {
+      data: generatePlaceholderNarrative(productName, brandName, categoryName),
+      model: "placeholder",
+    };
+  }
+
   let rawText: string;
   let model: string;
 
-  if (process.env.ANTHROPIC_API_KEY) {
-    rawText = await callAnthropic(productName, brandName, categoryName);
-    model = "claude-sonnet-4-20250514";
-  } else if (process.env.OPENAI_API_KEY) {
-    rawText = await callOpenAI(productName, brandName, categoryName);
-    model = "gpt-4o";
-  } else {
-    throw new Error(
-      "No AI API key configured. Set ANTHROPIC_API_KEY or OPENAI_API_KEY.",
+  try {
+    if (anthropicKey) {
+      rawText = await callAnthropic(productName, brandName, categoryName);
+      model = "claude-sonnet-4-20250514";
+    } else {
+      rawText = await callOpenAI(productName, brandName, categoryName);
+      model = "gpt-4o";
+    }
+  } catch (apiErr) {
+    console.error(
+      `[Heritage AI] API call failed, using placeholder:`,
+      apiErr instanceof Error ? apiErr.message : apiErr,
     );
+    return {
+      data: generatePlaceholderNarrative(productName, brandName, categoryName),
+      model: "placeholder",
+    };
   }
 
   const jsonString = extractJSON(rawText);
@@ -150,16 +255,25 @@ export async function generateHeritageNarrative(
   try {
     parsed = JSON.parse(jsonString);
   } catch {
-    throw new Error(
-      `Failed to parse AI response as JSON. Raw output:\n${rawText.substring(0, 500)}`,
+    console.error(
+      `[Heritage AI] Failed to parse response as JSON, using placeholder. Raw:\n${rawText.substring(0, 300)}`,
     );
+    return {
+      data: generatePlaceholderNarrative(productName, brandName, categoryName),
+      model: "placeholder",
+    };
   }
 
   const validated = heritageSchema.safeParse(parsed);
   if (!validated.success) {
-    throw new Error(
-      `AI response failed validation: ${validated.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`,
+    console.error(
+      `[Heritage AI] Response failed validation, using placeholder:`,
+      validated.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; "),
     );
+    return {
+      data: generatePlaceholderNarrative(productName, brandName, categoryName),
+      model: "placeholder",
+    };
   }
 
   return { data: validated.data, model };
