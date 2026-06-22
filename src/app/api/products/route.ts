@@ -1,11 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { redis } from "@/lib/redis";
 import { createProductSchema } from "@/lib/validators";
 import { slugify, generateSKU } from "@/lib/utils";
 import { generateHeritageNarrative } from "@/lib/heritage-ai";
 import { getCurrentUser } from "@/lib/auth";
 
+const PRODUCT_CACHE_PREFIX = "products:";
+const PRODUCT_CACHE_TTL = 60 * 5; // 5 minutes
+
+function buildCacheKey(params: URLSearchParams): string {
+  const sorted = [...params.entries()]
+    .filter(([, v]) => v !== "")
+    .sort(([a], [b]) => a.localeCompare(b));
+  return `${PRODUCT_CACHE_PREFIX}${new URLSearchParams(sorted).toString()}`;
+}
+
+async function getCachedProducts(key: string) {
+  try {
+    const cached = await redis.get(key);
+    if (cached) return JSON.parse(cached);
+  } catch {
+    /* Redis down — fall through to DB */
+  }
+  return null;
+}
+
+async function setCachedProducts(key: string, data: unknown) {
+  try {
+    await redis.set(key, JSON.stringify(data), "EX", PRODUCT_CACHE_TTL);
+  } catch {
+    /* non-critical */
+  }
+}
+
 export async function GET(request: NextRequest) {
+  const start = performance.now();
   const { searchParams } = request.nextUrl;
 
   const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));
@@ -24,6 +54,21 @@ export async function GET(request: NextRequest) {
   const search = searchParams.get("search");
   const featured = searchParams.get("featured");
 
+  /* ── Cache lookup ── */
+  const cacheKey = buildCacheKey(searchParams);
+  const cached = await getCachedProducts(cacheKey);
+  if (cached) {
+    const elapsed = (performance.now() - start).toFixed(1);
+    return NextResponse.json(cached, {
+      headers: {
+        "X-Cache": "HIT",
+        "X-Response-Time": `${elapsed}ms`,
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      },
+    });
+  }
+
+  /* ── Build Prisma where clause ── */
   const where: Record<string, unknown> = { status: "PUBLISHED" };
 
   if (brands.length > 0) {
@@ -69,6 +114,7 @@ export async function GET(request: NextRequest) {
     where.isFeatured = true;
   }
 
+  /* ── Sort ── */
   let orderBy: Record<string, string> = { createdAt: "desc" };
   switch (sort) {
     case "price_asc":
@@ -93,27 +139,45 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * pageSize,
         take: pageSize,
         include: {
-          brand: true,
-          category: true,
+          brand: { select: { id: true, name: true, slug: true } },
+          category: { select: { id: true, name: true, slug: true } },
           images: { orderBy: { sortOrder: "asc" }, take: 2 },
-          variants: { orderBy: { size: "asc" } },
-          heritage: {
+          variants: {
             select: {
               id: true,
-              isApproved: true,
+              size: true,
+              color: true,
+              colorHex: true,
+              stockCount: true,
+              priceDeltaCents: true,
             },
+            orderBy: { size: "asc" },
+          },
+          heritage: {
+            select: { id: true, isApproved: true },
           },
         },
       }),
       prisma.product.count({ where }),
     ]);
 
-    return NextResponse.json({
+    const responseData = {
       data: products,
       total,
       page,
       pageSize,
       totalPages: Math.ceil(total / pageSize),
+    };
+
+    await setCachedProducts(cacheKey, responseData);
+
+    const elapsed = (performance.now() - start).toFixed(1);
+    return NextResponse.json(responseData, {
+      headers: {
+        "X-Cache": "MISS",
+        "X-Response-Time": `${elapsed}ms`,
+        "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+      },
     });
   } catch (err) {
     console.error("Product listing error:", err);
@@ -217,6 +281,14 @@ export async function POST(request: NextRequest) {
         variants: { orderBy: { size: "asc" } },
       },
     });
+
+    /* Invalidate product list cache on new product */
+    try {
+      const keys = await redis.keys(`${PRODUCT_CACHE_PREFIX}*`);
+      if (keys.length > 0) await redis.del(...keys);
+    } catch {
+      /* non-critical */
+    }
 
     generateHeritageNarrative(product.name, brand.name, category.name)
       .then(async ({ data, model }) => {
