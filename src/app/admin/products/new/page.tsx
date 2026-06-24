@@ -58,12 +58,16 @@ const BRANDS = [
 ];
 
 const CATEGORIES = [
+  { id: "cat-senator", name: "Senator Wear" },
+  { id: "cat-native", name: "Native Wear" },
+  { id: "cat-footwear", name: "Footwear" },
+  { id: "cat-jewelry", name: "Jewelry" },
+  { id: "cat-bags", name: "Bags" },
   { id: "cat-coats", name: "Coats & Jackets" },
   { id: "cat-dresses", name: "Dresses" },
   { id: "cat-tops", name: "Tops & Blouses" },
   { id: "cat-trousers", name: "Trousers & Shorts" },
   { id: "cat-knitwear", name: "Knitwear" },
-  { id: "cat-bags", name: "Bags" },
   { id: "cat-shoes", name: "Shoes" },
   { id: "cat-accessories", name: "Accessories" },
   { id: "cat-suits", name: "Suits & Tailoring" },
@@ -623,10 +627,10 @@ export default function NewProductPage() {
                 >
                   {/* Product summary bar */}
                   <div className="flex items-center gap-4 p-4 rounded-lg bg-neutral-50 border border-neutral-100">
-                    {displayProduct.images[0] && (
+                    {displayProduct?.images[0] && (
                       <div className="w-12 h-16 rounded overflow-hidden bg-white shrink-0">
                         <img
-                          src={displayProduct.images[0].url}
+                          src={displayProduct?.images[0].url}
                           alt=""
                           className="w-full h-full object-cover"
                         />
@@ -634,10 +638,10 @@ export default function NewProductPage() {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-sans font-medium tracking-[0.15em] uppercase text-[#2E1A47]">
-                        {displayProduct.brand.name}
+                        {displayProduct?.brand.name}
                       </p>
                       <p className="text-sm font-sans font-medium text-neutral-900 truncate">
-                        {displayProduct.name}
+                        {displayProduct?.name}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">

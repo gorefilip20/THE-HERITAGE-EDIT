@@ -71,7 +71,7 @@ export default function ProductDetailPage() {
   const [sizeNotSelected, setSizeNotSelected] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [openAccordions, setOpenAccordions] = useState<Set<AccordionKey>>(
-    new Set(["description"]),
+    new Set<AccordionKey>(["description"]),
   );
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
@@ -647,48 +647,185 @@ export default function ProductDetailPage() {
 
       {/* ── HERITAGE NARRATIVE ── */}
       {product.heritage && product.heritage.isApproved && (
-        <div className="mt-20 lg:mt-28 max-w-3xl mx-auto text-center">
-          <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-heritage-purple/60 mb-4">
-            The Heritage Narrative
-          </p>
-          <h2 className="text-display-sm font-serif italic text-obsidian mb-8">
-            The Story Behind This Piece
-          </h2>
-          <div className="font-serif text-[16px] text-neutral-500 leading-[2] space-y-6 text-left">
-            {product.heritage.historyAndHeritage
-              .split("\n\n")
-              .map((para, i) => (
-                <p
-                  key={i}
-                  className={cn(
-                    i === 0 &&
-                      "first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:text-heritage-green first-letter:mr-2 first-letter:float-left first-letter:leading-[0.75]",
-                  )}
-                >
-                  {para}
+        <div className="mt-20 lg:mt-28">
+          <div className="max-w-3xl mx-auto text-center">
+            <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-heritage-purple/60 mb-4">
+              The Heritage Narrative
+            </p>
+            <h2 className="text-display-sm font-serif italic text-obsidian mb-8">
+              The Story Behind This Piece
+            </h2>
+            <div className="font-serif text-[16px] text-neutral-500 leading-[2] space-y-6 text-left">
+              {product.heritage.historyAndHeritage
+                .split("\n\n")
+                .map((para, i) => (
+                  <p
+                    key={i}
+                    className={cn(
+                      i === 0 &&
+                        "first-letter:text-5xl first-letter:font-serif first-letter:font-bold first-letter:text-heritage-green first-letter:mr-2 first-letter:float-left first-letter:leading-[0.75]",
+                    )}
+                  >
+                    {para}
+                  </p>
+                ))}
+            </div>
+
+            {/* Occasion suitability */}
+            {product.heritage.rightOccasion.length > 0 && (
+              <div className="mt-12 pt-8 border-t border-slate-border text-left">
+                <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-heritage-green/50 mb-5 text-center">
+                  The Right Occasion
                 </p>
-              ))}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {product.heritage.rightOccasion.map((occ, i) => (
+                    <div
+                      key={i}
+                      className="flex items-start gap-3 py-3 px-4 bg-ivory/50"
+                    >
+                      <span className="text-heritage-green/30 text-xs mt-0.5">●</span>
+                      <span className="text-[13px] font-sans text-neutral-500 leading-relaxed">
+                        {occ}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* ── COMPLETE THE LOOK — Cross-category matchmaker ── */}
           {product.heritage.styleRecommendations.length > 0 && (
-            <div className="mt-12 pt-8 border-t border-slate-border">
-              <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-neutral-400 mb-5">
-                Complete the Look
-              </p>
-              <div className="flex flex-wrap justify-center gap-2">
-                {product.heritage.styleRecommendations.map((rec, i) => (
-                  <span
-                    key={i}
-                    className="px-4 py-2 text-[12px] font-sans text-obsidian/60 border border-slate-border"
-                  >
-                    {rec}
-                  </span>
-                ))}
-              </div>
-            </div>
+            <CompleteTheLook recommendations={product.heritage.styleRecommendations} />
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   COMPLETE THE LOOK — CROSS-CATEGORY MATCHMAKER
+   ────────────────────────────────────────────────────────── */
+
+const CATEGORY_SLUGS: Record<string, string> = {
+  "senator wear": "senator-wear",
+  "native wear": "native-wear",
+  footwear: "footwear",
+  shoes: "shoes",
+  bags: "bags",
+  jewelry: "jewelry",
+  jewellery: "jewellery",
+  accessories: "accessories",
+  "coats & jackets": "coats-jackets",
+  "suits & tailoring": "suits-tailoring",
+  dresses: "dresses",
+  knitwear: "knitwear",
+};
+
+const CATEGORY_ICONS: Record<string, string> = {
+  footwear: "👞",
+  shoes: "👞",
+  bags: "👜",
+  jewelry: "💎",
+  jewellery: "💎",
+  accessories: "⌚",
+  "senator wear": "🎩",
+  "native wear": "🪡",
+};
+
+function parseRecommendation(rec: string): { category: string; item: string; slug: string } | null {
+  const colonIdx = rec.indexOf(":");
+  if (colonIdx > 0 && colonIdx < 30) {
+    const cat = rec.substring(0, colonIdx).trim();
+    const item = rec.substring(colonIdx + 1).trim();
+    const slug = CATEGORY_SLUGS[cat.toLowerCase()] ?? "";
+    return { category: cat, item, slug };
+  }
+  return null;
+}
+
+function CompleteTheLook({ recommendations }: { recommendations: string[] }) {
+  const parsed = recommendations
+    .map(parseRecommendation)
+    .filter((r): r is NonNullable<typeof r> => r !== null);
+
+  const unparsed = recommendations.filter((r) => !parseRecommendation(r));
+
+  if (parsed.length === 0 && unparsed.length === 0) return null;
+
+  return (
+    <div className="mt-16 pt-12 border-t border-slate-border">
+      <div className="max-w-4xl mx-auto">
+        <div className="text-center mb-10">
+          <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-heritage-purple/60 mb-3">
+            The Luxury Matchmaker
+          </p>
+          <h3 className="text-display-sm font-serif italic text-obsidian mb-3">
+            Complete The Look
+          </h3>
+          <p className="text-[13px] font-sans text-neutral-400 max-w-md mx-auto">
+            Our AI has curated complementary pieces from across our collection
+            to help you build a considered, head-to-toe ensemble.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {parsed.map((rec, i) => {
+            const icon = CATEGORY_ICONS[rec.category.toLowerCase()] ?? "✦";
+            return (
+              <Link
+                key={i}
+                href={rec.slug ? `/shop?category=${rec.slug}` : "/shop"}
+                className="group block p-5 border border-slate-border bg-white hover:border-heritage-green/30 hover:shadow-sm transition-all duration-300"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-lg shrink-0 mt-0.5 grayscale group-hover:grayscale-0 transition-all duration-300">
+                    {icon}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-heritage-green mb-1.5">
+                      {rec.category}
+                    </p>
+                    <p className="text-[13px] font-sans text-neutral-600 leading-relaxed line-clamp-2 group-hover:text-obsidian transition-colors">
+                      {rec.item}
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 pt-3 border-t border-slate-border/50 flex items-center justify-between">
+                  <span className="text-[10px] font-sans font-medium tracking-[0.15em] uppercase text-neutral-300 group-hover:text-heritage-green transition-colors">
+                    Explore {rec.category}
+                  </span>
+                  <ChevronDown size={10} className="text-neutral-300 -rotate-90 group-hover:text-heritage-green transition-colors" />
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+
+        {unparsed.length > 0 && (
+          <div className="mt-6 flex flex-wrap justify-center gap-2">
+            {unparsed.map((rec, i) => (
+              <span
+                key={i}
+                className="px-4 py-2 text-[12px] font-sans text-obsidian/60 border border-slate-border"
+              >
+                {rec}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="text-center mt-8">
+          <Link
+            href="/shop"
+            className="inline-flex items-center gap-2 text-[11px] font-sans font-medium tracking-[0.15em] uppercase text-heritage-green border-b border-heritage-green/20 pb-1 hover:border-heritage-green transition-colors"
+          >
+            Browse Full Collection
+            <ChevronDown size={10} className="-rotate-90" />
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

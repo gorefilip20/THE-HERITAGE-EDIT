@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Check,
   ChevronRight,
   Truck,
-  CreditCard,
   Lock,
   Loader2,
   Mail,
@@ -16,14 +14,19 @@ import {
   ArrowLeft,
   ShieldCheck,
   Globe,
+  CreditCard,
 } from "lucide-react";
 import { cn, formatPrice } from "@/lib/utils";
 import { useCartStore } from "@/store/cart-store";
 import { useCheckoutStore } from "@/store/checkout-store";
 
 const COUNTRIES = [
+  { code: "NG", name: "Nigeria" },
   { code: "US", name: "United States" },
   { code: "GB", name: "United Kingdom" },
+  { code: "GH", name: "Ghana" },
+  { code: "KE", name: "Kenya" },
+  { code: "ZA", name: "South Africa" },
   { code: "DE", name: "Germany" },
   { code: "FR", name: "France" },
   { code: "IT", name: "Italy" },
@@ -44,11 +47,18 @@ const COUNTRIES = [
   { code: "HK", name: "Hong Kong" },
 ];
 
+const PAYSTACK_CURRENCIES: Record<string, string> = {
+  NG: "NGN",
+  GH: "GHS",
+  KE: "KES",
+  ZA: "ZAR",
+  US: "USD",
+};
+
 type Step = 1 | 2 | 3;
 const STEP_LABELS = ["Identity", "Shipping", "Payment"] as const;
 
 export function CheckoutForm() {
-  const router = useRouter();
   const items = useCartStore((s) => s.items);
   const subtotalCents = useCartStore((s) => s.subtotalCents);
   const clearCart = useCartStore((s) => s.clearCart);
@@ -65,7 +75,7 @@ export function CheckoutForm() {
     city: checkout.shippingAddress?.city ?? "",
     state: checkout.shippingAddress?.state ?? "",
     postalCode: checkout.shippingAddress?.postalCode ?? "",
-    country: checkout.shippingAddress?.country ?? "US",
+    country: checkout.shippingAddress?.country ?? "NG",
     phone: checkout.shippingAddress?.phone ?? "",
   });
   const [loadingShipping, setLoadingShipping] = useState(false);
@@ -74,14 +84,10 @@ export function CheckoutForm() {
     checkout.selectedShipping?.id ?? null,
   );
   const [taxDuty, setTaxDuty] = useState(checkout.taxDuty);
-
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvc, setCardCvc] = useState("");
-  const [cardName, setCardName] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const selectedShipping = shippingOptions.find((o) => o.id === selectedShippingId) ?? null;
 
@@ -91,6 +97,8 @@ export function CheckoutForm() {
     if (taxDuty) total += taxDuty.taxCents + taxDuty.dutyCents;
     return total;
   }, [subtotalCents, selectedShipping, taxDuty]);
+
+  const currency = PAYSTACK_CURRENCIES[address.country] ?? "USD";
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,54 +140,77 @@ export function CheckoutForm() {
     }
   };
 
-  const formatCardNumber = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 16);
-    return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
-  };
-
-  const formatExpiry = (value: string) => {
-    const digits = value.replace(/\D/g, "").slice(0, 4);
-    if (digits.length >= 3) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-    return digits;
-  };
-
-  const handlePayment = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handlePaystackCheckout = async () => {
     setIsProcessing(true);
+    setPaymentError(null);
 
     try {
-      const paymentRes = await fetch("/api/checkout/payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ totalCents, currency: "usd" }),
-      });
-
-      if (!paymentRes.ok) throw new Error("Payment failed");
-
-      const orderRes = await fetch("/api/checkout", {
+      const res = await fetch("/api/checkout/paystack", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email,
-          shippingAddress: address,
-          shippingOption: selectedShipping,
           items: items.map((item) => ({
             productId: item.productId,
             variantId: item.variantId,
             quantity: item.quantity,
-            priceCents: item.priceCents,
+          })),
+          shippingAddress: address,
+          currency,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPaymentError(data.error ?? "Payment initialization failed");
+        return;
+      }
+
+      checkout.setOrderNumber(data.orderNumber);
+      clearCart();
+
+      window.location.href = data.authorizationUrl;
+    } catch {
+      setPaymentError("Network error — please try again");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleStripeCheckout = async () => {
+    setIsProcessing(true);
+    setPaymentError(null);
+
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          items: items.map((item) => ({
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity,
           })),
         }),
       });
 
-      if (orderRes.ok) {
-        const order = await orderRes.json();
-        setOrderNumber(order.orderNumber);
-        checkout.setOrderNumber(order.orderNumber);
-        setOrderComplete(true);
-        clearCart();
-        checkout.reset();
+      const data = await res.json();
+
+      if (!res.ok) {
+        setPaymentError(data.error ?? "Payment initialization failed");
+        return;
       }
+
+      checkout.setOrderNumber(data.orderNumber);
+      clearCart();
+
+      if (data.sessionUrl) {
+        window.location.href = data.sessionUrl;
+      }
+    } catch {
+      setPaymentError("Network error — please try again");
     } finally {
       setIsProcessing(false);
     }
@@ -229,7 +260,7 @@ export function CheckoutForm() {
         )}
         <Link
           href="/"
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-[#0D2C22] text-white text-sm font-sans font-medium hover:shadow-lg transition-all"
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#0D2C22] text-white text-sm font-sans font-medium hover:shadow-lg transition-all"
         >
           Continue Shopping
         </Link>
@@ -283,10 +314,10 @@ export function CheckoutForm() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
-        {/* ─── LEFT: FORM STEPS ─── */}
+        {/* LEFT: FORM STEPS */}
         <div className="lg:col-span-7">
           <AnimatePresence mode="wait">
-            {/* ── STEP 1: Identity / Email ── */}
+            {/* STEP 1: Identity / Email */}
             {currentStep === 1 && (
               <motion.div
                 key="step1"
@@ -295,7 +326,7 @@ export function CheckoutForm() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+                <div className="bg-white border border-neutral-200 shadow-sm overflow-hidden">
                   <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50 flex items-center gap-3">
                     <Mail size={16} className="text-[#0D2C22]/50" />
                     <h2 className="text-[11px] font-sans font-semibold tracking-[0.18em] uppercase text-neutral-500">
@@ -313,7 +344,7 @@ export function CheckoutForm() {
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="your@email.com"
                         required
-                        className="w-full h-12 px-4 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                        className="w-full h-12 px-4 border border-neutral-200 bg-white text-sm font-sans text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                       />
                     </div>
                     <p className="text-xs font-sans text-neutral-400 leading-relaxed">
@@ -322,7 +353,7 @@ export function CheckoutForm() {
                     </p>
                     <button
                       type="submit"
-                      className="w-full h-12 rounded-lg bg-[#0D2C22] text-white text-sm font-sans font-semibold tracking-wide flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all active:scale-[0.98]"
+                      className="w-full h-12 bg-[#0D2C22] text-white text-sm font-sans font-semibold tracking-wide flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all active:scale-[0.98]"
                     >
                       Continue to Shipping
                       <ChevronRight size={16} />
@@ -332,7 +363,7 @@ export function CheckoutForm() {
               </motion.div>
             )}
 
-            {/* ── STEP 2: Shipping Address ── */}
+            {/* STEP 2: Shipping Address */}
             {currentStep === 2 && (
               <motion.div
                 key="step2"
@@ -341,7 +372,7 @@ export function CheckoutForm() {
                 exit={{ opacity: 0, x: -20 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+                <div className="bg-white border border-neutral-200 shadow-sm overflow-hidden">
                   <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50 flex items-center gap-3">
                     <MapPin size={16} className="text-[#0D2C22]/50" />
                     <h2 className="text-[11px] font-sans font-semibold tracking-[0.18em] uppercase text-neutral-500">
@@ -361,7 +392,7 @@ export function CheckoutForm() {
                             setAddress((a) => ({ ...a, firstName: e.target.value }))
                           }
                           required
-                          className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                          className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm font-sans text-neutral-900 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                         />
                       </div>
                       <div>
@@ -375,7 +406,7 @@ export function CheckoutForm() {
                             setAddress((a) => ({ ...a, lastName: e.target.value }))
                           }
                           required
-                          className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                          className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm font-sans text-neutral-900 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                         />
                       </div>
                     </div>
@@ -391,7 +422,7 @@ export function CheckoutForm() {
                           onChange={(e) =>
                             setAddress((a) => ({ ...a, country: e.target.value }))
                           }
-                          className="w-full h-11 pl-9 pr-4 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 appearance-none focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                          className="w-full h-11 pl-9 pr-4 border border-neutral-200 bg-white text-sm font-sans text-neutral-900 appearance-none focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                         >
                           {COUNTRIES.map((c) => (
                             <option key={c.code} value={c.code}>
@@ -414,7 +445,7 @@ export function CheckoutForm() {
                         }
                         placeholder="123 Heritage Lane"
                         required
-                        className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                        className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm font-sans text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                       />
                     </div>
                     <input
@@ -424,7 +455,7 @@ export function CheckoutForm() {
                         setAddress((a) => ({ ...a, line2: e.target.value }))
                       }
                       placeholder="Apartment, suite, etc. (optional)"
-                      className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                      className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm font-sans text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                     />
 
                     <div className="grid grid-cols-3 gap-4">
@@ -439,7 +470,7 @@ export function CheckoutForm() {
                             setAddress((a) => ({ ...a, city: e.target.value }))
                           }
                           required
-                          className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                          className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm font-sans text-neutral-900 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                         />
                       </div>
                       <div>
@@ -452,7 +483,7 @@ export function CheckoutForm() {
                           onChange={(e) =>
                             setAddress((a) => ({ ...a, state: e.target.value }))
                           }
-                          className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                          className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm font-sans text-neutral-900 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                         />
                       </div>
                       <div>
@@ -469,7 +500,7 @@ export function CheckoutForm() {
                             }))
                           }
                           required
-                          className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                          className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm font-sans text-neutral-900 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                         />
                       </div>
                     </div>
@@ -485,7 +516,7 @@ export function CheckoutForm() {
                           setAddress((a) => ({ ...a, phone: e.target.value }))
                         }
                         placeholder="For delivery coordination"
-                        className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                        className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm font-sans text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                       />
                     </div>
 
@@ -493,7 +524,7 @@ export function CheckoutForm() {
                       <button
                         type="button"
                         onClick={() => setCurrentStep(1)}
-                        className="h-12 px-5 rounded-lg border border-neutral-200 text-sm font-sans font-medium text-neutral-600 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+                        className="h-12 px-5 border border-neutral-200 text-sm font-sans font-medium text-neutral-600 hover:bg-neutral-50 transition-colors flex items-center gap-2"
                       >
                         <ArrowLeft size={14} />
                         Back
@@ -501,7 +532,7 @@ export function CheckoutForm() {
                       <button
                         type="submit"
                         disabled={loadingShipping}
-                        className="flex-1 h-12 rounded-lg bg-[#0D2C22] text-white text-sm font-sans font-semibold tracking-wide flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all active:scale-[0.98] disabled:opacity-50"
+                        className="flex-1 h-12 bg-[#0D2C22] text-white text-sm font-sans font-semibold tracking-wide flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all active:scale-[0.98] disabled:opacity-50"
                       >
                         {loadingShipping ? (
                           <>
@@ -521,7 +552,7 @@ export function CheckoutForm() {
               </motion.div>
             )}
 
-            {/* ── STEP 3: Payment ── */}
+            {/* STEP 3: Payment */}
             {currentStep === 3 && (
               <motion.div
                 key="step3"
@@ -533,7 +564,7 @@ export function CheckoutForm() {
               >
                 {/* Shipping options */}
                 {shippingOptions.length > 0 && (
-                  <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+                  <div className="bg-white border border-neutral-200 shadow-sm overflow-hidden">
                     <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50 flex items-center gap-3">
                       <Truck size={16} className="text-[#0D2C22]/50" />
                       <h2 className="text-[11px] font-sans font-semibold tracking-[0.18em] uppercase text-neutral-500">
@@ -545,7 +576,7 @@ export function CheckoutForm() {
                         <label
                           key={opt.id}
                           className={cn(
-                            "flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all duration-200",
+                            "flex items-center justify-between p-4 border cursor-pointer transition-all duration-200",
                             selectedShippingId === opt.id
                               ? "border-[#0D2C22] bg-[#0D2C22]/[0.02]"
                               : "border-neutral-100 hover:border-neutral-200",
@@ -595,105 +626,67 @@ export function CheckoutForm() {
                   </div>
                 )}
 
-                {/* Payment card form */}
-                <div className="bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+                {/* Payment method selection */}
+                <div className="bg-white border border-neutral-200 shadow-sm overflow-hidden">
                   <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50 flex items-center gap-3">
                     <CreditCard size={16} className="text-[#0D2C22]/50" />
                     <h2 className="text-[11px] font-sans font-semibold tracking-[0.18em] uppercase text-neutral-500">
-                      Secure Payment
+                      Choose Payment Method
                     </h2>
                     <Lock size={12} className="text-emerald-500 ml-auto" />
                   </div>
-                  <form onSubmit={handlePayment} className="p-6 space-y-4">
-                    <div>
-                      <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400 mb-1.5">
-                        Cardholder Name
-                      </label>
-                      <input
-                        type="text"
-                        value={cardName}
-                        onChange={(e) => setCardName(e.target.value)}
-                        placeholder="As it appears on your card"
-                        required
-                        className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400 mb-1.5">
-                        Card Number
-                      </label>
-                      <input
-                        type="text"
-                        value={cardNumber}
-                        onChange={(e) =>
-                          setCardNumber(formatCardNumber(e.target.value))
-                        }
-                        placeholder="4242 4242 4242 4242"
-                        required
-                        maxLength={19}
-                        className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans font-mono text-neutral-900 tabular-nums placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
-                      />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400 mb-1.5">
-                          Expiry
-                        </label>
-                        <input
-                          type="text"
-                          value={cardExpiry}
-                          onChange={(e) =>
-                            setCardExpiry(formatExpiry(e.target.value))
-                          }
-                          placeholder="MM/YY"
-                          required
-                          maxLength={5}
-                          className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans font-mono text-neutral-900 tabular-nums placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
-                        />
+                  <div className="p-6 space-y-4">
+                    {paymentError && (
+                      <div className="p-4 bg-red-50 border border-red-200 text-sm font-sans text-red-700">
+                        {paymentError}
                       </div>
-                      <div>
-                        <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400 mb-1.5">
-                          CVC
-                        </label>
-                        <input
-                          type="text"
-                          value={cardCvc}
-                          onChange={(e) =>
-                            setCardCvc(e.target.value.replace(/\D/g, "").slice(0, 4))
-                          }
-                          placeholder="123"
-                          required
-                          maxLength={4}
-                          className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans font-mono text-neutral-900 tabular-nums placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
-                        />
-                      </div>
+                    )}
+
+                    {/* Paystack — Primary */}
+                    <button
+                      onClick={handlePaystackCheckout}
+                      disabled={isProcessing}
+                      className="w-full h-14 bg-gradient-to-r from-[#0D2C22] to-[#2E1A47] text-white text-sm font-sans font-semibold tracking-wide flex items-center justify-center gap-3 hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all active:scale-[0.98] disabled:opacity-50"
+                    >
+                      {isProcessing ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          Redirecting to Paystack...
+                        </>
+                      ) : (
+                        <>
+                          <Lock size={14} />
+                          Pay {formatPrice(totalCents, currency)} with Paystack
+                        </>
+                      )}
+                    </button>
+
+                    <div className="relative flex items-center gap-4">
+                      <div className="flex-1 h-px bg-neutral-200" />
+                      <span className="text-[10px] font-sans font-medium tracking-[0.15em] uppercase text-neutral-300">
+                        or
+                      </span>
+                      <div className="flex-1 h-px bg-neutral-200" />
                     </div>
+
+                    {/* Stripe — Secondary */}
+                    <button
+                      onClick={handleStripeCheckout}
+                      disabled={isProcessing}
+                      className="w-full h-12 border border-neutral-200 bg-white text-obsidian text-sm font-sans font-medium tracking-wide flex items-center justify-center gap-3 hover:bg-neutral-50 transition-all active:scale-[0.98] disabled:opacity-50"
+                    >
+                      <CreditCard size={14} className="text-neutral-400" />
+                      Pay with Card (Stripe)
+                    </button>
 
                     <div className="flex items-center gap-3 pt-2">
                       <button
                         type="button"
                         onClick={() => setCurrentStep(2)}
-                        className="h-12 px-5 rounded-lg border border-neutral-200 text-sm font-sans font-medium text-neutral-600 hover:bg-neutral-50 transition-colors flex items-center gap-2"
+                        className="h-12 px-5 border border-neutral-200 text-sm font-sans font-medium text-neutral-600 hover:bg-neutral-50 transition-colors flex items-center gap-2"
                       >
                         <ArrowLeft size={14} />
                         Back
-                      </button>
-                      <button
-                        type="submit"
-                        disabled={isProcessing}
-                        className="flex-1 h-12 rounded-lg bg-gradient-to-r from-[#0D2C22] to-[#2E1A47] text-white text-sm font-sans font-semibold tracking-wide flex items-center justify-center gap-2.5 hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all active:scale-[0.98] disabled:opacity-50"
-                      >
-                        {isProcessing ? (
-                          <>
-                            <Loader2 size={16} className="animate-spin" />
-                            Processing...
-                          </>
-                        ) : (
-                          <>
-                            <Lock size={14} />
-                            Pay {formatPrice(totalCents)}
-                          </>
-                        )}
                       </button>
                     </div>
 
@@ -703,27 +696,26 @@ export function CheckoutForm() {
                         256-bit SSL encrypted &middot; PCI-DSS compliant
                       </span>
                     </div>
-                  </form>
+                  </div>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* ─── RIGHT: ORDER SUMMARY ─── */}
+        {/* RIGHT: ORDER SUMMARY */}
         <div className="lg:col-span-5">
-          <div className="lg:sticky lg:top-24 bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
+          <div className="lg:sticky lg:top-24 bg-white border border-neutral-200 shadow-sm overflow-hidden">
             <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50">
               <h2 className="text-[11px] font-sans font-semibold tracking-[0.18em] uppercase text-neutral-500">
                 Order Summary
               </h2>
             </div>
 
-            {/* Cart items */}
             <div className="px-6 py-4 space-y-4 max-h-[320px] overflow-y-auto">
               {items.map((item) => (
                 <div key={`${item.productId}-${item.variantId}`} className="flex gap-4">
-                  <div className="w-16 h-20 rounded-lg overflow-hidden bg-neutral-100 shrink-0">
+                  <div className="w-16 h-20 overflow-hidden bg-neutral-100 shrink-0">
                     {item.imageUrl && (
                       <img
                         src={item.imageUrl}
@@ -750,7 +742,6 @@ export function CheckoutForm() {
               ))}
             </div>
 
-            {/* Itemized totals */}
             <div className="px-6 py-4 border-t border-neutral-100 space-y-2.5">
               <div className="flex justify-between text-sm font-sans">
                 <span className="text-neutral-500">Retail Subtotal</span>
@@ -799,7 +790,7 @@ export function CheckoutForm() {
                   Total
                 </span>
                 <span className="text-lg font-sans font-semibold tabular-nums text-neutral-900">
-                  {formatPrice(totalCents)}
+                  {formatPrice(totalCents, currency)}
                 </span>
               </div>
             </div>

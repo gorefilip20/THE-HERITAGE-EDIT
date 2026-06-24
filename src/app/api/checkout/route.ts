@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     const { items, email, userId } = parsed.data;
 
     /* ── Verify prices from database (never trust frontend) ── */
-    const productIds = [...new Set(items.map((i) => i.productId))];
+    const productIds = Array.from(new Set(items.map((i) => i.productId)));
 
     const products = await prisma.product.findMany({
       where: {

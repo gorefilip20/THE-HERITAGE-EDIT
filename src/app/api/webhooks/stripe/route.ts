@@ -126,7 +126,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
 
       const address = await prisma.address.create({
         data: {
-          userId: order.userId ?? undefined,
+          userId: order.userId ?? "guest",
           firstName,
           lastName,
           line1: addr.line1 ?? "",

@@ -10,7 +10,7 @@ const PRODUCT_CACHE_PREFIX = "products:";
 const PRODUCT_CACHE_TTL = 60 * 5; // 5 minutes
 
 function buildCacheKey(params: URLSearchParams): string {
-  const sorted = [...params.entries()]
+  const sorted = Array.from(params.entries())
     .filter(([, v]) => v !== "")
     .sort(([a], [b]) => a.localeCompare(b));
   return `${PRODUCT_CACHE_PREFIX}${new URLSearchParams(sorted).toString()}`;
@@ -324,21 +324,23 @@ export async function POST(request: NextRequest) {
         },
       });
 
+      const targetStatus = input.publishImmediately ? "PUBLISHED" : "AI_REVIEW";
       await prisma.product.update({
         where: { id: product.id },
-        data: { status: "AI_REVIEW" },
+        data: { status: targetStatus },
       });
-      finalStatus = "AI_REVIEW";
+      finalStatus = targetStatus;
     } catch (aiErr) {
       console.error(
         `Heritage AI generation failed for product ${product.id}:`,
         aiErr,
       );
+      const fallbackStatus = input.publishImmediately ? "PUBLISHED" : "DRAFT";
       await prisma.product.update({
         where: { id: product.id },
-        data: { status: "DRAFT" },
+        data: { status: fallbackStatus },
       });
-      finalStatus = "DRAFT";
+      finalStatus = fallbackStatus;
     }
 
     return NextResponse.json(

@@ -8,6 +8,7 @@ export const createProductSchema = z.object({
   salePriceCents: z.number().int().positive().nullable().optional(),
   description: z.string().optional(),
   currency: z.string().length(3).default("USD"),
+  publishImmediately: z.boolean().optional(),
   variants: z
     .array(
       z.object({

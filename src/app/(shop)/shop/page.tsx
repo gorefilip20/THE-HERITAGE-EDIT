@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useTransition, useRef } from "react";
+import { useState, useEffect, useCallback, useTransition, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -72,6 +72,21 @@ interface CategoryOption {
    ────────────────────────────────────────────────────────── */
 
 export default function ShopPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-heritage-green/20 border-t-heritage-green rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-[11px] font-sans tracking-[0.2em] uppercase text-neutral-400">Loading Collection</p>
+        </div>
+      </div>
+    }>
+      <ShopPageInner />
+    </Suspense>
+  );
+}
+
+function ShopPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();

@@ -42,6 +42,10 @@ const CATEGORIES = [
   { id: "cat-scarves", name: "Scarves & Wraps", slug: "scarves-wraps" },
   { id: "cat-sunglasses", name: "Sunglasses", slug: "sunglasses" },
   { id: "cat-belts", name: "Belts", slug: "belts" },
+  { id: "cat-senator", name: "Senator Wear", slug: "senator-wear" },
+  { id: "cat-native", name: "Native Wear", slug: "native-wear" },
+  { id: "cat-footwear", name: "Footwear", slug: "footwear" },
+  { id: "cat-jewelry", name: "Jewelry", slug: "jewelry" },
 ];
 
 async function main() {
