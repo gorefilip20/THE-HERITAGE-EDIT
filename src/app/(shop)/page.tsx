@@ -13,39 +13,41 @@ const ease = [0.16, 1, 0.3, 1];
 
 const EDITORIAL_BLOCKS = [
   {
-    title: "The Art of Tailoring",
-    subtitle: "Precision & Form",
-    category: "Suiting",
+    title: "The Agbada Collection",
+    subtitle: "Regal Presence",
+    category: "Agbada & Robes",
     image: getImagePlaceholder(700, 900),
-    href: "/shop?category=coats",
+    href: "/shop?category=agbada-robes",
   },
   {
-    title: "Evening Grandeur",
-    subtitle: "After Dark",
-    category: "Eveningwear",
+    title: "Ankara Reimagined",
+    subtitle: "Bold & Contemporary",
+    category: "Ankara Dresses",
     image: getImagePlaceholder(700, 900),
-    href: "/shop?category=dresses",
+    href: "/shop?category=ankara-dresses",
   },
   {
-    title: "The Resort Edit",
-    subtitle: "Endless Summer",
-    category: "Resort 2026",
+    title: "The Bridal Edit",
+    subtitle: "Ceremony & Celebration",
+    category: "Wedding & Ceremony",
     image: getImagePlaceholder(700, 900),
-    href: "/shop?category=knitwear",
+    href: "/collection/wedding-ceremony",
   },
 ];
 
 const BRAND_MARQUEE = [
-  "Gucci",
-  "Valentino",
-  "Saint Laurent",
-  "Bottega Veneta",
-  "Balenciaga",
-  "Prada",
-  "Burberry",
-  "Loewe",
-  "Chloé",
-  "Dior",
+  "Ozwald Boateng",
+  "Duro Olowu",
+  "Lisa Folawiyo",
+  "Maki Oh",
+  "Thebe Magugu",
+  "Kenneth Ize",
+  "Imane Ayissi",
+  "Laduma Ngxokolo",
+  "Christie Brown",
+  "Tongoro",
+  "Ahluwalia",
+  "Orange Culture",
 ];
 
 export default function HomePage() {
@@ -90,17 +92,17 @@ export default function HomePage() {
             className="max-w-2xl"
           >
             <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-white/40 mb-5">
-              Autumn / Winter 2026
+              The Finest Edit in African Fashion
             </p>
             <h1 className="text-display-lg md:text-display-xl font-serif italic text-white mb-6 leading-[1.05]">
-              The New
+              Wear Your
               <br />
-              Silhouette
+              Heritage
             </h1>
             <p className="text-[15px] font-sans text-white/50 leading-[1.8] mb-10 max-w-lg">
-              A study in architectural precision and fluid movement.
-              Discover the season&apos;s defining pieces — where heritage
-              craftsmanship meets the modern wardrobe.
+              Discover Africa&apos;s finest designers and textiles — from hand-woven
+              Aso Oke to bold Ankara prints. Luxury fashion rooted in centuries
+              of cultural artistry, delivered worldwide.
             </p>
             <div className="flex items-center gap-6">
               <Link
@@ -370,13 +372,14 @@ export default function HomePage() {
                 Our Philosophy
               </p>
               <h2 className="text-display-sm md:text-display-md font-serif italic text-white mb-6 leading-tight">
-                Every piece tells a story of heritage and craft
+                Every thread carries the wisdom of generations
               </h2>
               <p className="text-[14px] font-sans text-white/50 leading-[1.9] mb-10">
-                Our AI-powered Heritage Engine researches the provenance,
-                design DNA, and cultural significance behind every garment —
-                transforming your wardrobe into a curated collection of
-                stories worth wearing.
+                From the Kente looms of Ghana to the Adire dye pits of
+                Nigeria, every piece in our collection carries a story of
+                cultural heritage. We connect you with Africa&apos;s finest
+                designers and artisans — bringing centuries of textile
+                mastery to the global stage.
               </p>
               <Link
                 href="/shop"
