@@ -5,9 +5,10 @@ import { getCurrentUser } from "@/lib/auth";
 
 export async function POST(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
       return NextResponse.json(
@@ -17,7 +18,7 @@ export async function POST(
     }
 
     const product = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { brand: true, category: true },
     });
 
@@ -62,14 +63,15 @@ export async function POST(
       brandName: product.brand.name,
     });
   } catch (err) {
+    const { id } = await params;
     console.error(
-      `Heritage regeneration failed for product ${params.id}:`,
+      `Heritage regeneration failed for product ${id}:`,
       err,
     );
 
     try {
       await prisma.product.update({
-        where: { id: params.id },
+        where: { id },
         data: { status: "DRAFT" },
       });
     } catch {
@@ -88,13 +90,14 @@ export async function POST(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
 
     const heritage = await prisma.heritageNarrative.findUnique({
-      where: { productId: params.id },
+      where: { productId: id },
     });
 
     if (!heritage) {
@@ -135,17 +138,14 @@ export async function PATCH(
 
     if (body.isApproved === true) {
       await prisma.product.update({
-        where: { id: params.id },
+        where: { id },
         data: { status: "PUBLISHED" },
       });
     }
 
     return NextResponse.json(updated);
   } catch (err) {
-    console.error(
-      `Heritage update failed for product ${params.id}:`,
-      err,
-    );
+    console.error("Heritage update failed:", err);
     return NextResponse.json(
       { error: "Failed to update heritage narrative" },
       { status: 500 },

@@ -4,11 +4,12 @@ import { getCurrentUser } from "@/lib/auth";
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
-    const identifier = params.id;
+    const identifier = id;
 
     const order = await prisma.order.findFirst({
       where: {
@@ -68,9 +69,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
 
     const allowedStatusTransitions: Record<string, string[]> = {
@@ -83,7 +85,7 @@ export async function PATCH(
 
     if (body.status) {
       const order = await prisma.order.findUnique({
-        where: { id: params.id },
+        where: { id },
         select: { status: true },
       });
 
@@ -113,14 +115,14 @@ export async function PATCH(
 
     if (body.status === "CANCELLED") {
       const order = await prisma.order.findUnique({
-        where: { id: params.id },
+        where: { id },
         include: { items: true },
       });
 
       if (order) {
         await prisma.$transaction(async (tx) => {
           await tx.order.update({
-            where: { id: params.id },
+            where: { id },
             data: updateData,
           });
 
@@ -135,7 +137,7 @@ export async function PATCH(
         });
 
         const updated = await prisma.order.findUnique({
-          where: { id: params.id },
+          where: { id },
           include: { items: true, shippingAddress: true },
         });
 
@@ -144,7 +146,7 @@ export async function PATCH(
     }
 
     const updated = await prisma.order.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: { items: true, shippingAddress: true },
     });

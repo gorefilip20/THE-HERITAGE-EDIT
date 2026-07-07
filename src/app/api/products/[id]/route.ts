@@ -8,12 +8,13 @@ const PDP_CACHE_TTL = 60 * 3; // 3 minutes
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const start = performance.now();
 
   try {
-    const identifier = params.id;
+    const { id } = await params;
+    const identifier = id;
     const cacheKey = `${PDP_CACHE_PREFIX}${identifier}`;
 
     const cached = await safeRedisGet(cacheKey);
@@ -68,9 +69,10 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
       return NextResponse.json(
@@ -82,7 +84,7 @@ export async function PATCH(
     const body = await request.json();
 
     const existing = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true },
     });
 
@@ -102,7 +104,7 @@ export async function PATCH(
     if (body.isFeatured !== undefined) updateData.isFeatured = body.isFeatured;
 
     const product = await prisma.product.update({
-      where: { id: params.id },
+      where: { id },
       data: updateData,
       include: {
         brand: true,
@@ -125,9 +127,10 @@ export async function PATCH(
 
 export async function DELETE(
   _request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     const user = await getCurrentUser();
     if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
       return NextResponse.json(
@@ -137,7 +140,7 @@ export async function DELETE(
     }
 
     const existing = await prisma.product.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { id: true, status: true },
     });
 
@@ -149,7 +152,7 @@ export async function DELETE(
     }
 
     await prisma.product.update({
-      where: { id: params.id },
+      where: { id },
       data: { status: "ARCHIVED" },
     });
 
