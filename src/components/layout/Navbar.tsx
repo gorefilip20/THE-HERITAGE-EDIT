@@ -164,44 +164,112 @@ const MEGA_MENU: MegaMenuCategory[] = [
     },
   },
   {
-    label: "Collections",
-    href: "/shop",
+    label: "Kids",
+    href: "/kids",
     columns: [
       {
-        heading: "Curated Edits",
+        heading: "Girls",
         links: [
-          { label: "Heritage Classics", href: "/collection/heritage-classics" },
-          { label: "Wedding & Ceremony", href: "/collection/wedding-ceremony" },
-          { label: "Resort Collection", href: "/collection/resort-collection" },
-          { label: "Artisan Edit", href: "/collection/artisan-edit" },
+          { label: "View All Girls", href: "/kids?gender=girls" },
+          { label: "Ankara Dresses", href: "/kids?category=ankara-dresses&gender=girls" },
+          { label: "Kente Sets", href: "/kids?category=kente-wear&gender=girls" },
+          { label: "Accessories", href: "/kids?category=accessories&gender=girls" },
+          { label: "Shoes", href: "/kids?category=shoes&gender=girls" },
         ],
       },
       {
-        heading: "By Textile",
+        heading: "Boys",
         links: [
-          { label: "Ankara", href: "/shop?category=ankara-dresses" },
-          { label: "Kente", href: "/shop?category=kente-wear" },
-          { label: "Aso Oke", href: "/shop?category=aso-oke" },
-          { label: "Adire", href: "/shop?tag=adire" },
+          { label: "View All Boys", href: "/kids?gender=boys" },
+          { label: "Dashiki Sets", href: "/kids?category=dashiki&gender=boys" },
+          { label: "Agbada", href: "/kids?category=agbada&gender=boys" },
+          { label: "Accessories", href: "/kids?category=accessories&gender=boys" },
+          { label: "Shoes", href: "/kids?category=shoes&gender=boys" },
+        ],
+      },
+      {
+        heading: "Baby",
+        links: [
+          { label: "View All Baby", href: "/kids?category=baby" },
+          { label: "Onesies & Sets", href: "/kids?category=baby-sets" },
+          { label: "Gifts", href: "/kids?category=baby-gifts" },
         ],
       },
     ],
     featured: {
-      title: "Artisan Edit",
-      subtitle: "Handcrafted by master artisans",
-      href: "/collection/artisan-edit",
-      image: "/images/editorial/artisan.jpg",
+      title: "Mini Heritage",
+      subtitle: "African fashion for little ones",
+      href: "/kids",
+      image: "/images/editorial/kids.jpg",
     },
   },
   {
-    label: "About",
-    href: "/about",
+    label: "Life",
+    href: "/life",
     columns: [
       {
-        heading: "The Heritage Edit",
+        heading: "Home & Living",
         links: [
-          { label: "Our Story", href: "/about" },
-          { label: "Contact Us", href: "/contact" },
+          { label: "View All", href: "/life" },
+          { label: "Textiles & Throws", href: "/life?category=textiles" },
+          { label: "Wall Art", href: "/life?category=wall-art" },
+          { label: "Candles & Fragrance", href: "/life?category=fragrance" },
+          { label: "Tableware", href: "/life?category=tableware" },
+        ],
+      },
+      {
+        heading: "Beauty",
+        links: [
+          { label: "Skincare", href: "/life?category=skincare" },
+          { label: "Body Care", href: "/life?category=body-care" },
+          { label: "Fragrance", href: "/life?category=fragrance" },
+          { label: "Hair Care", href: "/life?category=hair-care" },
+        ],
+      },
+      {
+        heading: "Gifts",
+        links: [
+          { label: "Gift Guide", href: "/life?category=gifts" },
+          { label: "Gift Cards", href: "/gift-cards" },
+          { label: "Under $100", href: "/life?category=gifts&maxPrice=10000" },
+          { label: "Luxury Gifts", href: "/life?category=gifts&minPrice=50000" },
+        ],
+      },
+    ],
+    featured: {
+      title: "African Home",
+      subtitle: "Artisan-crafted living",
+      href: "/life",
+      image: "/images/editorial/home.jpg",
+    },
+  },
+  {
+    label: "Sale",
+    href: "/sale",
+    columns: [
+      {
+        heading: "Women's Sale",
+        links: [
+          { label: "View All", href: "/sale?gender=women" },
+          { label: "Dresses", href: "/sale?category=ankara-dresses" },
+          { label: "Accessories", href: "/sale?category=accessories" },
+          { label: "Shoes", href: "/sale?category=shoes" },
+        ],
+      },
+      {
+        heading: "Men's Sale",
+        links: [
+          { label: "View All", href: "/sale?gender=men" },
+          { label: "Suits & Agbada", href: "/sale?category=agbada-robes" },
+          { label: "Accessories", href: "/sale?category=accessories" },
+        ],
+      },
+      {
+        heading: "By Discount",
+        links: [
+          { label: "Up to 30% Off", href: "/sale?discount=30" },
+          { label: "Up to 50% Off", href: "/sale?discount=50" },
+          { label: "Up to 70% Off", href: "/sale?discount=70" },
         ],
       },
     ],

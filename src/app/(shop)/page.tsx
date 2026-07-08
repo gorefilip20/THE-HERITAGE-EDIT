@@ -431,6 +431,149 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════
+          CUSTOMER REVIEWS — SOCIAL PROOF
+         ═══════════════════════════════════════════ */}
+      <section className="py-24 md:py-32">
+        <div className="luxury-container">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease }}
+            className="text-center mb-16"
+          >
+            <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-heritage-green/50 mb-4">
+              Customer Stories
+            </p>
+            <h2 className="text-display-md md:text-display-lg font-serif italic text-obsidian">
+              Loved by Customers Worldwide
+            </h2>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Amara Okonkwo",
+                location: "Lagos, Nigeria",
+                rating: 5,
+                text: "The quality is exceptional. Every piece feels like an investment in my heritage. The craftsmanship is unmatched.",
+                image: getImagePlaceholder(80, 80),
+              },
+              {
+                name: "Zainab Hassan",
+                location: "London, UK",
+                rating: 5,
+                text: "I'm obsessed! The Ankara collection is stunning and the customer service is incredibly responsive. Highly recommend!",
+                image: getImagePlaceholder(80, 80),
+              },
+              {
+                name: "Kwame Mensah",
+                location: "New York, USA",
+                rating: 5,
+                text: "Finally, a platform that celebrates African fashion with the luxury it deserves. The Heritage Edit is revolutionary.",
+                image: getImagePlaceholder(80, 80),
+              },
+            ].map((review, idx) => (
+              <motion.div
+                key={review.name}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: idx * 0.1, ease }}
+                className="bg-ivory p-8 rounded-lg"
+              >
+                <div className="flex items-center gap-1 mb-4">
+                  {Array.from({ length: review.rating }).map((_, i) => (
+                    <span key={i} className="text-heritage-green">★</span>
+                  ))}
+                </div>
+                <p className="text-[14px] font-sans text-neutral-700 leading-relaxed mb-6">
+                  "{review.text}"
+                </p>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-neutral-300 overflow-hidden">
+                    <Image
+                      src={review.image}
+                      alt={review.name}
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <p className="text-[12px] font-sans font-medium text-obsidian">{review.name}</p>
+                    <p className="text-[11px] font-sans text-neutral-500">{review.location}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
+          INSTAGRAM GALLERY — SOCIAL INTEGRATION
+         ═══════════════════════════════════════════ */}
+      <section className="bg-ivory py-24 md:py-32">
+        <div className="luxury-container">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease }}
+            className="text-center mb-16"
+          >
+            <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-heritage-purple/50 mb-4">
+              Follow Us
+            </p>
+            <h2 className="text-display-md md:text-display-lg font-serif italic text-obsidian mb-4">
+              @TheHeritageEdit
+            </h2>
+            <p className="text-[14px] font-sans text-neutral-600">
+              Tag us for a chance to be featured
+            </p>
+          </motion.div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, scale: 0.95 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.05 }}
+                className="relative aspect-square bg-neutral-200 overflow-hidden group cursor-pointer"
+              >
+                <Image
+                  src={getImagePlaceholder(400, 400)}
+                  alt={`Instagram post ${i + 1}`}
+                  fill
+                  className="object-cover group-hover:scale-110 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
+                  <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-[12px] font-sans font-medium">
+                    View on Instagram
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          <div className="text-center">
+            <a
+              href="https://instagram.com/theheritageedit"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 h-12 px-8 border border-obsidian text-obsidian text-[11px] font-sans font-semibold tracking-[0.15em] uppercase hover:bg-neutral-50 transition-colors"
+            >
+              Follow on Instagram
+              <ArrowRight size={14} />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
           NEWSLETTER — ELEGANT CTA
          ═══════════════════════════════════════════ */}
       <section className="bg-heritage-purple py-24 md:py-32">
