@@ -40,8 +40,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        serif: ["Playfair Display", "Cormorant Garamond", "Georgia", "serif"],
-        sans: ["Inter", "Plus Jakarta Sans", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "Georgia", "serif"],
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       fontSize: {
         "display-xl": ["4.5rem", { lineHeight: "1.05", letterSpacing: "-0.03em" }],

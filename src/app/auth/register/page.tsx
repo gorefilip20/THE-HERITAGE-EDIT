@@ -3,10 +3,10 @@ import { Loader2 } from "lucide-react";
 import { AuthForm } from "@/components/auth/AuthForm";
 
 export const metadata = {
-  title: "Sign In — The Heritage Edit",
+  title: "Create Account — The Heritage Edit",
 };
 
-export default function LoginPage() {
+export default function RegisterPage() {
   return (
     <Suspense
       fallback={
@@ -15,7 +15,7 @@ export default function LoginPage() {
         </div>
       }
     >
-      <AuthForm mode="login" />
+      <AuthForm mode="register" />
     </Suspense>
   );
 }

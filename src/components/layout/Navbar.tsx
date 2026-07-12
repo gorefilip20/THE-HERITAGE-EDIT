@@ -509,7 +509,7 @@ export function Navbar() {
                   <Heart size={19} strokeWidth={1.5} />
                 </Link>
                 <Link
-                  href="/auth/login"
+                  href="/account"
                   className="p-2 text-obsidian/60 hover:text-obsidian transition-colors"
                   aria-label="Account"
                 >
@@ -655,12 +655,20 @@ export function Navbar() {
                       Wishlist
                     </Link>
                     <Link
-                      href="/auth/login"
+                      href="/account"
                       onClick={() => setIsMobileMenuOpen(false)}
                       className="flex items-center gap-3 text-sm font-sans text-obsidian/60 hover:text-obsidian"
                     >
                       <User size={18} strokeWidth={1.5} />
-                      Sign In
+                      My Account
+                    </Link>
+                    <Link
+                      href="/auth/register"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-3 text-sm font-sans text-obsidian/60 hover:text-obsidian"
+                    >
+                      <User size={18} strokeWidth={1.5} />
+                      Create Account
                     </Link>
                   </div>
                 </motion.nav>
