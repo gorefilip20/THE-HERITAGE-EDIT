@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 export default {
+  // Produces .next/standalone — a self-contained Node server with only the
+  // dependencies actually used, ideal for self-hosting (Hostinger Node.js app).
+  output: "standalone",
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com" },
