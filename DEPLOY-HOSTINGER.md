@@ -100,31 +100,50 @@ UPDATE users SET role = 'SUPER_ADMIN' WHERE email = 'you@example.com';
 
 ---
 
-## Alternative: Hostinger VPS (most robust for Next.js)
-If you bought a **VPS** (KVM) instead of shared/Business hosting, this is the most
-reliable path — full control, no Passenger quirks, no build-memory limits.
+## Hostinger VPS — full deployment (recommended path)
+A VPS (KVM) gives you SSH + root, so it runs Next.js properly — no Passenger quirks,
+no build-memory limits. This section installs everything **on the VPS itself**,
+including PostgreSQL, so the whole stack lives on Hostinger.
 
-SSH into the VPS, then:
+SSH in as root (`ssh root@YOUR_VPS_IP`), then:
+
 ```bash
-# 1. System deps
-sudo apt update && sudo apt install -y nginx
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -   # Node 20 LTS
-sudo apt install -y nodejs
-sudo npm install -g pm2
+# 1. System packages (Ubuntu 22.04/24.04)
+apt update && apt upgrade -y
+apt install -y nginx postgresql postgresql-contrib git unzip
+curl -fsSL https://deb.nodesource.com/setup_20.x | bash -    # Node 20 LTS
+apt install -y nodejs
+npm install -g pm2
 
-# 2. Get the code (unzip the bundle, or git clone) into /var/www/heritage-edit
-cd /var/www/heritage-edit
+# 2. Create the PostgreSQL database (pick a strong password!)
+sudo -u postgres psql <<'SQL'
+CREATE DATABASE heritage;
+CREATE USER heritage_user WITH ENCRYPTED PASSWORD 'CHANGE_ME_STRONG_PASSWORD';
+GRANT ALL PRIVILEGES ON DATABASE heritage TO heritage_user;
+ALTER DATABASE heritage OWNER TO heritage_user;
+SQL
+# → your DATABASE_URL is:
+#   postgresql://heritage_user:CHANGE_ME_STRONG_PASSWORD@localhost:5432/heritage
 
-# 3. Env + install + db + build
-cp .env.production.example .env.production   # then edit with real values
+# 3. Get the code into /var/www/heritage-edit
+mkdir -p /var/www/heritage-edit && cd /var/www/heritage-edit
+git clone https://github.com/gorefilip20/THE-HERITAGE-EDIT.git .
+#   (or upload the ZIP with scp from your PC, then: unzip the-heritage-edit-deploy.zip)
+
+# 4. Environment
+cp .env.production.example .env.production
+nano .env.production   # fill DATABASE_URL (above), NEXTAUTH_SECRET (openssl rand -base64 48),
+                       # NEXT_PUBLIC_APP_URL=https://theheritageedit.shop, PAYSTACK_SECRET_KEY…
+
+# 5. Install → schema → seed → build
 npm install
 npx prisma db push
 npx tsx scripts/seed-brands.ts
 npm run build
 
-# 4. Run under PM2 (uses the included server.js on port 3000)
-pm2 start server.js --name heritage-edit
-pm2 save && pm2 startup     # run the command it prints, to survive reboots
+# 6. Run under PM2 (ecosystem.config.js forces NODE_ENV=production + port 3000)
+pm2 start ecosystem.config.js
+pm2 save && pm2 startup     # run the command it prints, so it survives reboots
 ```
 
 Then put nginx in front and add HTTPS:
@@ -155,3 +174,8 @@ sudo certbot --nginx -d theheritageedit.shop -d www.theheritageedit.shop
 Point the domain at the VPS by setting an **A record** (`@` and `www`) to the VPS IP
 in hPanel → Domains → DNS. Redeploy after code changes with:
 `git pull && npm install && npm run build && pm2 restart heritage-edit`.
+
+### Make yourself an admin (after seeding + registering once)
+```bash
+sudo -u postgres psql -d heritage -c "UPDATE users SET role='SUPER_ADMIN' WHERE email='you@example.com';"
+```
