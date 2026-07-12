@@ -100,9 +100,58 @@ UPDATE users SET role = 'SUPER_ADMIN' WHERE email = 'you@example.com';
 
 ---
 
-### Alternative if Hostinger’s Node.js app gives you trouble
-Next.js on shared Node.js hosting can be finicky (Passenger quirks, build limits).
-The most robust Hostinger option is a **VPS** (KVM), where you run
-`npm run build && pm2 start server.js` behind an nginx reverse proxy with a free
-Let’s Encrypt certificate. Ask and I’ll write that VPS runbook + nginx config too.
-You can also keep the Hostinger domain and point its DNS at a Next.js-native host.
+## Alternative: Hostinger VPS (most robust for Next.js)
+If you bought a **VPS** (KVM) instead of shared/Business hosting, this is the most
+reliable path — full control, no Passenger quirks, no build-memory limits.
+
+SSH into the VPS, then:
+```bash
+# 1. System deps
+sudo apt update && sudo apt install -y nginx
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -   # Node 20 LTS
+sudo apt install -y nodejs
+sudo npm install -g pm2
+
+# 2. Get the code (unzip the bundle, or git clone) into /var/www/heritage-edit
+cd /var/www/heritage-edit
+
+# 3. Env + install + db + build
+cp .env.production.example .env.production   # then edit with real values
+npm install
+npx prisma db push
+npx tsx scripts/seed-brands.ts
+npm run build
+
+# 4. Run under PM2 (uses the included server.js on port 3000)
+pm2 start server.js --name heritage-edit
+pm2 save && pm2 startup     # run the command it prints, to survive reboots
+```
+
+Then put nginx in front and add HTTPS:
+```nginx
+# /etc/nginx/sites-available/heritage-edit  (symlink into sites-enabled)
+server {
+    listen 80;
+    server_name theheritageedit.shop www.theheritageedit.shop;
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+```bash
+sudo ln -s /etc/nginx/sites-available/heritage-edit /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+sudo apt install -y certbot python3-certbot-nginx
+sudo certbot --nginx -d theheritageedit.shop -d www.theheritageedit.shop
+```
+Point the domain at the VPS by setting an **A record** (`@` and `www`) to the VPS IP
+in hPanel → Domains → DNS. Redeploy after code changes with:
+`git pull && npm install && npm run build && pm2 restart heritage-edit`.
