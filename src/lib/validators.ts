@@ -7,7 +7,7 @@ export const createProductSchema = z.object({
   basePriceCents: z.number().int().positive(),
   salePriceCents: z.number().int().positive().nullable().optional(),
   description: z.string().optional(),
-  currency: z.string().length(3).default("USD"),
+  currency: z.string().length(3).default("NGN"),
   publishImmediately: z.boolean().optional(),
   variants: z
     .array(

@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
         taxCents: 0,
         dutyCents: 0,
         totalCents: subtotalCents,
-        currency: "USD",
+        currency: "NGN",
         trackingNumber: null,
         notes: null,
         items: {

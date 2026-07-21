@@ -145,7 +145,7 @@ model Product {
   categoryId  String
   basePriceCents Int
   salePriceCents Int?
-  currency    String        @default("USD")
+  currency    String        @default("NGN")
   status      ProductStatus @default(DRAFT)
   isFeatured  Boolean       @default(false)
   createdAt   DateTime      @default(now())
@@ -241,7 +241,7 @@ model Order {
   dutyCents        Int           @default(0)
   discountCents    Int           @default(0)
   totalCents       Int
-  currency         String        @default("USD")
+  currency         String        @default("NGN")
   shippingAddressId String?
   stripePaymentId  String?
   shippingMethod   String?

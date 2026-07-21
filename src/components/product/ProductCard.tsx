@@ -5,7 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Heart, ShoppingBag } from "lucide-react";
-import { formatPrice, getImagePlaceholder } from "@/lib/utils";
+import { getImagePlaceholder } from "@/lib/utils";
+import { useLocale } from "@/context/LocaleContext";
 
 interface ProductCardProps {
   slug: string;
@@ -25,11 +26,12 @@ export function ProductCard({
   brandName,
   priceCents,
   salePriceCents,
-  currency = "USD",
+  currency,
   imageUrl,
   hoverImageUrl,
   imageAlt,
 }: ProductCardProps) {
+  const { formatPrice } = useLocale();
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -125,6 +127,7 @@ export function ProductCard({
               {formatPrice(priceCents, currency)}
             </span>
           )}
+
         </div>
       </div>
     </motion.article>

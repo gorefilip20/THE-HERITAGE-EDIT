@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, User, ShoppingBag, Menu, X, Heart, ChevronRight } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 import { cn, getImagePlaceholder } from "@/lib/utils";
+import { useLocale } from "@/context/LocaleContext";
 
 /* ──────────────────────────────────────────────────────────
    MEGA-MENU DATA
@@ -289,6 +290,7 @@ export function Navbar() {
   const [mobileSubMenu, setMobileSubMenu] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { openCart, itemCount } = useCartStore();
+  const { formatPrice, t } = useLocale();
   const count = itemCount();
   const megaTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -353,7 +355,7 @@ export function Navbar() {
         <div className="hidden lg:block border-b border-slate-border">
           <div className="luxury-container flex items-center justify-between h-8">
             <span className="text-[10px] font-sans font-medium tracking-[0.2em] uppercase text-neutral-400">
-              Complimentary shipping on orders over ₦500,000
+              {t("shipping.free")} {formatPrice(50_000_000)}
             </span>
             <div className="flex items-center gap-6">
               <Link

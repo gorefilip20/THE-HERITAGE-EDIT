@@ -1,8 +1,13 @@
 "use client";
 
+import { useLocale } from "@/context/LocaleContext";
+
 export function Marquee() {
+  const { formatPrice, t } = useLocale();
+  const shippingThreshold = formatPrice(50_000_000);
+
   const items = [
-    "Complimentary shipping on orders over ₦500,000",
+    `${t("shipping.free")} ${shippingThreshold}`,
     "Authentic luxury — every piece verified",
     "AI-powered heritage narratives for every garment",
     "Express worldwide delivery available",

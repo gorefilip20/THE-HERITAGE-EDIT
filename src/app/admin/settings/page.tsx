@@ -10,7 +10,7 @@ export default function SettingsPage() {
   const [generalSettings, setGeneralSettings] = useState({
     storeName: "The Heritage Edit",
     storeEmail: "hello@theheritageedit.com",
-    currency: "USD",
+    currency: "NGN",
     timezone: "Africa/Lagos",
     freeShippingThreshold: "500",
   });

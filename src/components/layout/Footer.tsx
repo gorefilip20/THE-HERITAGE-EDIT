@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useLocale } from "@/context/LocaleContext";
+import { getAllSupportedLocales } from "@/lib/locale";
 
 const FORMSPREE_URL = "https://formspree.io/f/maqrjzvj";
 
@@ -33,9 +35,29 @@ const FOOTER_LINKS = {
   ],
 };
 
+const COUNTRY_OPTIONS = [
+  { code: "NG", label: "Nigeria (₦)" },
+  { code: "US", label: "United States ($)" },
+  { code: "GB", label: "United Kingdom (£)" },
+  { code: "DE", label: "Deutschland (€)" },
+  { code: "FR", label: "France (€)" },
+  { code: "ES", label: "España (€)" },
+  { code: "IT", label: "Italia (€)" },
+  { code: "PT", label: "Portugal (€)" },
+  { code: "GH", label: "Ghana (₵)" },
+  { code: "KE", label: "Kenya (KSh)" },
+  { code: "ZA", label: "South Africa (R)" },
+  { code: "JP", label: "日本 (¥)" },
+  { code: "KR", label: "한국 (₩)" },
+  { code: "AE", label: "UAE (AED)" },
+  { code: "CA", label: "Canada (C$)" },
+  { code: "AU", label: "Australia (A$)" },
+];
+
 export function Footer() {
   const [footerEmail, setFooterEmail] = useState("");
   const [footerStatus, setFooterStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const { locale, setCountry, t } = useLocale();
 
   async function handleFooterSubscribe() {
     if (!footerEmail || footerStatus === "submitting" || footerStatus === "success") return;
@@ -141,7 +163,7 @@ export function Footer() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-8">
             <div>
               <h4 className="text-[11px] font-sans font-medium tracking-[0.2em] uppercase text-white/40 mb-2">
-                Join The Heritage Circle
+                {t("footer.newsletter")}
               </h4>
               <p className="text-[13px] font-sans text-white/40 max-w-sm">
                 Early access to new arrivals, designer stories, and exclusive invitations.
@@ -165,7 +187,7 @@ export function Footer() {
                 disabled={footerStatus === "submitting" || footerStatus === "success"}
                 className="h-12 px-8 bg-white text-obsidian text-[11px] font-sans font-semibold tracking-[0.15em] uppercase hover:bg-ivory transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {footerStatus === "success" ? "Subscribed" : footerStatus === "submitting" ? "Sending..." : "Subscribe"}
+                {footerStatus === "success" ? t("footer.subscribed") : footerStatus === "submitting" ? "..." : t("footer.subscribe")}
               </button>
             </form>
           </div>
@@ -173,9 +195,22 @@ export function Footer() {
 
         {/* Bottom bar */}
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[11px] font-sans text-white/30">
-            &copy; {new Date().getFullYear()} The Heritage Edit. All rights reserved.
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-[11px] font-sans text-white/30">
+              &copy; {new Date().getFullYear()} The Heritage Edit. All rights reserved.
+            </p>
+            <select
+              value={locale.countryCode}
+              onChange={(e) => setCountry(e.target.value)}
+              className="bg-white/5 border border-white/15 text-[11px] font-sans text-white/60 px-3 py-1.5 focus:outline-none focus:border-white/40 transition-colors appearance-none cursor-pointer"
+            >
+              {COUNTRY_OPTIONS.map((opt) => (
+                <option key={opt.code} value={opt.code} className="bg-obsidian text-white">
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="flex items-center gap-4 text-[11px] font-sans text-white/30">
             <span className="px-2 py-1 border border-white/10">Visa</span>
             <span className="px-2 py-1 border border-white/10">Mastercard</span>

@@ -6,7 +6,8 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
-import { formatPrice, getImagePlaceholder } from "@/lib/utils";
+import { getImagePlaceholder } from "@/lib/utils";
+import { useLocale } from "@/context/LocaleContext";
 
 export function CartDrawer() {
   const {
@@ -18,6 +19,7 @@ export function CartDrawer() {
     subtotalCents,
     itemCount,
   } = useCartStore();
+  const { formatPrice, t } = useLocale();
 
   const subtotal = subtotalCents();
   const count = itemCount();
@@ -49,7 +51,7 @@ export function CartDrawer() {
               <div className="flex items-center gap-3">
                 <ShoppingBag size={18} strokeWidth={1.5} />
                 <span className="text-sm font-sans font-medium tracking-wider uppercase">
-                  Your Edit
+                  {t("cart.title")}
                 </span>
                 <span className="text-xs font-sans text-neutral-400">
                   ({count})
@@ -69,10 +71,10 @@ export function CartDrawer() {
               <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
                 <ShoppingBag size={48} strokeWidth={0.8} className="text-neutral-200" />
                 <p className="text-sm font-sans text-neutral-400">
-                  Your edit is empty
+                  {t("cart.empty")}
                 </p>
                 <button onClick={closeCart} className="luxury-button-secondary">
-                  Continue Shopping
+                  {t("cart.continueShopping")}
                 </button>
               </div>
             ) : (
@@ -172,7 +174,7 @@ export function CartDrawer() {
               <div className="border-t border-slate-border px-6 py-5 space-y-4 shrink-0 bg-white">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-sans font-medium tracking-wider uppercase text-neutral-500">
-                    Subtotal
+                    {t("cart.subtotal")}
                   </span>
                   <span className="product-price text-lg font-medium">
                     {formatPrice(subtotal)}
@@ -186,14 +188,14 @@ export function CartDrawer() {
                   onClick={closeCart}
                   className="luxury-button-primary w-full gap-2"
                 >
-                  Proceed to Checkout
+                  {t("cart.checkout")}
                   <ArrowRight size={14} />
                 </Link>
                 <button
                   onClick={closeCart}
                   className="luxury-button-ghost w-full text-xs"
                 >
-                  Continue Shopping
+                  {t("cart.continueShopping")}
                 </button>
               </div>
             )}
