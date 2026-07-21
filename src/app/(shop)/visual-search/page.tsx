@@ -78,13 +78,13 @@ export default function VisualSearch() {
             animate={{ opacity: 1 }}
             className="max-w-2xl mx-auto"
           >
-            <div className="bg-neutral-50 p-8 md:p-12 rounded-lg">
+            <div className="bg-neutral-50 p-8 md:p-12">
               <h2 className="text-2xl font-serif text-obsidian mb-8">Upload an Image</h2>
 
               {/* Upload Area */}
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="border-2 border-dashed border-neutral-300 rounded-lg p-12 text-center cursor-pointer hover:border-obsidian hover:bg-neutral-100 transition-all"
+                className="border-2 border-dashed border-neutral-300 p-12 text-center cursor-pointer hover:border-obsidian hover:bg-neutral-100 transition-all"
               >
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-16 h-16 bg-neutral-200 rounded-full flex items-center justify-center">
@@ -139,7 +139,7 @@ export default function VisualSearch() {
                   {[1, 2, 3].map((i) => (
                     <div
                       key={i}
-                      className="aspect-square bg-neutral-200 rounded-lg overflow-hidden cursor-pointer hover:opacity-75 transition-opacity"
+                      className="aspect-square bg-neutral-200 overflow-hidden cursor-pointer hover:opacity-75 transition-opacity"
                     >
                       <Image
                         src={getImagePlaceholder(300, 300)}
@@ -182,7 +182,7 @@ export default function VisualSearch() {
             {selectedImage && (
               <div className="mb-12">
                 <h2 className="text-lg font-serif text-obsidian mb-4">Your Search Image</h2>
-                <div className="relative w-full max-w-sm h-96 bg-neutral-100 rounded-lg overflow-hidden">
+                <div className="relative w-full max-w-sm h-96 bg-neutral-100 overflow-hidden">
                   <Image
                     src={selectedImage}
                     alt="Search image"

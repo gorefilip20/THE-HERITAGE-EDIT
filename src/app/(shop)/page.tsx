@@ -50,9 +50,33 @@ const BRAND_MARQUEE = [
   "Orange Culture",
 ];
 
+const FORMSPREE_URL = "https://formspree.io/f/maqrjzvj";
+
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [nlEmail, setNlEmail] = useState("");
+  const [nlStatus, setNlStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+
+  async function handleNewsletterSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!nlEmail || nlStatus === "submitting" || nlStatus === "success") return;
+    setNlStatus("submitting");
+    try {
+      const res = await fetch(FORMSPREE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: nlEmail }),
+      });
+      if (res.ok) {
+        setNlStatus("success");
+      } else {
+        setNlStatus("error");
+      }
+    } catch {
+      setNlStatus("error");
+    }
+  }
 
   useEffect(() => {
     fetch("/api/products?featured=true&pageSize=8")
@@ -480,7 +504,7 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: idx * 0.1, ease }}
-                className="bg-ivory p-8 rounded-lg"
+                className="bg-ivory p-8"
               >
                 <div className="flex items-center gap-1 mb-4">
                   {Array.from({ length: review.rating }).map((_, i) => (
@@ -595,19 +619,24 @@ export default function HomePage() {
               invitations to private sales events.
             </p>
             <form
-              onSubmit={(e) => e.preventDefault()}
+              onSubmit={handleNewsletterSubmit}
               className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto"
             >
               <input
                 type="email"
                 placeholder="your@email.com"
-                className="w-full sm:flex-1 h-12 px-5 bg-white/10 border border-white/10 text-sm font-sans text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 transition-colors"
+                value={nlEmail}
+                onChange={(e) => setNlEmail(e.target.value)}
+                required
+                disabled={nlStatus === "success"}
+                className="w-full sm:flex-1 h-12 px-5 bg-white/10 border border-white/10 text-sm font-sans text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 transition-colors disabled:opacity-50"
               />
               <button
                 type="submit"
-                className="w-full sm:w-auto h-12 px-8 bg-white text-heritage-purple text-[11px] font-sans font-semibold tracking-[0.2em] uppercase hover:bg-ivory transition-colors"
+                disabled={nlStatus === "submitting" || nlStatus === "success"}
+                className="w-full sm:w-auto h-12 px-8 bg-white text-heritage-purple text-[11px] font-sans font-semibold tracking-[0.2em] uppercase hover:bg-ivory transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Subscribe
+                {nlStatus === "success" ? "Subscribed" : nlStatus === "submitting" ? "Sending..." : "Subscribe"}
               </button>
             </form>
           </motion.div>

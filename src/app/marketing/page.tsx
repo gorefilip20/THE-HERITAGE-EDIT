@@ -19,9 +19,21 @@ export default function MarketingDashboard() {
 
   useEffect(() => {
     fetch("/api/marketing/metrics")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch");
+        return r.json();
+      })
       .then((d) => setMetrics(d))
-      .catch(() => {})
+      .catch(() => {
+        setMetrics({
+          activeCampaigns: 0,
+          totalReach: 0,
+          emailSubscribers: 0,
+          conversionRate: 0,
+          campaigns: [],
+          emailPerformance: [],
+        });
+      })
       .finally(() => setLoading(false));
   }, []);
 

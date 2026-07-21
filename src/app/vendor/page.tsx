@@ -19,9 +19,21 @@ export default function VendorDashboard() {
 
   useEffect(() => {
     fetch("/api/vendor/metrics")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch");
+        return r.json();
+      })
       .then((d) => setMetrics(d))
-      .catch(() => {})
+      .catch(() => {
+        setMetrics({
+          totalRevenue: 0,
+          totalOrders: 0,
+          activeProducts: 0,
+          conversionRate: 0,
+          recentOrders: [],
+          topProducts: [],
+        });
+      })
       .finally(() => setLoading(false));
   }, []);
 

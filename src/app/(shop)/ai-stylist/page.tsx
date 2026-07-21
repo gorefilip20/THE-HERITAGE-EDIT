@@ -92,7 +92,7 @@ export default function AIStylist() {
             animate={{ opacity: 1 }}
             className="max-w-2xl mx-auto"
           >
-            <div className="bg-neutral-50 p-8 md:p-12 rounded-lg">
+            <div className="bg-neutral-50 p-8 md:p-12">
               <h2 className="text-2xl font-serif text-obsidian mb-8">Tell Us About Your Style</h2>
 
               <div className="space-y-8">
@@ -106,7 +106,7 @@ export default function AIStylist() {
                       <button
                         key={occ}
                         onClick={() => setStyleProfile({ ...styleProfile, occasion: occ })}
-                        className={`px-4 py-3 rounded-lg text-[12px] font-sans font-medium transition-all ${
+                        className={`px-4 py-3 text-[12px] font-sans font-medium transition-all ${
                           styleProfile.occasion === occ
                             ? "bg-obsidian text-white"
                             : "bg-white border border-slate-border text-obsidian hover:border-obsidian"
@@ -128,7 +128,7 @@ export default function AIStylist() {
                       <button
                         key={type}
                         onClick={() => setStyleProfile({ ...styleProfile, bodyType: type })}
-                        className={`px-4 py-3 rounded-lg text-[12px] font-sans font-medium transition-all ${
+                        className={`px-4 py-3 text-[12px] font-sans font-medium transition-all ${
                           styleProfile.bodyType === type
                             ? "bg-obsidian text-white"
                             : "bg-white border border-slate-border text-obsidian hover:border-obsidian"
@@ -157,13 +157,13 @@ export default function AIStylist() {
                       <button
                         key={col.name}
                         onClick={() => setStyleProfile({ ...styleProfile, colorPreference: col.name })}
-                        className={`p-4 rounded-lg transition-all border-2 ${
+                        className={`p-4 transition-all border-2 ${
                           styleProfile.colorPreference === col.name
                             ? "border-obsidian"
                             : "border-transparent"
                         }`}
                       >
-                        <div className={`w-full h-8 rounded ${col.color}`} />
+                        <div className={`w-full h-8 ${col.color}`} />
                         <p className="text-[10px] font-sans text-obsidian mt-2 text-center">{col.name}</p>
                       </button>
                     ))}
@@ -180,7 +180,7 @@ export default function AIStylist() {
                       <button
                         key={budget}
                         onClick={() => setStyleProfile({ ...styleProfile, budget })}
-                        className={`px-4 py-3 rounded-lg text-[12px] font-sans font-medium transition-all ${
+                        className={`px-4 py-3 text-[12px] font-sans font-medium transition-all ${
                           styleProfile.budget === budget
                             ? "bg-obsidian text-white"
                             : "bg-white border border-slate-border text-obsidian hover:border-obsidian"
@@ -202,7 +202,7 @@ export default function AIStylist() {
                       <button
                         key={style}
                         onClick={() => setStyleProfile({ ...styleProfile, style })}
-                        className={`px-4 py-3 rounded-lg text-[12px] font-sans font-medium transition-all ${
+                        className={`px-4 py-3 text-[12px] font-sans font-medium transition-all ${
                           styleProfile.style === style
                             ? "bg-obsidian text-white"
                             : "bg-white border border-slate-border text-obsidian hover:border-obsidian"

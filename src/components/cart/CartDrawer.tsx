@@ -49,7 +49,7 @@ export function CartDrawer() {
               <div className="flex items-center gap-3">
                 <ShoppingBag size={18} strokeWidth={1.5} />
                 <span className="text-sm font-sans font-medium tracking-wider uppercase">
-                  Shopping Bag
+                  Your Edit
                 </span>
                 <span className="text-xs font-sans text-neutral-400">
                   ({count})
@@ -69,7 +69,7 @@ export function CartDrawer() {
               <div className="flex-1 flex flex-col items-center justify-center gap-4 px-6">
                 <ShoppingBag size={48} strokeWidth={0.8} className="text-neutral-200" />
                 <p className="text-sm font-sans text-neutral-400">
-                  Your bag is empty
+                  Your edit is empty
                 </p>
                 <button onClick={closeCart} className="luxury-button-secondary">
                   Continue Shopping

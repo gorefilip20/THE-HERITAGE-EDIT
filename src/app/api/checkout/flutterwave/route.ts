@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -72,9 +73,15 @@ export async function PUT(request: NextRequest) {
     const { status, txRef, amount } = body;
 
     if (status === "successful") {
-      // Update order status in database
       console.log(`Payment successful for order ${txRef}: ₦${amount}`);
-      // TODO: Update order in database
+      const orderId = txRef.replace(/^order_/, "");
+      await prisma.order.update({
+        where: { id: orderId },
+        data: {
+          paymentStatus: "CAPTURED",
+          status: "CONFIRMED",
+        },
+      });
     }
 
     return NextResponse.json({ success: true });

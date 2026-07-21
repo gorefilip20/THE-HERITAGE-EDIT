@@ -141,7 +141,7 @@ export default function OrderTracking() {
               </div>
 
               {/* Estimated Delivery */}
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
+              <div className="bg-green-50 border border-green-200 p-6">
                 <p className="text-[11px] font-sans font-medium tracking-wider uppercase text-green-700 mb-2">
                   Estimated Delivery
                 </p>
@@ -167,7 +167,7 @@ export default function OrderTracking() {
                     key={event.id}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="border border-slate-border rounded-lg p-4 hover:border-obsidian transition-colors"
+                    className="border border-slate-border p-4 hover:border-obsidian transition-colors"
                   >
                     <div className="flex items-start gap-4">
                       <div className="w-10 h-10 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0">
@@ -201,7 +201,7 @@ export default function OrderTracking() {
           <div className="lg:col-span-1">
             {/* Current Location */}
             {tracking.currentLocation && (
-              <div className="bg-neutral-50 p-6 rounded-lg mb-6">
+              <div className="bg-neutral-50 p-6 mb-6">
                 <h3 className="font-medium text-obsidian mb-4">Current Location</h3>
                 <div className="space-y-2 text-[13px]">
                   <p className="text-neutral-600">
@@ -214,7 +214,7 @@ export default function OrderTracking() {
             )}
 
             {/* Recipient Info */}
-            <div className="bg-neutral-50 p-6 rounded-lg mb-6">
+            <div className="bg-neutral-50 p-6 mb-6">
               <h3 className="font-medium text-obsidian mb-4">Delivery Address</h3>
               <div className="space-y-3 text-[13px]">
                 <div>
@@ -257,7 +257,7 @@ export default function OrderTracking() {
             </div>
 
             {/* SMS/WhatsApp Updates */}
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200">
               <p className="text-[11px] font-sans font-medium text-blue-900 mb-3">
                 Get SMS & WhatsApp Updates
               </p>

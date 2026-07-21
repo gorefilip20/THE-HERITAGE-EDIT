@@ -6,8 +6,8 @@ export default function AboutPage() {
       {/* Hero */}
       <section className="relative py-24 md:py-32 bg-gradient-to-br from-[#0D2C22] via-[#1a4a3a] to-[#2E1A47] text-white overflow-hidden">
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full translate-x-1/3 translate-y-1/3" />
+          <div className="absolute top-0 left-0 w-96 h-96 bg-white/5 -translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-white/5 translate-x-1/3 translate-y-1/3" />
         </div>
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-amber-400 mb-4">
@@ -44,7 +44,7 @@ export default function AboutPage() {
               </p>
             </div>
             <div className="relative">
-              <div className="aspect-[4/5] rounded-2xl bg-gradient-to-br from-[#0D2C22]/10 to-[#2E1A47]/10 flex items-center justify-center">
+              <div className="aspect-[4/5] bg-gradient-to-br from-[#0D2C22]/10 to-[#2E1A47]/10 flex items-center justify-center">
                 <div className="text-center px-8">
                   <p className="text-6xl font-serif text-[#0D2C22]/20 mb-4">&ldquo;</p>
                   <p className="text-lg font-serif text-[#0D2C22] italic leading-relaxed">
@@ -84,8 +84,8 @@ export default function AboutPage() {
                 description: "African fashion deserves a global stage. We make premium African-inspired clothing accessible to fashion lovers worldwide with seamless international shipping.",
               },
             ].map((value, idx) => (
-              <div key={idx} className="p-8 rounded-xl border border-neutral-200 hover:border-[#0D2C22]/20 hover:shadow-sm transition-all">
-                <div className="w-10 h-10 rounded-lg bg-[#0D2C22]/5 flex items-center justify-center mb-4">
+              <div key={idx} className="p-8 border border-neutral-200 hover:border-[#0D2C22]/20 hover:shadow-sm transition-all">
+                <div className="w-10 h-10 bg-[#0D2C22]/5 flex items-center justify-center mb-4">
                   <span className="text-lg font-serif text-[#0D2C22]">{idx + 1}</span>
                 </div>
                 <h3 className="text-base font-semibold text-neutral-800 mb-3">{value.title}</h3>
@@ -107,7 +107,7 @@ export default function AboutPage() {
           </p>
           <Link
             href="/shop"
-            className="inline-flex px-8 py-3.5 bg-[#0D2C22] text-white text-xs font-sans font-semibold tracking-[0.15em] uppercase rounded-lg hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all"
+            className="inline-flex px-8 py-3.5 bg-[#0D2C22] text-white text-xs font-sans font-semibold tracking-[0.15em] uppercase hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all"
           >
             Explore the Collection
           </Link>

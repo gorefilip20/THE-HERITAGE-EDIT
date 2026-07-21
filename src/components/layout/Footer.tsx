@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+
+const FORMSPREE_URL = "https://formspree.io/f/maqrjzvj";
 
 const FOOTER_LINKS = {
   "Client Services": [
@@ -31,6 +34,28 @@ const FOOTER_LINKS = {
 };
 
 export function Footer() {
+  const [footerEmail, setFooterEmail] = useState("");
+  const [footerStatus, setFooterStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+
+  async function handleFooterSubscribe() {
+    if (!footerEmail || footerStatus === "submitting" || footerStatus === "success") return;
+    setFooterStatus("submitting");
+    try {
+      const res = await fetch(FORMSPREE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        body: JSON.stringify({ email: footerEmail }),
+      });
+      if (res.ok) {
+        setFooterStatus("success");
+      } else {
+        setFooterStatus("error");
+      }
+    } catch {
+      setFooterStatus("error");
+    }
+  }
+
   return (
     <footer className="bg-obsidian text-white">
       <div className="luxury-container py-16 md:py-24">
@@ -47,7 +72,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-4">
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/theheritageedit_"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-all duration-300"
@@ -77,7 +102,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://tiktok.com"
+                href="https://tiktok.com/@theheritageedit7"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-all duration-300"
@@ -122,16 +147,27 @@ export function Footer() {
                 Early access to new arrivals, designer stories, and exclusive invitations.
               </p>
             </div>
-            <div className="flex max-w-md w-full md:w-auto">
+            <form
+              onSubmit={(e) => { e.preventDefault(); handleFooterSubscribe(); }}
+              className="flex max-w-md w-full md:w-auto"
+            >
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-1 h-12 px-5 bg-white/5 border border-white/15 text-sm font-sans text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors"
+                value={footerEmail}
+                onChange={(e) => setFooterEmail(e.target.value)}
+                required
+                disabled={footerStatus === "success"}
+                className="flex-1 h-12 px-5 bg-white/5 border border-white/15 text-sm font-sans text-white placeholder:text-white/30 focus:outline-none focus:border-white/40 transition-colors disabled:opacity-50"
               />
-              <button className="h-12 px-8 bg-white text-obsidian text-[11px] font-sans font-semibold tracking-[0.15em] uppercase hover:bg-ivory transition-colors">
-                Subscribe
+              <button
+                type="submit"
+                disabled={footerStatus === "submitting" || footerStatus === "success"}
+                className="h-12 px-8 bg-white text-obsidian text-[11px] font-sans font-semibold tracking-[0.15em] uppercase hover:bg-ivory transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              >
+                {footerStatus === "success" ? "Subscribed" : footerStatus === "submitting" ? "Sending..." : "Subscribe"}
               </button>
-            </div>
+            </form>
           </div>
         </div>
 
@@ -141,11 +177,11 @@ export function Footer() {
             &copy; {new Date().getFullYear()} The Heritage Edit. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-[11px] font-sans text-white/30">
-            <span className="px-2 py-1 border border-white/10 rounded">Visa</span>
-            <span className="px-2 py-1 border border-white/10 rounded">Mastercard</span>
-            <span className="px-2 py-1 border border-white/10 rounded">Paystack</span>
-            <span className="px-2 py-1 border border-white/10 rounded">Apple Pay</span>
-            <span className="px-2 py-1 border border-white/10 rounded">Stripe</span>
+            <span className="px-2 py-1 border border-white/10">Visa</span>
+            <span className="px-2 py-1 border border-white/10">Mastercard</span>
+            <span className="px-2 py-1 border border-white/10">Paystack</span>
+            <span className="px-2 py-1 border border-white/10">Apple Pay</span>
+            <span className="px-2 py-1 border border-white/10">Flutterwave</span>
           </div>
         </div>
       </div>

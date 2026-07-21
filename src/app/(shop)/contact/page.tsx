@@ -16,10 +16,20 @@ export default function ContactPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    // Simulate submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSubmitted(true);
-    setLoading(false);
+    try {
+      const response = await fetch("https://formspree.io/f/maqrjzvj", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      if (response.ok) {
+        setSubmitted(true);
+      }
+    } catch {
+      // Submission failed silently
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -47,8 +57,8 @@ export default function ContactPage() {
               <div>
                 <h3 className="text-lg font-serif text-[#0D2C22] mb-6">Contact Information</h3>
               </div>
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-white border border-neutral-200">
-                <div className="p-2 rounded-lg bg-emerald-50">
+              <div className="flex items-start gap-4 p-4 bg-white border border-neutral-200">
+                <div className="p-2 bg-emerald-50">
                   <Mail size={18} className="text-emerald-600" />
                 </div>
                 <div>
@@ -58,17 +68,17 @@ export default function ContactPage() {
                   </a>
                 </div>
               </div>
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-white border border-neutral-200">
-                <div className="p-2 rounded-lg bg-blue-50">
+              <div className="flex items-start gap-4 p-4 bg-white border border-neutral-200">
+                <div className="p-2 bg-blue-50">
                   <Phone size={18} className="text-blue-600" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-neutral-800">Phone</p>
-                  <p className="text-sm text-neutral-500">+1 (555) 000-0000</p>
+                  <p className="text-sm text-neutral-500">+234 800 000 0000</p>
                 </div>
               </div>
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-white border border-neutral-200">
-                <div className="p-2 rounded-lg bg-purple-50">
+              <div className="flex items-start gap-4 p-4 bg-white border border-neutral-200">
+                <div className="p-2 bg-purple-50">
                   <MapPin size={18} className="text-purple-600" />
                 </div>
                 <div>
@@ -77,8 +87,8 @@ export default function ContactPage() {
                   <p className="text-sm text-neutral-500">London, United Kingdom</p>
                 </div>
               </div>
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-white border border-neutral-200">
-                <div className="p-2 rounded-lg bg-amber-50">
+              <div className="flex items-start gap-4 p-4 bg-white border border-neutral-200">
+                <div className="p-2 bg-amber-50">
                   <Clock size={18} className="text-amber-600" />
                 </div>
                 <div>
@@ -92,8 +102,8 @@ export default function ContactPage() {
             {/* Contact Form */}
             <div className="lg:col-span-2">
               {submitted ? (
-                <div className="bg-white rounded-xl border border-neutral-200 p-12 text-center">
-                  <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                <div className="bg-white border border-neutral-200 p-12 text-center">
+                  <div className="w-16 h-16 bg-emerald-100 flex items-center justify-center mx-auto mb-4">
                     <Check size={24} className="text-emerald-600" />
                   </div>
                   <h3 className="text-lg font-serif text-neutral-800 mb-2">Message Sent!</h3>
@@ -102,7 +112,7 @@ export default function ContactPage() {
                   </p>
                 </div>
               ) : (
-                <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-neutral-200 p-6 md:p-8">
+                <form onSubmit={handleSubmit} className="bg-white border border-neutral-200 p-6 md:p-8">
                   <h3 className="text-lg font-serif text-neutral-800 mb-6">Send us a Message</h3>
                   <div className="space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -115,7 +125,7 @@ export default function ContactPage() {
                           value={formData.name}
                           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                           required
-                          className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                          className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                           placeholder="John Doe"
                         />
                       </div>
@@ -128,7 +138,7 @@ export default function ContactPage() {
                           value={formData.email}
                           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                           required
-                          className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                          className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                           placeholder="john@example.com"
                         />
                       </div>
@@ -141,7 +151,7 @@ export default function ContactPage() {
                         value={formData.subject}
                         onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                         required
-                        className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                        className="w-full h-11 px-3 border border-neutral-200 bg-white text-sm focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                       >
                         <option value="">Select a topic</option>
                         <option value="order">Order Inquiry</option>
@@ -161,14 +171,14 @@ export default function ContactPage() {
                         onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                         required
                         rows={5}
-                        className="w-full px-3 py-3 rounded-lg border border-neutral-200 bg-white text-sm focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all resize-none"
+                        className="w-full px-3 py-3 border border-neutral-200 bg-white text-sm focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all resize-none"
                         placeholder="Tell us how we can help..."
                       />
                     </div>
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#0D2C22] text-white text-xs font-semibold tracking-wider uppercase rounded-lg hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all disabled:opacity-50"
+                      className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#0D2C22] text-white text-xs font-semibold tracking-wider uppercase hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all disabled:opacity-50"
                     >
                       <Send size={14} />
                       {loading ? "Sending..." : "Send Message"}

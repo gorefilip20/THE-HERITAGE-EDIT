@@ -98,7 +98,7 @@ export function CheckoutForm() {
     return total;
   }, [subtotalCents, selectedShipping, taxDuty]);
 
-  const currency = PAYSTACK_CURRENCIES[address.country] ?? "USD";
+  const currency = PAYSTACK_CURRENCIES[address.country] ?? "NGN";
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,21 +178,19 @@ export function CheckoutForm() {
     }
   };
 
-  const handleStripeCheckout = async () => {
+  const handleFlutterwaveCheckout = async () => {
     setIsProcessing(true);
     setPaymentError(null);
 
     try {
-      const res = await fetch("/api/checkout", {
+      const res = await fetch("/api/checkout/flutterwave", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          amount: totalCents,
           email,
-          items: items.map((item) => ({
-            productId: item.productId,
-            variantId: item.variantId,
-            quantity: item.quantity,
-          })),
+          phone: address.phone,
+          orderId: checkout.orderNumber,
         }),
       });
 
@@ -203,11 +201,10 @@ export function CheckoutForm() {
         return;
       }
 
-      checkout.setOrderNumber(data.orderNumber);
       clearCart();
 
-      if (data.sessionUrl) {
-        window.location.href = data.sessionUrl;
+      if (data.link) {
+        window.location.href = data.link;
       }
     } catch {
       setPaymentError("Network error — please try again");
@@ -220,7 +217,7 @@ export function CheckoutForm() {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
         <h2 className="text-xl font-serif text-neutral-900 mb-2">
-          Your bag is empty
+          Your edit is empty
         </h2>
         <p className="text-sm text-neutral-500 mb-6">
           Add pieces to your collection before proceeding to checkout.
@@ -669,14 +666,14 @@ export function CheckoutForm() {
                       <div className="flex-1 h-px bg-neutral-200" />
                     </div>
 
-                    {/* Stripe — Secondary */}
+                    {/* Flutterwave — Secondary (International) */}
                     <button
-                      onClick={handleStripeCheckout}
+                      onClick={handleFlutterwaveCheckout}
                       disabled={isProcessing}
                       className="w-full h-12 border border-neutral-200 bg-white text-obsidian text-sm font-sans font-medium tracking-wide flex items-center justify-center gap-3 hover:bg-neutral-50 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
                       <CreditCard size={14} className="text-neutral-400" />
-                      Pay with Card (Stripe)
+                      Pay with Flutterwave (International)
                     </button>
 
                     <div className="flex items-center gap-3 pt-2">

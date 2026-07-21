@@ -2,7 +2,7 @@
 
 export function Marquee() {
   const items = [
-    "Complimentary shipping on orders over $500",
+    "Complimentary shipping on orders over ₦500,000",
     "Authentic luxury — every piece verified",
     "AI-powered heritage narratives for every garment",
     "Express worldwide delivery available",

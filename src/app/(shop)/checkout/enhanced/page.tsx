@@ -26,27 +26,27 @@ interface ShippingOption {
 
 const SHIPPING_OPTIONS: ShippingOption[] = [
   {
-    id: "standard",
-    name: "Standard Shipping",
-    description: "Delivery within 5-7 business days",
-    price: 1500,
-    estimatedDays: 7,
+    id: "dhl-express",
+    name: "DHL Express Worldwide",
+    description: "Delivery within 2-4 business days",
+    price: 2500000,
+    estimatedDays: 4,
     trackingAvailable: true,
   },
   {
-    id: "express",
-    name: "Express Shipping",
-    description: "Delivery within 2-3 business days",
-    price: 3500,
-    estimatedDays: 3,
+    id: "standard-courier",
+    name: "Standard Courier",
+    description: "Delivery within 5-9 business days",
+    price: 800000,
+    estimatedDays: 9,
     trackingAvailable: true,
   },
   {
-    id: "overnight",
-    name: "Overnight Shipping",
-    description: "Next business day delivery",
-    price: 7500,
-    estimatedDays: 1,
+    id: "lagos-same-day",
+    name: "Lagos Same-Day",
+    description: "Same day delivery (Lagos only)",
+    price: 500000,
+    estimatedDays: 0,
     trackingAvailable: true,
   },
 ];
@@ -59,7 +59,7 @@ const PAYMENT_METHODS = [
 
 export default function EnhancedCheckout() {
   const [step, setStep] = useState<"shipping" | "payment" | "review">("shipping");
-  const [selectedShipping, setSelectedShipping] = useState("standard");
+  const [selectedShipping, setSelectedShipping] = useState("standard-courier");
   const [selectedPayment, setSelectedPayment] = useState("paystack");
   const [loading, setLoading] = useState(false);
 
@@ -183,7 +183,7 @@ export default function EnhancedCheckout() {
                   {SHIPPING_OPTIONS.map((option) => (
                     <label
                       key={option.id}
-                      className="flex items-start gap-4 p-4 border border-slate-border rounded-lg cursor-pointer hover:border-obsidian transition-colors"
+                      className="flex items-start gap-4 p-4 border border-slate-border cursor-pointer hover:border-obsidian transition-colors"
                     >
                       <input
                         type="radio"
@@ -234,7 +234,7 @@ export default function EnhancedCheckout() {
                   {PAYMENT_METHODS.map((method) => (
                     <label
                       key={method.id}
-                      className="flex items-start gap-4 p-4 border border-slate-border rounded-lg cursor-pointer hover:border-obsidian transition-colors"
+                      className="flex items-start gap-4 p-4 border border-slate-border cursor-pointer hover:border-obsidian transition-colors"
                     >
                       <input
                         type="radio"
@@ -259,7 +259,7 @@ export default function EnhancedCheckout() {
                 </div>
 
                 {/* Security Notice */}
-                <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg mb-8">
+                <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 mb-8">
                   <Lock size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-[12px] font-sans font-medium text-green-900">
@@ -298,7 +298,7 @@ export default function EnhancedCheckout() {
                 <h2 className="text-lg font-serif text-obsidian mb-6">Review Your Order</h2>
 
                 {/* Order Summary */}
-                <div className="bg-neutral-50 p-6 rounded-lg mb-8">
+                <div className="bg-neutral-50 p-6 mb-8">
                   <h3 className="font-medium text-obsidian mb-4">Order Summary</h3>
                   <div className="space-y-3 mb-4 pb-4 border-b border-slate-border">
                     {cartItems.map((item) => (
@@ -351,7 +351,7 @@ export default function EnhancedCheckout() {
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-6 bg-neutral-50 p-6 rounded-lg">
+            <div className="sticky top-6 bg-neutral-50 p-6">
               <h3 className="font-serif text-lg text-obsidian mb-6">Order Summary</h3>
 
               <div className="space-y-4 mb-6 pb-6 border-b border-slate-border">

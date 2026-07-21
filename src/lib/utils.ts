@@ -5,8 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(cents: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
+export function formatPrice(cents: number, currency = "NGN"): string {
+  return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency,
     minimumFractionDigits: 0,
@@ -14,10 +14,10 @@ export function formatPrice(cents: number, currency = "USD"): string {
   }).format(cents / 100);
 }
 
-export function formatPriceCompact(cents: number, currency = "USD"): string {
+export function formatPriceCompact(cents: number, currency = "NGN"): string {
   const value = cents / 100;
   if (value >= 1000) {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency,
       notation: "compact",

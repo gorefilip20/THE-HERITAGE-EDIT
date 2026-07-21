@@ -68,7 +68,7 @@ export default function WishlistPage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="bg-white rounded-xl border border-neutral-200 p-16 text-center">
+        <div className="bg-white border border-neutral-200 p-16 text-center">
           <Heart className="h-12 w-12 text-neutral-300 mx-auto mb-4" />
           <h2 className="text-lg font-serif text-neutral-800 mb-2">Your wishlist is empty</h2>
           <p className="text-sm text-neutral-500 mb-6 max-w-md mx-auto">
@@ -76,7 +76,7 @@ export default function WishlistPage() {
           </p>
           <Link
             href="/shop"
-            className="inline-flex px-8 py-3 bg-[#0D2C22] text-white text-xs font-semibold tracking-wider uppercase rounded-lg hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all"
+            className="inline-flex px-8 py-3 bg-[#0D2C22] text-white text-xs font-semibold tracking-wider uppercase hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all"
           >
             Explore Collection
           </Link>
@@ -84,7 +84,7 @@ export default function WishlistPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {items.map((product) => (
-            <div key={product.id} className="group bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-md transition-all">
+            <div key={product.id} className="group bg-white border border-neutral-200 overflow-hidden hover:shadow-md transition-all">
               {/* Image */}
               <Link href={`/product/${product.slug}`} className="block relative aspect-[3/4] overflow-hidden">
                 {product.images[0] ? (
@@ -100,7 +100,7 @@ export default function WishlistPage() {
                   </div>
                 )}
                 {product.comparePriceCents && product.comparePriceCents > product.priceCents && (
-                  <div className="absolute top-3 left-3 px-2 py-0.5 bg-red-500 text-white text-[9px] font-bold tracking-wider uppercase rounded">
+                  <div className="absolute top-3 left-3 px-2 py-0.5 bg-red-500 text-white text-[9px] font-bold tracking-wider uppercase">
                     Sale
                   </div>
                 )}
@@ -129,14 +129,14 @@ export default function WishlistPage() {
                 <div className="flex items-center gap-2 mt-3 pt-3 border-t border-neutral-100">
                   <button
                     onClick={() => removeFromWishlist(product.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                    className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium text-red-500 hover:bg-red-50 transition-colors"
                   >
                     <Trash2 size={12} />
                     Remove
                   </button>
                   <Link
                     href={`/product/${product.slug}`}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#0D2C22] text-white text-[10px] font-medium tracking-wider uppercase rounded-lg hover:bg-[#0D2C22]/90 transition-colors"
+                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#0D2C22] text-white text-[10px] font-medium tracking-wider uppercase hover:bg-[#0D2C22]/90 transition-colors"
                   >
                     <ShoppingBag size={12} />
                     View
