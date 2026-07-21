@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowLeft, Truck, Lock, AlertCircle } from "lucide-react";
 import { getImagePlaceholder, formatPrice } from "@/lib/utils";
+import { useCartStore } from "@/store/cart-store";
 
 interface CartItem {
   id: string;
@@ -53,8 +54,7 @@ const SHIPPING_OPTIONS: ShippingOption[] = [
 
 const PAYMENT_METHODS = [
   { id: "paystack", name: "Paystack", icon: "💳", description: "Card, Bank Transfer, Mobile Money" },
-  { id: "flutterwave", name: "Flutterwave", icon: "🌊", description: "Multiple payment options" },
-  { id: "stripe", name: "Stripe", icon: "🎯", description: "International cards" },
+  { id: "flutterwave", name: "Flutterwave", icon: "🌊", description: "International cards & payments" },
 ];
 
 export default function EnhancedCheckout() {
@@ -62,42 +62,37 @@ export default function EnhancedCheckout() {
   const [selectedShipping, setSelectedShipping] = useState("standard-courier");
   const [selectedPayment, setSelectedPayment] = useState("paystack");
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
-  // Mock cart data
-  const cartItems: CartItem[] = [
-    {
-      id: "1",
-      name: "Ankara Dress",
-      price: 15000,
-      quantity: 1,
-      image: getImagePlaceholder(200, 250),
-    },
-    {
-      id: "2",
-      name: "Agbada Robe",
-      price: 25000,
-      quantity: 1,
-      image: getImagePlaceholder(200, 250),
-    },
-  ];
+  const storeItems = useCartStore((s) => s.items);
+  const subtotalCents = useCartStore((s) => s.subtotalCents);
+
+  const cartItems: CartItem[] = storeItems.map((item) => ({
+    id: `${item.productId}-${item.variantId}`,
+    name: item.name,
+    price: item.priceCents * item.quantity,
+    quantity: item.quantity,
+    image: item.imageUrl || getImagePlaceholder(200, 250),
+  }));
 
   const shippingCost = SHIPPING_OPTIONS.find((s) => s.id === selectedShipping)?.price || 0;
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = Math.round(subtotal * 0.1);
+  const subtotal = subtotalCents();
+  const tax = Math.round(subtotal * 0.075);
   const total = subtotal + tax + shippingCost;
 
   const handlePayment = async () => {
+    if (!email) return;
     setLoading(true);
     try {
       if (selectedPayment === "paystack") {
-        // Initiate Paystack payment
         const response = await fetch("/api/checkout/paystack", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            amount: total,
-            email: "customer@example.com",
-            reference: `order_${Date.now()}`,
+            items: storeItems.map((i) => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })),
+            email,
+            shippingAddress: { firstName: "", lastName: "", line1: "", city: "", postalCode: "", country: "NG", phone },
           }),
         });
         const data = await response.json();
@@ -105,14 +100,13 @@ export default function EnhancedCheckout() {
           window.location.href = data.authorizationUrl;
         }
       } else if (selectedPayment === "flutterwave") {
-        // Initiate Flutterwave payment
         const response = await fetch("/api/checkout/flutterwave", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             amount: total,
-            email: "customer@example.com",
-            phone: "+234XXXXXXXXXX",
+            email,
+            phone: phone || undefined,
           }),
         });
         const data = await response.json();

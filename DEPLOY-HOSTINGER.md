@@ -46,7 +46,10 @@ Minimum to boot and take payments:
 - `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` — `https://yourdomain.com`
 - `NODE_ENV=production`
 - `PAYSTACK_SECRET_KEY` — your live key
-- (optional) Stripe, Resend, Cloudinary, AI keys
+- `FLUTTERWAVE_SECRET_KEY` — your live Flutterwave key
+- `FLUTTERWAVE_SECRET_HASH` — your webhook verification hash
+- `RESEND_API_KEY` — for order confirmation emails
+- (optional) `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_PHONE_NUMBER` — for SMS notifications
 
 ## 5. Install, migrate, seed, build
 Open the app’s terminal (the **“Run NPM Install”** button, or SSH into the account
@@ -80,8 +83,8 @@ this app. Allow DNS to propagate.
 
 ## 8. Configure webhooks (after the domain is live)
 - **Paystack dashboard → Webhooks:** `https://yourdomain.com/api/webhooks/paystack`
-- **Stripe dashboard → Webhooks:** `https://yourdomain.com/api/webhooks/stripe`
-  (copy the signing secret into `STRIPE_WEBHOOK_SECRET`, then Restart)
+- **Flutterwave dashboard → Webhooks:** `https://yourdomain.com/api/checkout/flutterwave` (PUT method)
+  Set your secret hash in `FLUTTERWAVE_SECRET_HASH` env var, then Restart
 
 ---
 

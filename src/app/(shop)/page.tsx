@@ -16,21 +16,21 @@ const EDITORIAL_BLOCKS = [
     title: "The Agbada Collection",
     subtitle: "Regal Presence",
     category: "Agbada & Robes",
-    image: getImagePlaceholder(700, 900),
+    image: "https://images.unsplash.com/photo-1600091166971-7f9faad6c1e2?w=700&h=900&fit=crop&q=80",
     href: "/shop?category=agbada-robes",
   },
   {
     title: "Ankara Reimagined",
     subtitle: "Bold & Contemporary",
     category: "Ankara Dresses",
-    image: getImagePlaceholder(700, 900),
+    image: "https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=700&h=900&fit=crop&q=80",
     href: "/shop?category=ankara-dresses",
   },
   {
     title: "The Bridal Edit",
     subtitle: "Ceremony & Celebration",
     category: "Wedding & Ceremony",
-    image: getImagePlaceholder(700, 900),
+    image: "https://images.unsplash.com/photo-1594463750939-ebb28c3f7f75?w=700&h=900&fit=crop&q=80",
     href: "/collection/wedding-ceremony",
   },
 ];
@@ -98,7 +98,7 @@ export default function HomePage() {
       <section className="relative h-screen min-h-[700px] max-h-[1100px] bg-obsidian overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src={getImagePlaceholder(1920, 1080)}
+            src="https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1920&h=1080&fit=crop&q=80"
             alt="Autumn/Winter 2026 Campaign"
             fill
             className="object-cover opacity-50"
@@ -377,7 +377,7 @@ export default function HomePage() {
           {/* Left: Image */}
           <div className="relative aspect-square md:aspect-auto overflow-hidden">
             <Image
-              src={getImagePlaceholder(960, 700)}
+              src="https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=960&h=700&fit=crop"
               alt="Heritage craftsmanship"
               fill
               className="object-cover"
@@ -438,7 +438,7 @@ export default function HomePage() {
               },
               {
                 label: "Secure\nCheckout",
-                detail: "Paystack & Stripe",
+                detail: "Paystack & Flutterwave",
               },
             ].map(({ label, detail }) => (
               <div key={label} className="text-center">
@@ -481,21 +481,21 @@ export default function HomePage() {
                 location: "Lagos, Nigeria",
                 rating: 5,
                 text: "The quality is exceptional. Every piece feels like an investment in my heritage. The craftsmanship is unmatched.",
-                image: getImagePlaceholder(80, 80),
+                image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=80&h=80&fit=crop&crop=face",
               },
               {
                 name: "Zainab Hassan",
                 location: "London, UK",
                 rating: 5,
                 text: "I'm obsessed! The Ankara collection is stunning and the customer service is incredibly responsive. Highly recommend!",
-                image: getImagePlaceholder(80, 80),
+                image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&crop=face",
               },
               {
                 name: "Kwame Mensah",
                 location: "New York, USA",
                 rating: 5,
                 text: "Finally, a platform that celebrates African fashion with the luxury it deserves. The Heritage Edit is revolutionary.",
-                image: getImagePlaceholder(80, 80),
+                image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face",
               },
             ].map((review, idx) => (
               <motion.div
@@ -559,7 +559,16 @@ export default function HomePage() {
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            {Array.from({ length: 8 }).map((_, i) => (
+            {[
+              "https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=400&h=400&fit=crop",
+              "https://images.unsplash.com/photo-1516575150508-4ed8cb3be8ed?w=400&h=400&fit=crop",
+              "https://images.unsplash.com/photo-1523359346063-d879354c0ea5?w=400&h=400&fit=crop",
+              "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=400&h=400&fit=crop",
+              "https://images.unsplash.com/photo-1509631179647-0177331693ae?w=400&h=400&fit=crop",
+              "https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?w=400&h=400&fit=crop",
+              "https://images.unsplash.com/photo-1618932260643-eee4a2f652a6?w=400&h=400&fit=crop",
+              "https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?w=400&h=400&fit=crop",
+            ].map((src, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -569,7 +578,7 @@ export default function HomePage() {
                 className="relative aspect-square bg-neutral-200 overflow-hidden group cursor-pointer"
               >
                 <Image
-                  src={getImagePlaceholder(400, 400)}
+                  src={src}
                   alt={`Instagram post ${i + 1}`}
                   fill
                   className="object-cover group-hover:scale-110 transition-transform duration-500"

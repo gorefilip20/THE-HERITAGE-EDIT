@@ -16,10 +16,10 @@ export default function SettingsPage() {
   });
 
   const [paymentSettings, setPaymentSettings] = useState({
-    stripeEnabled: true,
     paystackEnabled: true,
-    stripePublicKey: "pk_live_***",
+    flutterwaveEnabled: true,
     paystackPublicKey: "pk_live_***",
+    flutterwavePublicKey: "FLWPUBK_***",
   });
 
   const [shippingSettings, setShippingSettings] = useState({
@@ -146,15 +146,15 @@ export default function SettingsPage() {
                       <CreditCard size={18} className="text-indigo-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-neutral-800">Stripe</p>
+                      <p className="text-sm font-medium text-neutral-800">Flutterwave</p>
                       <p className="text-xs text-neutral-400">Accept international card payments</p>
                     </div>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input
                       type="checkbox"
-                      checked={paymentSettings.stripeEnabled}
-                      onChange={(e) => setPaymentSettings({ ...paymentSettings, stripeEnabled: e.target.checked })}
+                      checked={paymentSettings.flutterwaveEnabled}
+                      onChange={(e) => setPaymentSettings({ ...paymentSettings, flutterwaveEnabled: e.target.checked })}
                       className="sr-only peer"
                     />
                     <div className="w-9 h-5 bg-neutral-200 peer-focus:ring-2 peer-focus:ring-[#0D2C22]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:bg-[#0D2C22] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" />

@@ -16,13 +16,10 @@ export async function GET() {
     checks.status = "degraded";
   }
 
-  checks.stripe = process.env.STRIPE_SECRET_KEY ? "configured" : "missing";
-  checks.ai = process.env.ANTHROPIC_API_KEY
-    ? "anthropic"
-    : process.env.OPENAI_API_KEY
-      ? "openai"
-      : "missing";
+  checks.paystack = process.env.PAYSTACK_SECRET_KEY ? "configured" : "missing";
+  checks.flutterwave = process.env.FLUTTERWAVE_SECRET_KEY ? "configured" : "missing";
   checks.email = process.env.RESEND_API_KEY ? "configured" : "missing";
+  checks.sms = process.env.TWILIO_ACCOUNT_SID ? "configured" : "not configured";
 
   const statusCode = checks.status === "ok" ? 200 : 503;
   return NextResponse.json(checks, { status: statusCode });
