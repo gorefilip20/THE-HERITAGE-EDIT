@@ -328,6 +328,73 @@ async function main() {
     },
   ];
 
+  const productImages: Record<string, string[]> = {
+    "ozwald-boateng-kente-lined-bespoke-suit": [
+      "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=800&q=80",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
+    ],
+    "duro-olowu-ankara-wrap-maxi-dress": [
+      "https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=800&q=80",
+      "https://images.unsplash.com/photo-1617137968427-85924c800a22?w=800&q=80",
+    ],
+    "lisa-folawiyo-sequined-ankara-cocktail-gown": [
+      "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=800&q=80",
+      "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=800&q=80",
+    ],
+    "maki-oh-adire-indigo-silk-blouse": [
+      "https://images.unsplash.com/photo-1564257631407-4deb1f99d992?w=800&q=80",
+      "https://images.unsplash.com/photo-1551803091-e20673f15770?w=800&q=80",
+    ],
+    "thebe-magugu-sisterhood-trench-coat": [
+      "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80",
+      "https://images.unsplash.com/photo-1608234807905-4466023792f5?w=800&q=80",
+    ],
+    "kenneth-ize-aso-oke-grand-agbada": [
+      "https://images.unsplash.com/photo-1600091166971-7f9faad6c1e2?w=800&q=80",
+      "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=800&q=80",
+    ],
+    "imane-ayissi-raffia-evening-gown": [
+      "https://images.unsplash.com/photo-1518622358385-8ea7d0794bf6?w=800&q=80",
+      "https://images.unsplash.com/photo-1562137369-1a1a0bc66744?w=800&q=80",
+    ],
+    "laduma-ngxokolo-maxhosa-geometric-cape": [
+      "https://images.unsplash.com/photo-1614676471928-2ed0ad1061a4?w=800&q=80",
+      "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&q=80",
+    ],
+    "christie-brown-brass-leather-collar": [
+      "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=800&q=80",
+      "https://images.unsplash.com/photo-1611652022419-a9419f74343d?w=800&q=80",
+    ],
+    "tongoro-wax-print-structured-midi": [
+      "https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=800&q=80",
+      "https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=800&q=80",
+    ],
+    "ahluwalia-patchwork-heritage-tote": [
+      "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&q=80",
+      "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=800&q=80",
+    ],
+    "orange-culture-aso-oke-bomber": [
+      "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80",
+      "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80",
+    ],
+    "kenneth-ize-aso-oke-bridal-cape": [
+      "https://images.unsplash.com/photo-1594463750939-ebb28c3f7f75?w=800&q=80",
+      "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80",
+    ],
+    "ozwald-boateng-modern-agbada-italian-wool": [
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
+      "https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=800&q=80",
+    ],
+    "thebe-magugu-beaded-zulu-headwrap": [
+      "https://images.unsplash.com/photo-1590735213408-9bae67e16f7a?w=800&q=80",
+      "https://images.unsplash.com/photo-1583292650898-7d22cd27ca6f?w=800&q=80",
+    ],
+    "christie-brown-woven-leather-gladiators": [
+      "https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=800&q=80",
+      "https://images.unsplash.com/photo-1603487742131-4160ec999306?w=800&q=80",
+    ],
+  };
+
   let productCount = 0;
   for (const productData of sampleProducts) {
     const existing = await prisma.product.findUnique({
@@ -347,6 +414,14 @@ async function main() {
               { size: "XL", stockCount: 6 },
               { size: "XXL", stockCount: 3 },
             ],
+          },
+          images: {
+            create: (productImages[productData.slug] ?? []).map((url, idx) => ({
+              url,
+              alt: `${productData.name} - Image ${idx + 1}`,
+              sortOrder: idx,
+              isPrimary: idx === 0,
+            })),
           },
         },
       });

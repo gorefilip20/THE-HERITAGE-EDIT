@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import crypto from "crypto";
+import { sendOrderConfirmationEmail } from "@/lib/email";
+import { sendOrderConfirmationSms } from "@/lib/sms";
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY ?? "";
 
@@ -38,7 +40,20 @@ export async function POST(request: NextRequest) {
         where: orderId
           ? { id: orderId }
           : { orderNumber: orderRef },
-        include: { items: true },
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  brand: { select: { name: true } },
+                  images: { where: { isPrimary: true }, take: 1 },
+                },
+              },
+              variant: { select: { size: true } },
+            },
+          },
+          shippingAddress: true,
+        },
       });
 
       if (!order) {
@@ -73,6 +88,51 @@ export async function POST(request: NextRequest) {
       console.log(
         `[Paystack Webhook] Order ${order.orderNumber} confirmed — payment successful`,
       );
+
+      const customerEmail = order.guestEmail;
+      if (customerEmail) {
+        const emailItems = order.items.map((item) => ({
+          name: item.product.name,
+          brand: item.product.brand.name,
+          size: item.variant?.size ?? "One Size",
+          quantity: item.quantity,
+          priceCents: item.totalCents,
+          imageUrl: item.product.images[0]?.url ?? "",
+        }));
+
+        const addr = order.shippingAddress;
+        await sendOrderConfirmationEmail({
+          to: customerEmail,
+          orderNumber: order.orderNumber,
+          items: emailItems,
+          subtotalCents: order.subtotalCents,
+          shippingCents: order.shippingCents,
+          taxCents: order.taxCents,
+          dutyCents: order.dutyCents,
+          totalCents: order.totalCents,
+          currency: order.currency,
+          shippingAddress: addr ? {
+            name: `${addr.firstName} ${addr.lastName}`,
+            line1: addr.line1,
+            line2: addr.line2 ?? undefined,
+            city: addr.city,
+            state: addr.state ?? undefined,
+            postalCode: addr.postalCode,
+            country: addr.country,
+          } : undefined,
+          shippingMethod: order.shippingMethod ?? "Standard",
+        });
+      }
+
+      const phone = order.shippingAddress?.phone;
+      if (phone) {
+        const totalFormatted = new Intl.NumberFormat("en-NG", {
+          style: "currency",
+          currency: order.currency || "NGN",
+          minimumFractionDigits: 0,
+        }).format(order.totalCents / 100);
+        await sendOrderConfirmationSms(phone, order.orderNumber, totalFormatted);
+      }
     }
 
     return NextResponse.json({ received: true });

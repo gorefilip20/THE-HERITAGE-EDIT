@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { sendOrderConfirmationEmail } from "@/lib/email";
+import { sendOrderConfirmationSms } from "@/lib/sms";
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,7 +15,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Initialize Flutterwave payment
     const response = await fetch("https://api.flutterwave.com/v3/payments", {
       method: "POST",
       headers: {
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         tx_ref: `order_${orderId || Date.now()}`,
-        amount: amount / 100, // Convert cents to naira
+        amount: amount / 100,
         currency: "NGN",
         redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`,
         customer: {
@@ -59,7 +60,6 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Webhook handler for Flutterwave
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
@@ -75,13 +75,97 @@ export async function PUT(request: NextRequest) {
     if (status === "successful") {
       console.log(`Payment successful for order ${txRef}: ₦${amount}`);
       const orderId = txRef.replace(/^order_/, "");
-      await prisma.order.update({
+
+      const order = await prisma.order.findFirst({
         where: { id: orderId },
-        data: {
-          paymentStatus: "CAPTURED",
-          status: "CONFIRMED",
+        include: {
+          items: {
+            include: {
+              product: {
+                include: {
+                  brand: { select: { name: true } },
+                  images: { where: { isPrimary: true }, take: 1 },
+                },
+              },
+              variant: { select: { size: true } },
+            },
+          },
+          shippingAddress: true,
         },
       });
+
+      if (!order) {
+        console.error(`[Flutterwave Webhook] Order not found: ${orderId}`);
+        return NextResponse.json({ success: true });
+      }
+
+      if (order.paymentStatus === "CAPTURED") {
+        return NextResponse.json({ success: true });
+      }
+
+      await prisma.$transaction(async (tx) => {
+        await tx.order.update({
+          where: { id: order.id },
+          data: {
+            paymentStatus: "CAPTURED",
+            status: "CONFIRMED",
+          },
+        });
+
+        for (const item of order.items) {
+          if (item.variantId) {
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: { stockCount: { decrement: item.quantity } },
+            });
+          }
+        }
+      });
+
+      const customerEmail = order.guestEmail;
+      if (customerEmail) {
+        const emailItems = order.items.map((item) => ({
+          name: item.product.name,
+          brand: item.product.brand.name,
+          size: item.variant?.size ?? "One Size",
+          quantity: item.quantity,
+          priceCents: item.totalCents,
+          imageUrl: item.product.images[0]?.url ?? "",
+        }));
+
+        const addr = order.shippingAddress;
+        await sendOrderConfirmationEmail({
+          to: customerEmail,
+          orderNumber: order.orderNumber,
+          items: emailItems,
+          subtotalCents: order.subtotalCents,
+          shippingCents: order.shippingCents,
+          taxCents: order.taxCents,
+          dutyCents: order.dutyCents,
+          totalCents: order.totalCents,
+          currency: order.currency,
+          shippingAddress: addr ? {
+            name: `${addr.firstName} ${addr.lastName}`,
+            line1: addr.line1,
+            line2: addr.line2 ?? undefined,
+            city: addr.city,
+            state: addr.state ?? undefined,
+            postalCode: addr.postalCode,
+            country: addr.country,
+          } : undefined,
+          shippingMethod: order.shippingMethod ?? "Standard",
+        });
+      }
+
+      const phone = order.shippingAddress?.phone;
+      if (phone) {
+        const totalFormatted = new Intl.NumberFormat("en-NG", {
+          style: "currency",
+          currency: order.currency || "NGN",
+          minimumFractionDigits: 0,
+        }).format(order.totalCents / 100);
+        await sendOrderConfirmationSms(phone, order.orderNumber, totalFormatted);
+      }
     }
 
     return NextResponse.json({ success: true });
