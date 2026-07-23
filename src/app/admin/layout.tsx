@@ -17,20 +17,25 @@ import {
   LogOut,
   Menu,
   X,
-  Bell,
   Globe,
+  DollarSign,
+  Shield,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import GlobalSearch from "@/components/admin/GlobalSearch";
+import StockAlertDropdown from "@/components/admin/StockAlertDropdown";
 
 const ADMIN_NAV = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/products/new", label: "Add Product", icon: Plus },
   { href: "/admin/orders", label: "Orders", icon: ShoppingCart },
+  { href: "/admin/transactions", label: "Transactions", icon: DollarSign },
   { href: "/admin/customers", label: "Customers", icon: Users },
   { href: "/admin/categories", label: "Categories", icon: Layers },
   { href: "/admin/collections", label: "Collections", icon: Tag },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
+  { href: "/admin/fraud", label: "Fraud Monitor", icon: Shield },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
@@ -84,6 +89,7 @@ export default function AdminLayout({
           </div>
 
           <div className="flex items-center gap-3">
+            <GlobalSearch />
             <Link
               href="/"
               target="_blank"
@@ -92,13 +98,10 @@ export default function AdminLayout({
               <Globe size={12} />
               View Store
             </Link>
-            <button className="relative p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all">
-              <Bell size={16} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-amber-400 rounded-full" />
-            </button>
+            <StockAlertDropdown />
             {adminUser && (
               <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-white/10">
-                <div className="w-7 h-7 rounded-full bg-heritage-purple flex items-center justify-center text-[10px] font-bold">
+                <div className="w-7 h-7 rounded-full bg-[#2E1A47] flex items-center justify-center text-[10px] font-bold">
                   {adminUser.firstName[0]}
                 </div>
                 <span className="text-xs font-sans text-white/80">{adminUser.firstName}</span>
@@ -156,7 +159,7 @@ export default function AdminLayout({
           <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-neutral-100 bg-neutral-50/50">
             <div className="text-center">
               <p className="text-[10px] font-sans text-neutral-400">The Heritage Edit</p>
-              <p className="text-[9px] font-sans text-neutral-300 mt-0.5">Admin Panel v1.0</p>
+              <p className="text-[9px] font-sans text-neutral-300 mt-0.5">Admin Panel v2.0</p>
             </div>
           </div>
         </aside>

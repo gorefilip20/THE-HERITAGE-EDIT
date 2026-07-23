@@ -15,6 +15,12 @@ enum ProductStatus {
   ARCHIVED
 }
 
+enum TransactionType {
+  PAYMENT_RECEIVED
+  REFUND_ISSUED
+  ADJUSTMENT
+}
+
 enum OrderStatus {
   PENDING
   CONFIRMED
@@ -40,21 +46,25 @@ enum UserRole {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  email         String    @unique
-  passwordHash  String
-  firstName     String
-  lastName      String
-  role          UserRole  @default(CUSTOMER)
-  phone         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  passwordHash       String
+  firstName          String
+  lastName           String
+  role               UserRole  @default(CUSTOMER)
+  phone              String?
+  registrationSource String?
+  lastLoginAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   addresses     Address[]
   orders        Order[]
   wishlistItems WishlistItem[]
+  pageViews     PageView[]
 
   @@index([email])
+  @@index([createdAt])
   @@map("users")
 }
 
@@ -159,6 +169,7 @@ model Product {
   collections CollectionProduct[]
   orderItems  OrderItem[]
   wishlistItems WishlistItem[]
+  stockNotifications StockNotification[]
 
   @@index([slug])
   @@index([brandId])
@@ -244,20 +255,28 @@ model Order {
   currency         String        @default("NGN")
   shippingAddressId String?
   stripePaymentId  String?
+  paymentProvider  String?
   shippingMethod   String?
   trackingNumber   String?
   trackingUrl      String?
   notes            String?
+  ipAddress        String?
+  isFraudSuspect   Boolean       @default(false)
+  fraudScore       Float?
+  fraudReasons     String[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
-  user            User?      @relation(fields: [userId], references: [id])
-  shippingAddress Address?   @relation(fields: [shippingAddressId], references: [id])
+  user            User?         @relation(fields: [userId], references: [id])
+  shippingAddress Address?      @relation(fields: [shippingAddressId], references: [id])
   items           OrderItem[]
+  transactions    Transaction[]
 
   @@index([userId])
   @@index([orderNumber])
   @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
   @@map("orders")
 }
 
@@ -275,4 +294,83 @@ model OrderItem {
   variant ProductVariant? @relation(fields: [variantId], references: [id])
 
   @@map("order_items")
+}
+
+model StoreSettings {
+  id                       String  @id @default("default")
+  storeName                String  @default("The Heritage Edit")
+  storeEmail               String  @default("hello@theheritageedit.com")
+  currency                 String  @default("NGN")
+  timezone                 String  @default("Africa/Lagos")
+  freeShippingThresholdCents Int   @default(50000000)
+  paystackEnabled          Boolean @default(true)
+  flutterwaveEnabled       Boolean @default(true)
+  domesticShippingCents    Int     @default(1500000)
+  internationalShippingCents Int   @default(3500000)
+  expressShippingCents     Int     @default(5000000)
+  estimatedDomesticDays    String  @default("3-5")
+  estimatedInternationalDays String @default("7-14")
+  notifyNewOrders          Boolean @default(true)
+  notifyLowStock           Boolean @default(true)
+  notifySignups            Boolean @default(true)
+  notifyPaymentFailures    Boolean @default(true)
+  lowStockThreshold        Int     @default(5)
+  updatedAt                DateTime @updatedAt
+
+  @@map("store_settings")
+}
+
+model PageView {
+  id         String   @id @default(cuid())
+  sessionId  String
+  path       String
+  referrer   String?
+  utmSource  String?
+  utmMedium  String?
+  utmCampaign String?
+  userAgent  String?
+  country    String?
+  userId     String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([path])
+  @@map("page_views")
+}
+
+model Transaction {
+  id                String          @id @default(cuid())
+  orderId           String?
+  type              TransactionType
+  amountCents       Int
+  currency          String          @default("NGN")
+  provider          String?
+  providerReference String?
+  description       String?
+  createdAt         DateTime        @default(now())
+
+  order Order? @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([orderId])
+  @@index([type])
+  @@map("transactions")
+}
+
+model StockNotification {
+  id         String    @id @default(cuid())
+  email      String
+  productId  String
+  variantId  String?
+  notifiedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([email, productId, variantId])
+  @@index([productId])
+  @@map("stock_notifications")
 }

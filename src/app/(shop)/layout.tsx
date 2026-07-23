@@ -3,6 +3,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Marquee } from "@/components/layout/Marquee";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { LocaleProvider } from "@/context/LocaleContext";
+import PageViewTracker from "@/components/PageViewTracker";
 
 export default function ShopLayout({
   children,
@@ -11,6 +12,7 @@ export default function ShopLayout({
 }) {
   return (
     <LocaleProvider>
+      <PageViewTracker />
       <Marquee />
       <Navbar />
       <CartDrawer />

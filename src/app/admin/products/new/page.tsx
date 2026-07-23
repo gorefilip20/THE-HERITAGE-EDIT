@@ -19,6 +19,7 @@ import {
   ImagePlus,
   AlertCircle,
   ArrowRight,
+  Wand2,
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
@@ -44,35 +45,16 @@ interface CreatedProduct {
   heritage: HeritageData | null;
 }
 
-const BRANDS = [
-  { id: "brand-gucci", name: "Gucci", country: "Italy" },
-  { id: "brand-prada", name: "Prada", country: "Italy" },
-  { id: "brand-bottega", name: "Bottega Veneta", country: "Italy" },
-  { id: "brand-saintlaurent", name: "Saint Laurent", country: "France" },
-  { id: "brand-balenciaga", name: "Balenciaga", country: "Spain" },
-  { id: "brand-valentino", name: "Valentino", country: "Italy" },
-  { id: "brand-celine", name: "Celine", country: "France" },
-  { id: "brand-loewe", name: "Loewe", country: "Spain" },
-  { id: "brand-hermes", name: "Hermès", country: "France" },
-  { id: "brand-chanel", name: "Chanel", country: "France" },
-];
+interface BrandOption {
+  id: string;
+  name: string;
+  country?: string | null;
+}
 
-const CATEGORIES = [
-  { id: "cat-senator", name: "Senator Wear" },
-  { id: "cat-native", name: "Native Wear" },
-  { id: "cat-footwear", name: "Footwear" },
-  { id: "cat-jewelry", name: "Jewelry" },
-  { id: "cat-bags", name: "Bags" },
-  { id: "cat-coats", name: "Coats & Jackets" },
-  { id: "cat-dresses", name: "Dresses" },
-  { id: "cat-tops", name: "Tops & Blouses" },
-  { id: "cat-trousers", name: "Trousers & Shorts" },
-  { id: "cat-knitwear", name: "Knitwear" },
-  { id: "cat-shoes", name: "Shoes" },
-  { id: "cat-accessories", name: "Accessories" },
-  { id: "cat-suits", name: "Suits & Tailoring" },
-  { id: "cat-swimwear", name: "Swimwear" },
-];
+interface CategoryOption {
+  id: string;
+  name: string;
+}
 
 const SIZES = ["XXS", "XS", "S", "M", "L", "XL", "XXL"];
 
@@ -81,6 +63,12 @@ type HeritageTab = "story" | "occasions" | "lookbook";
 export default function NewProductPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Dynamic brand and category lists
+  const [brands, setBrands] = useState<BrandOption[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>([]);
+  const [loadingBrands, setLoadingBrands] = useState(true);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -98,6 +86,10 @@ export default function NewProductPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Auto-caption state
+  const [isGeneratingCaption, setIsGeneratingCaption] = useState(false);
+  const [captionGenerated, setCaptionGenerated] = useState(false);
+
   const [createdProduct, setCreatedProduct] = useState<CreatedProduct | null>(null);
   const [polledProduct, setPolledProduct] = useState<CreatedProduct | null>(null);
   const [heritageTab, setHeritageTab] = useState<HeritageTab>("story");
@@ -110,6 +102,42 @@ export default function NewProductPage() {
   const heritage = displayProduct?.heritage ?? null;
   const isAiPending =
     displayProduct?.status === "AI_PENDING" || (!heritage && displayProduct !== null);
+
+  // Fetch brands from API
+  useEffect(() => {
+    async function fetchBrands() {
+      try {
+        const res = await fetch("/api/admin/brands");
+        if (res.ok) {
+          const data = await res.json();
+          setBrands(data.data ?? []);
+        }
+      } catch {
+        // Fall back to empty list
+      } finally {
+        setLoadingBrands(false);
+      }
+    }
+    fetchBrands();
+  }, []);
+
+  // Fetch categories from API
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch("/api/admin/categories");
+        if (res.ok) {
+          const data = await res.json();
+          setCategories(data.data ?? []);
+        }
+      } catch {
+        // Fall back to empty list
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (!createdProduct) return;
@@ -177,12 +205,94 @@ export default function NewProductPage() {
   const removeImage = (idx: number) =>
     setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
 
+  const getSelectedBrandName = (): string => {
+    const brand = brands.find((b) => b.id === formData.brandId);
+    return brand?.name ?? "";
+  };
+
+  const getSelectedCategoryName = (): string => {
+    const cat = categories.find((c) => c.id === formData.categoryId);
+    return cat?.name ?? "";
+  };
+
+  const handleGenerateCaption = async () => {
+    const brandName = getSelectedBrandName();
+    const categoryName = getSelectedCategoryName();
+
+    if (!formData.name || !brandName || !categoryName) {
+      setSubmitError("Please fill in product name, brand, and category before generating a caption.");
+      return;
+    }
+
+    setIsGeneratingCaption(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch("/api/products/auto-caption", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formData.name,
+          brandName,
+          categoryName,
+          priceCents: formData.basePriceCents
+            ? Math.round(parseFloat(formData.basePriceCents) * 100)
+            : 0,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to generate caption");
+      }
+
+      const caption = await res.json();
+      setFormData((prev) => ({
+        ...prev,
+        description: caption.description,
+      }));
+      setCaptionGenerated(true);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Failed to generate caption");
+    } finally {
+      setIsGeneratingCaption(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
     setIsSubmitting(true);
 
     try {
+      // Auto-generate caption if description is empty
+      let description = formData.description;
+      if (!description) {
+        const brandName = getSelectedBrandName();
+        const categoryName = getSelectedCategoryName();
+        if (brandName && categoryName && formData.name) {
+          try {
+            const captionRes = await fetch("/api/products/auto-caption", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: formData.name,
+                brandName,
+                categoryName,
+                priceCents: formData.basePriceCents
+                  ? Math.round(parseFloat(formData.basePriceCents) * 100)
+                  : 0,
+              }),
+            });
+            if (captionRes.ok) {
+              const caption = await captionRes.json();
+              description = caption.description;
+            }
+          } catch {
+            // Proceed without auto-generated description
+          }
+        }
+      }
+
       const activeVariants = SIZES.filter((s) => (stockMap[s] ?? 0) > 0).map(
         (s) => ({ size: s, stockCount: stockMap[s] }),
       );
@@ -195,7 +305,7 @@ export default function NewProductPage() {
           brandId: formData.brandId,
           categoryId: formData.categoryId,
           basePriceCents: Math.round(parseFloat(formData.basePriceCents) * 100),
-          description: formData.description || undefined,
+          description: description || undefined,
           variants: activeVariants.length > 0 ? activeVariants : undefined,
           imageUrls: imagePreviews.length > 0 ? imagePreviews : undefined,
         }),
@@ -254,7 +364,10 @@ export default function NewProductPage() {
     }
   };
 
-  const selectedBrand = BRANDS.find((b) => b.id === formData.brandId);
+  const canGenerateCaption =
+    formData.name.trim() !== "" &&
+    formData.brandId !== "" &&
+    formData.categoryId !== "";
 
   return (
     <div>
@@ -274,9 +387,9 @@ export default function NewProductPage() {
         </p>
       </div>
 
-      {/* ──────────────── SPLIT PANE LAYOUT ──────────────── */}
+      {/* SPLIT PANE LAYOUT */}
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
-        {/* ─── LEFT PANE: THE FORM ─── */}
+        {/* LEFT PANE: THE FORM */}
         <div className="xl:col-span-5 bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50">
             <h2 className="text-[11px] font-sans font-semibold tracking-[0.18em] uppercase text-neutral-400">
@@ -379,10 +492,13 @@ export default function NewProductPage() {
                       setFormData((p) => ({ ...p, brandId: e.target.value }))
                     }
                     required
-                    className="w-full h-11 pl-3 pr-8 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 appearance-none focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                    disabled={loadingBrands}
+                    className="w-full h-11 pl-3 pr-8 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 appearance-none focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all disabled:opacity-50"
                   >
-                    <option value="">Select brand</option>
-                    {BRANDS.map((b) => (
+                    <option value="">
+                      {loadingBrands ? "Loading brands..." : "Select brand"}
+                    </option>
+                    {brands.map((b) => (
                       <option key={b.id} value={b.id}>
                         {b.name}
                       </option>
@@ -402,10 +518,13 @@ export default function NewProductPage() {
                       setFormData((p) => ({ ...p, categoryId: e.target.value }))
                     }
                     required
-                    className="w-full h-11 pl-3 pr-8 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 appearance-none focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                    disabled={loadingCategories}
+                    className="w-full h-11 pl-3 pr-8 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 appearance-none focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all disabled:opacity-50"
                   >
-                    <option value="">Select category</option>
-                    {CATEGORIES.map((c) => (
+                    <option value="">
+                      {loadingCategories ? "Loading categories..." : "Select category"}
+                    </option>
+                    {categories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
                       </option>
@@ -437,11 +556,11 @@ export default function NewProductPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400 mb-1.5">
-                  Base Price (USD)
+                  Base Price (&#8358;)
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400">
-                    $
+                    &#8358;
                   </span>
                   <input
                     type="number"
@@ -477,6 +596,46 @@ export default function NewProductPage() {
                   className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans font-mono text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                 />
               </div>
+            </div>
+
+            {/* Description with auto-caption */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400">
+                    Description
+                  </label>
+                  {captionGenerated && (
+                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-[#0D2C22]/10 text-[9px] font-sans font-semibold tracking-wider uppercase text-[#0D2C22]">
+                      <Wand2 size={9} />
+                      AI Generated
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateCaption}
+                  disabled={!canGenerateCaption || isGeneratingCaption}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-sans font-semibold tracking-wide uppercase bg-[#0D2C22]/5 text-[#0D2C22] hover:bg-[#0D2C22]/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {isGeneratingCaption ? (
+                    <Loader2 size={10} className="animate-spin" />
+                  ) : (
+                    <Wand2 size={10} />
+                  )}
+                  Generate Caption
+                </button>
+              </div>
+              <textarea
+                value={formData.description}
+                onChange={(e) => {
+                  setFormData((p) => ({ ...p, description: e.target.value }));
+                  if (captionGenerated) setCaptionGenerated(false);
+                }}
+                placeholder="Product description (auto-generated if left empty on submit)"
+                rows={4}
+                className="w-full px-3 py-2.5 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 placeholder:text-neutral-300 resize-y focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+              />
             </div>
 
             {/* Stock inventory grid */}
@@ -528,7 +687,7 @@ export default function NewProductPage() {
           </form>
         </div>
 
-        {/* ─── RIGHT PANE: LIVE AI HERITAGE PREVIEW ─── */}
+        {/* RIGHT PANE: LIVE AI HERITAGE PREVIEW */}
         <div className="xl:col-span-7 bg-white rounded-xl border border-neutral-200 shadow-sm overflow-hidden min-h-[600px] flex flex-col">
           <div className="px-6 py-4 border-b border-neutral-100 bg-neutral-50/50 flex items-center justify-between">
             <h2 className="text-[11px] font-sans font-semibold tracking-[0.18em] uppercase text-neutral-400">
@@ -546,7 +705,7 @@ export default function NewProductPage() {
 
           <div className="flex-1 p-6">
             <AnimatePresence mode="wait">
-              {/* ── Idle state: no product created yet ── */}
+              {/* Idle state: no product created yet */}
               {!displayProduct && (
                 <motion.div
                   key="idle"
@@ -573,7 +732,7 @@ export default function NewProductPage() {
                 </motion.div>
               )}
 
-              {/* ── AI Pending: elegant loader ── */}
+              {/* AI Pending: elegant loader */}
               {displayProduct && isAiPending && (
                 <motion.div
                   key="pending"
@@ -615,7 +774,7 @@ export default function NewProductPage() {
                 </motion.div>
               )}
 
-              {/* ── Heritage loaded: tabbed content ── */}
+              {/* Heritage loaded: tabbed content */}
               {heritage && !isAiPending && (
                 <motion.div
                   key="heritage"
