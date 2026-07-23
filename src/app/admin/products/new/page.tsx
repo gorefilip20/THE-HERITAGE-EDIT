@@ -581,20 +581,15 @@ export default function NewProductPage() {
               </div>
               <div>
                 <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400 mb-1.5">
-                  SKU (Optional)
+                  Product Code
                 </label>
                 <input
                   type="text"
-                  value={formData.sku}
-                  onChange={(e) =>
-                    setFormData((p) => ({
-                      ...p,
-                      sku: e.target.value.toUpperCase(),
-                    }))
-                  }
-                  placeholder="Auto-generated"
-                  className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-white text-sm font-sans font-mono text-neutral-900 placeholder:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                  value={formData.sku || "Auto-generated on save (e.g. HERIT637358)"}
+                  readOnly
+                  className="w-full h-11 px-3 rounded-lg border border-neutral-200 bg-neutral-50 text-sm font-sans font-mono text-neutral-500 cursor-not-allowed"
                 />
+                <p className="text-[10px] text-neutral-400 mt-1">Unique product tracking code — generated automatically</p>
               </div>
             </div>
 

@@ -42,13 +42,12 @@ export function generateOrderNumber(): string {
 }
 
 export function generateSKU(_brand: string, _category: string): string {
-  const seq = Date.now().toString().slice(-8).padStart(8, "0");
-  return `P${seq}`;
+  return generateItemCode();
 }
 
 export function generateItemCode(): string {
-  const seq = Date.now().toString().slice(-8).padStart(8, "0");
-  return `P00${seq}`;
+  const random = Math.floor(100000 + Math.random() * 900000);
+  return `HERIT${random}`;
 }
 
 export function getImagePlaceholder(width: number, height: number): string {

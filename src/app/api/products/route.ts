@@ -94,6 +94,7 @@ export async function GET(request: NextRequest) {
     if (sanitizedSearch.length > 0) {
       where.OR = [
         { name: { contains: sanitizedSearch, mode: "insensitive" } },
+        { sku: { contains: sanitizedSearch, mode: "insensitive" } },
         { brand: { name: { contains: sanitizedSearch, mode: "insensitive" } } },
         {
           description: {
