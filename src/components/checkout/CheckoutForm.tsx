@@ -187,10 +187,15 @@ export function CheckoutForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: totalCents,
           email,
           phone: address.phone,
-          orderId: checkout.orderNumber,
+          items: items.map((item) => ({
+            productId: item.productId,
+            variantId: item.variantId,
+            quantity: item.quantity,
+          })),
+          shippingAddress: address,
+          currency,
         }),
       });
 
@@ -201,6 +206,9 @@ export function CheckoutForm() {
         return;
       }
 
+      if (data.orderNumber) {
+        checkout.setOrderNumber(data.orderNumber);
+      }
       clearCart();
 
       if (data.link) {
