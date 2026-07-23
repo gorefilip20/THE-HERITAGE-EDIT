@@ -65,13 +65,13 @@ export default function AdminLayout({
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
-      {/* Top Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-[#0D2C22] to-[#1a4a3a] text-white shadow-lg">
+      {/* Top Header — 56px, Heritage Green gradient */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-[#0D2C22] to-[#163829] text-white shadow-lg">
         <div className="flex items-center justify-between h-14 px-4 md:px-6">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 hover:bg-white/10 rounded-lg transition-colors"
+              className="md:hidden p-2 hover:bg-white/10 transition-colors"
             >
               {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
             </button>
@@ -83,9 +83,14 @@ export default function AdminLayout({
               <span className="hidden sm:inline">Store</span>
             </Link>
             <span className="text-white/20">|</span>
-            <span className="text-sm font-sans font-semibold tracking-wider">
-              HERITAGE ADMIN
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="text-sm font-serif font-semibold tracking-wider text-[#B08D57]">
+                THE HERITAGE EDIT
+              </span>
+              <span className="text-[10px] font-sans font-medium tracking-[0.15em] uppercase text-white/40">
+                ADMIN
+              </span>
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
@@ -93,7 +98,7 @@ export default function AdminLayout({
             <Link
               href="/"
               target="_blank"
-              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-sans font-medium tracking-wider uppercase text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-sans font-medium tracking-wider uppercase text-white/60 hover:text-white hover:bg-white/10 transition-all"
             >
               <Globe size={12} />
               View Store
@@ -109,7 +114,7 @@ export default function AdminLayout({
             )}
             <button
               onClick={handleLogout}
-              className="p-2 text-white/40 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+              className="p-2 text-white/40 hover:text-white hover:bg-white/10 transition-all"
               title="Logout"
             >
               <LogOut size={14} />
@@ -119,15 +124,15 @@ export default function AdminLayout({
       </header>
 
       <div className="flex pt-14">
-        {/* Sidebar */}
+        {/* Sidebar — 240px, white, left-border active state */}
         <aside
           className={cn(
-            "fixed md:sticky top-14 left-0 z-40 w-60 bg-white border-r border-neutral-200 h-[calc(100vh-3.5rem)] shrink-0 transition-transform duration-300 ease-in-out overflow-y-auto",
+            "fixed md:sticky top-14 left-0 z-40 w-60 bg-white border-r border-[#EAEAEA] h-[calc(100vh-3.5rem)] shrink-0 transition-transform duration-300 ease-in-out overflow-y-auto",
             sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
           )}
         >
-          <nav className="p-3 space-y-0.5">
-            <div className="px-3 py-2 mb-2">
+          <nav className="py-4 space-y-0.5">
+            <div className="px-5 py-2 mb-1">
               <p className="text-[9px] font-sans font-bold tracking-[0.2em] uppercase text-neutral-300">
                 Management
               </p>
@@ -142,9 +147,9 @@ export default function AdminLayout({
                   href={item.href}
                   onClick={() => setSidebarOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 text-[13px] font-sans rounded-lg transition-all duration-150",
+                    "relative flex items-center gap-3 px-5 py-2.5 text-[13px] font-sans transition-all duration-150",
                     isActive
-                      ? "bg-[#0D2C22]/5 text-[#0D2C22] font-medium shadow-sm border border-[#0D2C22]/10"
+                      ? "bg-[#0D2C22]/5 text-[#0D2C22] font-medium before:absolute before:left-0 before:top-1 before:bottom-1 before:w-[3px] before:bg-[#0D2C22] before:rounded-r"
                       : "text-neutral-500 hover:text-neutral-800 hover:bg-neutral-50",
                   )}
                 >
@@ -172,8 +177,8 @@ export default function AdminLayout({
           />
         )}
 
-        {/* Main Content */}
-        <main className="flex-1 p-4 md:p-8 max-w-7xl mx-auto w-full min-h-[calc(100vh-3.5rem)]">
+        {/* Main Content — max-width 1280px, centered */}
+        <main className="flex-1 p-4 md:p-8 max-w-[1280px] mx-auto w-full min-h-[calc(100vh-3.5rem)]">
           {children}
         </main>
       </div>
