@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useLocale } from "@/context/LocaleContext";
 import { getAllSupportedLocales } from "@/lib/locale";
+import HEMonogram from "@/components/brand/HEMonogram";
 
 const FORMSPREE_URL = "https://formspree.io/f/maqrjzvj";
 
@@ -84,6 +85,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
           {/* Brand column */}
           <div className="lg:col-span-1">
+            <HEMonogram variant="white" size={48} className="mb-4" />
             <h3 className="text-lg font-serif tracking-wide mb-4">
               THE HERITAGE EDIT
             </h3>

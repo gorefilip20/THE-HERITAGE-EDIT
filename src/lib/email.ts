@@ -5,6 +5,8 @@ const resend = new Resend(process.env.RESEND_API_KEY || "re_dummy_key_for_build"
 const FROM_ADDRESS = "THE HERITAGE EDIT <orders@heritageedit.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://heritageedit.com";
 
+const HE_MONOGRAM_GOLD_DATA_URI = `data:image/svg+xml,%3Csvg viewBox='0 0 120 120' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='4' y='4' width='112' height='112' stroke='%23B08D57' stroke-width='2.5'/%3E%3Cline x1='4' y1='4' x2='18' y2='4' stroke='%23B08D57' stroke-width='3.5'/%3E%3Cline x1='4' y1='4' x2='4' y2='18' stroke='%23B08D57' stroke-width='3.5'/%3E%3Cline x1='102' y1='4' x2='116' y2='4' stroke='%23B08D57' stroke-width='3.5'/%3E%3Cline x1='116' y1='4' x2='116' y2='18' stroke='%23B08D57' stroke-width='3.5'/%3E%3Cline x1='4' y1='102' x2='4' y2='116' stroke='%23B08D57' stroke-width='3.5'/%3E%3Cline x1='4' y1='116' x2='18' y2='116' stroke='%23B08D57' stroke-width='3.5'/%3E%3Cline x1='116' y1='102' x2='116' y2='116' stroke='%23B08D57' stroke-width='3.5'/%3E%3Cline x1='102' y1='116' x2='116' y2='116' stroke='%23B08D57' stroke-width='3.5'/%3E%3Crect x='24' y='24' width='7' height='72' fill='%23B08D57'/%3E%3Crect x='53' y='24' width='7' height='72' fill='%23B08D57'/%3E%3Crect x='24' y='57' width='36' height='6' fill='%23B08D57'/%3E%3Crect x='53' y='24' width='36' height='6' fill='%23B08D57'/%3E%3Crect x='53' y='57' width='32' height='6' fill='%23B08D57'/%3E%3Crect x='53' y='90' width='36' height='6' fill='%23B08D57'/%3E%3Cpolygon points='56.5,51 63,57 56.5,63 50,57' fill='%23B08D57' opacity='0.85'/%3E%3Cpath d='M92,82 C92,76 98,76 98,82 C98,90 88,90 88,80 C88,70 102,70 102,82' stroke='%23B08D57' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E`;
+
 interface OrderEmailItem {
   name: string;
   brand: string;
@@ -98,6 +100,7 @@ function buildOrderConfirmationHtml(payload: OrderConfirmationPayload): string {
   <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f7f7f6;"><tr><td align="center" style="padding: 40px 16px;">
     <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; overflow: hidden;">
       <tr><td style="background: linear-gradient(135deg, #0D2C22 0%, #2E1A47 100%); padding: 36px 40px; text-align: center;">
+        <img src="${HE_MONOGRAM_GOLD_DATA_URI}" alt="HE" width="40" height="40" style="display: inline-block; margin-bottom: 12px;" />
         <p style="margin: 0 0 6px; font-family: Georgia, serif; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #C9A96E;">Order Confirmed</p>
         <h1 style="margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: 400; letter-spacing: 3px; color: #ffffff;">THE HERITAGE EDIT</h1>
       </td></tr>
@@ -137,6 +140,7 @@ function buildShippingNotificationHtml(payload: ShippingNotificationPayload): st
   <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f7f7f6;"><tr><td align="center" style="padding: 40px 16px;">
     <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff; overflow: hidden;">
       <tr><td style="background: linear-gradient(135deg, #0D2C22 0%, #2E1A47 100%); padding: 36px 40px; text-align: center;">
+        <img src="${HE_MONOGRAM_GOLD_DATA_URI}" alt="HE" width="40" height="40" style="display: inline-block; margin-bottom: 12px;" />
         <p style="margin: 0 0 6px; font-family: Georgia, serif; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #C9A96E;">Order Shipped</p>
         <h1 style="margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: 400; letter-spacing: 3px; color: #ffffff;">THE HERITAGE EDIT</h1>
       </td></tr>

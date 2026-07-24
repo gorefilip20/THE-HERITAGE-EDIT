@@ -5,6 +5,7 @@ import { createProductSchema } from "@/lib/validators";
 import { slugify, generateItemCode } from "@/lib/utils";
 import { generateHeritageNarrative } from "@/lib/heritage-ai";
 import { getCurrentUser } from "@/lib/auth";
+import { watermarkDataUrl } from "@/lib/watermark";
 
 const PRODUCT_CACHE_PREFIX = "products:";
 const PRODUCT_CACHE_TTL = 60 * 5; // 5 minutes
@@ -260,6 +261,21 @@ export async function POST(request: NextRequest) {
 
     const sku = generateItemCode();
 
+    let watermarkedImages: Array<{ url: string; originalUrl: string }> | null =
+      null;
+    if (input.imageUrls && input.imageUrls.length > 0) {
+      watermarkedImages = await Promise.all(
+        input.imageUrls.map(async (url: string) => {
+          try {
+            const wmUrl = await watermarkDataUrl(url);
+            return { url: wmUrl, originalUrl: url };
+          } catch {
+            return { url, originalUrl: url };
+          }
+        }),
+      );
+    }
+
     const product = await prisma.product.create({
       data: {
         sku,
@@ -272,13 +288,16 @@ export async function POST(request: NextRequest) {
         salePriceCents: input.salePriceCents ?? null,
         currency: input.currency,
         status: "AI_PENDING",
-        images: input.imageUrls
+        images: watermarkedImages
           ? {
-              create: input.imageUrls.map((url, idx) => ({
-                url,
-                sortOrder: idx,
-                isPrimary: idx === 0,
-              })),
+              create: watermarkedImages.map(
+                (img: { url: string; originalUrl: string }, idx: number) => ({
+                  url: img.url,
+                  originalUrl: img.originalUrl,
+                  sortOrder: idx,
+                  isPrimary: idx === 0,
+                }),
+              ),
             }
           : undefined,
         variants: input.variants

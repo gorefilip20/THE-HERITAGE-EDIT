@@ -9,6 +9,7 @@ import { Search, User, ShoppingBag, Menu, X, Heart, ChevronRight } from "lucide-
 import { useCartStore } from "@/store/cart-store";
 import { cn, getImagePlaceholder } from "@/lib/utils";
 import { useLocale } from "@/context/LocaleContext";
+import HEMonogram from "@/components/brand/HEMonogram";
 
 /* ──────────────────────────────────────────────────────────
    MEGA-MENU DATA
@@ -386,7 +387,8 @@ export function Navbar() {
               {isMobileMenuOpen ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
             </button>
 
-            <Link href="/">
+            <Link href="/" className="flex items-center gap-2.5">
+              <HEMonogram variant="dark" size={28} />
               <span className="text-[15px] font-serif font-semibold tracking-[0.12em] text-obsidian whitespace-nowrap select-none">
                 THE HERITAGE EDIT
               </span>
@@ -455,7 +457,8 @@ export function Navbar() {
             </nav>
 
             {/* Center logo */}
-            <Link href="/" className="px-8 xl:px-12">
+            <Link href="/" className="px-8 xl:px-12 flex items-center gap-3">
+              <HEMonogram variant="dark" size={30} />
               <span className="text-[17px] font-serif font-semibold tracking-[0.12em] text-obsidian whitespace-nowrap select-none">
                 THE HERITAGE EDIT
               </span>
