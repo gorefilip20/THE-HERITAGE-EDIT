@@ -2,25 +2,66 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ChevronDown } from "lucide-react";
 import { useLocale } from "@/context/LocaleContext";
 import { getAllSupportedLocales } from "@/lib/locale";
 import HEMonogram from "@/components/brand/HEMonogram";
 
 const FORMSPREE_URL = "https://formspree.io/f/maqrjzvj";
 
+/* ──────────────────────────────────────────────────────────
+   ACCORDION DATA
+   ────────────────────────────────────────────────────────── */
+
+const ACCORDION_SECTIONS = [
+  {
+    title: "Made-to-Order",
+    content: `Every piece in The Heritage Edit's 128-collection is crafted by hand in our partner ateliers across Lagos, Accra, and Nairobi. When you place a made-to-order commission, our master tailors take your precise measurements — chest, shoulder span, arm length, torso rise, and thigh circumference — to build a pattern cut exclusively for your body.\n\nProduction typically requires 10–14 business days from order confirmation. During this window, your garment passes through six stages: pattern drafting, fabric selection and cutting, hand-stitching assembly, embellishment (hand-embroidery, beadwork, or Aso Oke weaving where applicable), quality inspection, and final pressing. Each stage is overseen by a senior craftsperson with a minimum of twelve years' experience.\n\nFor Agbada and ceremonial ensembles requiring extensive hand-embroidery, allow an additional 3–5 business days. You will receive progress photographs at the mid-point and final-inspection stages, along with your dedicated concierge's direct line for any adjustments.`,
+  },
+  {
+    title: "International Shipping",
+    content: `We deliver to over 45 countries worldwide through our trusted courier partners — DHL Express, FedEx International Priority, and Aramex for select African corridors.\n\nEstimated transit times after dispatch:\n• Nigeria (Lagos, Abuja, Port Harcourt): 1–3 business days\n• West Africa (Ghana, Senegal, Côte d'Ivoire): 3–5 business days\n• East & Southern Africa (Kenya, South Africa, Tanzania): 4–7 business days\n• United Kingdom & Europe: 5–7 business days\n• United States & Canada: 5–8 business days\n• Middle East & Asia-Pacific: 6–10 business days\n\nAll international orders are shipped Delivery Duties Unpaid (DDU) unless you select our Duties Prepaid option at checkout, which covers import taxes, VAT, and customs clearance fees upfront so there are no surprises on delivery. Every shipment includes real-time tracking, signature confirmation, and full transit insurance at no additional cost.`,
+  },
+  {
+    title: "Fast-Response Service",
+    content: `For clients preparing for time-sensitive occasions — weddings, galas, state functions, or red-carpet appearances — our Fast-Response Service offers priority access to our production line and a dedicated style concierge.\n\nExpress production compresses our standard 10–14 day timeline to 5–7 business days. Your order is elevated to the front of our atelier queue, assigned to our most experienced tailoring team, and given expedited quality review. Express shipping via DHL Express or FedEx Priority is included automatically.\n\nTo request Fast-Response Service, contact our concierge team at concierge@heritageedit.com or via WhatsApp at +234 901 234 5678 with your event date and requirements. A 30% priority surcharge applies to the garment total. Consultations are available seven days a week, 8 AM – 10 PM WAT.`,
+  },
+];
+
+/* ──────────────────────────────────────────────────────────
+   DIRECTORY LINKS
+   ────────────────────────────────────────────────────────── */
+
+const DIRECTORY_LINKS = [
+  { href: "/careers", label: "Careers" },
+  { href: "/contact", label: "Contact Us" },
+  { href: "/sizing", label: "Sizing" },
+  { href: "/faq", label: "FAQ" },
+  { href: "/shipment", label: "Shipment" },
+  { href: "/about", label: "About Us" },
+  { href: "/sustainability", label: "Sustainability" },
+  { href: "/journals", label: "The Heritage Edit Journals" },
+  { href: "/terms", label: "Terms of Service" },
+  { href: "/refund-policy", label: "Refund Policy" },
+];
+
+/* ──────────────────────────────────────────────────────────
+   MAIN FOOTER LINKS (existing columns)
+   ────────────────────────────────────────────────────────── */
+
 const FOOTER_LINKS = {
   "Client Services": [
     { href: "/contact", label: "Contact Us" },
     { href: "/about", label: "Shipping & Delivery" },
     { href: "/about", label: "Returns & Exchanges" },
-    { href: "/about", label: "Size Guide" },
-    { href: "/about", label: "FAQ" },
+    { href: "/sizing", label: "Size Guide" },
+    { href: "/faq", label: "FAQ" },
   ],
   "The House": [
     { href: "/about", label: "Our Story" },
     { href: "/about", label: "African Artisans" },
-    { href: "/about", label: "Sustainability" },
-    { href: "/about", label: "Heritage Journal" },
+    { href: "/sustainability", label: "Sustainability" },
+    { href: "/journals", label: "Heritage Journal" },
   ],
   Shop: [
     { href: "/shop?sort=newest", label: "New Arrivals" },
@@ -30,7 +71,7 @@ const FOOTER_LINKS = {
     { href: "/collection/heritage-classics", label: "Heritage Classics" },
   ],
   Legal: [
-    { href: "/about", label: "Terms & Conditions" },
+    { href: "/terms", label: "Terms & Conditions" },
     { href: "/about", label: "Privacy Policy" },
     { href: "/about", label: "Cookie Policy" },
   ],
@@ -55,18 +96,91 @@ const COUNTRY_OPTIONS = [
   { code: "AU", label: "Australia (A$)" },
 ];
 
+/* ──────────────────────────────────────────────────────────
+   ACCORDION ITEM
+   ────────────────────────────────────────────────────────── */
+
+function AccordionItem({
+  title,
+  content,
+  isOpen,
+  onToggle,
+}: {
+  title: string;
+  content: string;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="border-b border-white/10">
+      <button
+        onClick={onToggle}
+        className="w-full flex items-center justify-between py-5 md:py-6 group text-left"
+        aria-expanded={isOpen}
+      >
+        <span className="text-[11px] md:text-xs font-sans font-medium tracking-[0.2em] uppercase text-white/80 group-hover:text-white transition-colors duration-300">
+          {title}
+        </span>
+        <ChevronDown
+          size={16}
+          className={`text-white/40 group-hover:text-white/70 transition-all duration-400 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            isOpen ? "rotate-180" : "rotate-0"
+          }`}
+        />
+      </button>
+      <div
+        className={`grid transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="pb-6 md:pb-8 pr-8 md:pr-16 lg:pr-32">
+            {content.split("\n\n").map((paragraph, i) => (
+              <p
+                key={i}
+                className="text-[13px] font-sans text-white/45 leading-[1.8] mb-4 last:mb-0 whitespace-pre-line"
+              >
+                {paragraph}
+              </p>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   FOOTER COMPONENT
+   ────────────────────────────────────────────────────────── */
+
 export function Footer() {
   const [footerEmail, setFooterEmail] = useState("");
-  const [footerStatus, setFooterStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [footerStatus, setFooterStatus] = useState<
+    "idle" | "submitting" | "success" | "error"
+  >("idle");
   const { locale, setCountry, t } = useLocale();
+  const [openAccordion, setOpenAccordion] = useState<number | null>(null);
+
+  function toggleAccordion(index: number) {
+    setOpenAccordion((prev) => (prev === index ? null : index));
+  }
 
   async function handleFooterSubscribe() {
-    if (!footerEmail || footerStatus === "submitting" || footerStatus === "success") return;
+    if (
+      !footerEmail ||
+      footerStatus === "submitting" ||
+      footerStatus === "success"
+    )
+      return;
     setFooterStatus("submitting");
     try {
       const res = await fetch(FORMSPREE_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
         body: JSON.stringify({ email: footerEmail }),
       });
       if (res.ok) {
@@ -81,6 +195,41 @@ export function Footer() {
 
   return (
     <footer className="bg-obsidian text-white">
+      {/* ── Service Accordion Drawer ── */}
+      <div className="border-b border-white/[0.06]">
+        <div className="luxury-container py-2">
+          <div className="border-t border-white/10">
+            {ACCORDION_SECTIONS.map((section, i) => (
+              <AccordionItem
+                key={section.title}
+                title={section.title}
+                content={section.content}
+                isOpen={openAccordion === i}
+                onToggle={() => toggleAccordion(i)}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Directory Links ── */}
+      <div className="border-b border-white/[0.06]">
+        <div className="luxury-container py-8 md:py-10">
+          <div className="flex flex-wrap gap-x-6 gap-y-2.5 md:gap-x-8">
+            {DIRECTORY_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                className="text-[11px] md:text-xs font-sans text-white/40 hover:text-white/80 tracking-[0.04em] transition-colors duration-300"
+              >
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main Footer ── */}
       <div className="luxury-container py-16 md:py-24">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
           {/* Brand column */}
@@ -101,7 +250,11 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="w-9 h-9 border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-all duration-300"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
                 </svg>
               </a>
@@ -111,7 +264,11 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="w-9 h-9 border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-all duration-300"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </a>
@@ -121,7 +278,11 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="w-9 h-9 border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-all duration-300"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M12.017 0C5.396 0 .029 5.367.029 11.987c0 5.079 3.158 9.417 7.618 11.162-.105-.949-.199-2.403.041-3.439.219-.937 1.406-5.957 1.406-5.957s-.359-.72-.359-1.781c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738a.36.36 0 01.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.631-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12.017 24c6.624 0 11.99-5.367 11.99-11.988C24.007 5.367 18.641 0 12.017 0z" />
                 </svg>
               </a>
@@ -131,7 +292,11 @@ export function Footer() {
                 rel="noopener noreferrer"
                 className="w-9 h-9 border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-all duration-300"
               >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z" />
                 </svg>
               </a>
@@ -168,11 +333,15 @@ export function Footer() {
                 {t("footer.newsletter")}
               </h4>
               <p className="text-[13px] font-sans text-white/40 max-w-sm">
-                Early access to new arrivals, designer stories, and exclusive invitations.
+                Early access to new arrivals, designer stories, and exclusive
+                invitations.
               </p>
             </div>
             <form
-              onSubmit={(e) => { e.preventDefault(); handleFooterSubscribe(); }}
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleFooterSubscribe();
+              }}
               className="flex max-w-md w-full md:w-auto"
             >
               <input
@@ -186,10 +355,16 @@ export function Footer() {
               />
               <button
                 type="submit"
-                disabled={footerStatus === "submitting" || footerStatus === "success"}
+                disabled={
+                  footerStatus === "submitting" || footerStatus === "success"
+                }
                 className="h-12 px-8 bg-white text-obsidian text-[11px] font-sans font-semibold tracking-[0.15em] uppercase hover:bg-ivory transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {footerStatus === "success" ? t("footer.subscribed") : footerStatus === "submitting" ? "..." : t("footer.subscribe")}
+                {footerStatus === "success"
+                  ? t("footer.subscribed")
+                  : footerStatus === "submitting"
+                    ? "..."
+                    : t("footer.subscribe")}
               </button>
             </form>
           </div>
@@ -199,7 +374,8 @@ export function Footer() {
         <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <p className="text-[11px] font-sans text-white/30">
-              &copy; {new Date().getFullYear()} The Heritage Edit. All rights reserved.
+              &copy; {new Date().getFullYear()} The Heritage Edit. All rights
+              reserved.
             </p>
             <select
               value={locale.countryCode}
@@ -207,7 +383,11 @@ export function Footer() {
               className="bg-white/5 border border-white/15 text-[11px] font-sans text-white/60 px-3 py-1.5 focus:outline-none focus:border-white/40 transition-colors appearance-none cursor-pointer"
             >
               {COUNTRY_OPTIONS.map((opt) => (
-                <option key={opt.code} value={opt.code} className="bg-obsidian text-white">
+                <option
+                  key={opt.code}
+                  value={opt.code}
+                  className="bg-obsidian text-white"
+                >
                   {opt.label}
                 </option>
               ))}
@@ -218,7 +398,9 @@ export function Footer() {
             <span className="px-2 py-1 border border-white/10">Mastercard</span>
             <span className="px-2 py-1 border border-white/10">Paystack</span>
             <span className="px-2 py-1 border border-white/10">Apple Pay</span>
-            <span className="px-2 py-1 border border-white/10">Flutterwave</span>
+            <span className="px-2 py-1 border border-white/10">
+              Flutterwave
+            </span>
           </div>
         </div>
       </div>
