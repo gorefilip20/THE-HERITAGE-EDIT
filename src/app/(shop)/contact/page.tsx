@@ -37,7 +37,7 @@ export default function ContactPage() {
       {/* Hero */}
       <section className="py-16 md:py-20 bg-gradient-to-br from-[#0D2C22] to-[#2E1A47] text-white">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-amber-400 mb-4">
+          <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-gold mb-4">
             Get in Touch
           </p>
           <h1 className="text-display-md font-serif mb-4">
@@ -194,7 +194,7 @@ export default function ContactPage() {
                     <button
                       type="submit"
                       disabled={loading}
-                      className="w-full md:w-auto flex items-center justify-center gap-2 px-8 py-3 bg-[#0D2C22] text-white text-xs font-semibold tracking-wider uppercase hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all disabled:opacity-50"
+                      className="w-full md:w-auto flex items-center justify-center gap-2 h-12 px-8 bg-[#0D2C22] text-white text-[11px] font-semibold tracking-[0.15em] uppercase hover:bg-[#163829] transition-colors disabled:opacity-50"
                     >
                       <Send size={14} />
                       {loading ? "Sending..." : "Send Message"}

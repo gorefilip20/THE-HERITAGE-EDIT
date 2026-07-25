@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, ChevronRight, Play } from "lucide-react";
 import { ProductCard } from "@/components/product/ProductCard";
 import { formatPrice, getImagePlaceholder } from "@/lib/utils";
+import HEMonogram from "@/components/brand/HEMonogram";
 import type { Product } from "@/types";
 
 const ease = [0.16, 1, 0.3, 1];
@@ -95,18 +96,22 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           HERO — FULL-BLEED CINEMATIC
          ═══════════════════════════════════════════ */}
-      <section className="relative h-screen min-h-[700px] max-h-[1100px] bg-obsidian overflow-hidden">
+      <section className="relative h-[85vh] min-h-[700px] max-h-[1100px] bg-gradient-to-br from-[#0D2C22] to-[#2E1A47] overflow-hidden">
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1617137968427-85924c800a22?w=1920&h=1080&fit=crop&q=80"
             alt="Autumn/Winter 2026 Campaign"
             fill
-            className="object-cover opacity-50"
+            className="object-cover opacity-30"
             priority
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-obsidian/80 via-obsidian/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-obsidian/40 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+
+        {/* HE Monogram watermark */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-50 pointer-events-none">
+          <HEMonogram variant="white" size={80} />
+        </div>
 
         <div className="relative luxury-container h-full flex flex-col justify-end pb-20 md:pb-28">
           <motion.div
@@ -115,7 +120,7 @@ export default function HomePage() {
             transition={{ duration: 1, delay: 0.3, ease }}
             className="max-w-2xl"
           >
-            <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-white/40 mb-5">
+            <p className="text-[10px] font-sans font-semibold tracking-[0.4em] uppercase text-gold mb-5">
               The Finest Edit in African Fashion
             </p>
             <h1 className="text-display-lg md:text-display-xl font-serif italic text-white mb-6 leading-[1.05]">
@@ -131,7 +136,7 @@ export default function HomePage() {
             <div className="flex items-center gap-6">
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-3 h-12 px-8 bg-white text-obsidian text-[11px] font-sans font-semibold tracking-[0.2em] uppercase hover:bg-ivory transition-colors duration-300"
+                className="inline-flex items-center gap-3 h-12 px-8 bg-heritage-green text-white text-[11px] font-sans font-semibold tracking-[0.2em] uppercase hover:bg-[#163829] transition-colors duration-300"
               >
                 Shop the Collection
                 <ArrowRight size={14} />
@@ -191,7 +196,7 @@ export default function HomePage() {
           transition={{ duration: 0.7, ease }}
           className="text-center mb-16"
         >
-          <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-heritage-purple/60 mb-4">
+          <p className="text-[10px] font-sans font-semibold tracking-[0.4em] uppercase text-gold mb-4">
             Curated Selections
           </p>
           <h2 className="text-display-md md:text-display-lg font-serif italic text-obsidian">
@@ -281,7 +286,7 @@ export default function HomePage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, ease }}
               >
-                <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-heritage-green/50 mb-3">
+                <p className="text-[10px] font-sans font-semibold tracking-[0.4em] uppercase text-gold mb-3">
                   Just Landed
                 </p>
                 <h2 className="text-display-sm md:text-display-md font-serif italic text-obsidian">
@@ -327,7 +332,7 @@ export default function HomePage() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, ease }}
             >
-              <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-heritage-purple/50 mb-3">
+              <p className="text-[10px] font-sans font-semibold tracking-[0.4em] uppercase text-gold mb-3">
                 Editor&apos;s Selection
               </p>
               <h2 className="text-display-sm md:text-display-md font-serif italic text-obsidian">
@@ -374,25 +379,16 @@ export default function HomePage() {
          ═══════════════════════════════════════════ */}
       <section className="relative">
         <div className="grid grid-cols-1 md:grid-cols-2 min-h-[600px] md:min-h-[700px]">
-          {/* Left: Image */}
-          <div className="relative aspect-square md:aspect-auto overflow-hidden">
-            <Image
-              src="https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=960&h=700&fit=crop"
-              alt="Heritage craftsmanship"
-              fill
-              className="object-cover"
-            />
-          </div>
-          {/* Right: Content */}
-          <div className="bg-heritage-green flex items-center">
+          {/* Left: Dark content */}
+          <div className="bg-gradient-to-br from-[#0D2C22] to-[#2E1A47] flex items-center order-2 md:order-1">
             <motion.div
-              initial={{ opacity: 0, x: 30 }}
+              initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, ease }}
               className="px-10 md:px-16 lg:px-24 py-16 md:py-0 max-w-lg"
             >
-              <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-white/30 mb-5">
+              <p className="text-[10px] font-sans font-semibold tracking-[0.4em] uppercase text-gold mb-5">
                 Our Philosophy
               </p>
               <h2 className="text-display-sm md:text-display-md font-serif italic text-white mb-6 leading-tight">
@@ -413,6 +409,15 @@ export default function HomePage() {
                 <ArrowRight size={14} />
               </Link>
             </motion.div>
+          </div>
+          {/* Right: Image */}
+          <div className="relative aspect-square md:aspect-auto overflow-hidden order-1 md:order-2">
+            <Image
+              src="https://images.unsplash.com/photo-1590735213920-68192a487bc2?w=960&h=700&fit=crop"
+              alt="Heritage craftsmanship"
+              fill
+              className="object-cover"
+            />
           </div>
         </div>
       </section>
@@ -466,7 +471,7 @@ export default function HomePage() {
             transition={{ duration: 0.6, ease }}
             className="text-center mb-16"
           >
-            <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-heritage-green/50 mb-4">
+            <p className="text-[10px] font-sans font-semibold tracking-[0.4em] uppercase text-gold mb-4">
               Customer Stories
             </p>
             <h2 className="text-display-md md:text-display-lg font-serif italic text-obsidian">
@@ -547,7 +552,7 @@ export default function HomePage() {
             transition={{ duration: 0.6, ease }}
             className="text-center mb-16"
           >
-            <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-heritage-purple/50 mb-4">
+            <p className="text-[10px] font-sans font-semibold tracking-[0.4em] uppercase text-gold mb-4">
               Follow Us
             </p>
             <h2 className="text-display-md md:text-display-lg font-serif italic text-obsidian mb-4">
@@ -609,7 +614,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           NEWSLETTER — ELEGANT CTA
          ═══════════════════════════════════════════ */}
-      <section className="bg-heritage-purple py-24 md:py-32">
+      <section className="bg-gradient-to-br from-[#0D2C22] to-[#2E1A47] py-24 md:py-32">
         <div className="luxury-container text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

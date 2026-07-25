@@ -71,7 +71,7 @@ export function ProductCard({
 
         {/* Sale badge */}
         {hasDiscount && (
-          <span className="absolute top-3 left-3 px-2.5 py-1 bg-obsidian text-white text-[10px] font-sans font-semibold tracking-wider uppercase">
+          <span className="absolute top-3 left-3 px-2.5 py-1 bg-red-600 text-white text-[10px] font-sans font-semibold tracking-wider uppercase">
             -{discountPercent}%
           </span>
         )}
@@ -114,20 +114,19 @@ export function ProductCard({
           {brandName}
         </p>
         <Link href={`/product/${slug}`}>
-          <h3 className="text-[13px] font-sans font-normal text-obsidian leading-snug line-clamp-2 group-hover:text-heritage-green transition-colors duration-300">
+          <h3 className="text-[14px] font-sans font-normal text-obsidian leading-snug line-clamp-2 group-hover:text-heritage-green transition-colors duration-300">
             {name}
           </h3>
         </Link>
         <div className="flex items-center gap-2 pt-0.5">
-          <span className={`text-[13px] font-sans font-medium ${hasDiscount ? "text-red-600" : "text-obsidian"}`}>
+          <span className={`text-[16px] font-serif ${hasDiscount ? "text-red-600" : "text-obsidian"}`}>
             {formatPrice(salePriceCents ?? priceCents, currency)}
           </span>
           {hasDiscount && (
-            <span className="text-[13px] font-sans text-neutral-400 line-through">
+            <span className="text-[14px] font-sans text-neutral-400 line-through">
               {formatPrice(priceCents, currency)}
             </span>
           )}
-
         </div>
       </div>
     </motion.article>

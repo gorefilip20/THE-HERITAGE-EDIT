@@ -412,7 +412,7 @@ export function Navbar() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute top-0.5 right-0.5 w-[17px] h-[17px] flex items-center justify-center bg-heritage-green text-white text-[9px] font-sans font-bold rounded-full"
+                    className="absolute top-0.5 right-0.5 w-[17px] h-[17px] flex items-center justify-center bg-heritage-green text-white text-[9px] font-sans font-bold"
                   >
                     {count > 9 ? "9+" : count}
                   </motion.span>
@@ -498,7 +498,20 @@ export function Navbar() {
                 ))}
               </nav>
 
-              <div className="flex items-center gap-4 ml-4 xl:ml-6 pl-4 xl:pl-6 border-l border-slate-border">
+              <Link
+                href="/journals"
+                className="px-3 xl:px-4 py-6 text-[11px] font-sans font-medium tracking-[0.14em] uppercase text-obsidian/80 hover:text-obsidian transition-colors duration-200"
+              >
+                Journals
+              </Link>
+              <Link
+                href="/about"
+                className="px-3 xl:px-4 py-6 text-[11px] font-sans font-medium tracking-[0.14em] uppercase text-obsidian/80 hover:text-obsidian transition-colors duration-200"
+              >
+                About
+              </Link>
+
+              <div className="flex items-center gap-4 ml-2 xl:ml-4 pl-4 xl:pl-6 border-l border-slate-border">
                 <button
                   onClick={() => setIsSearchOpen(true)}
                   className="p-2 text-obsidian/60 hover:text-obsidian transition-colors"
@@ -530,7 +543,7 @@ export function Navbar() {
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute top-0.5 right-0.5 w-[17px] h-[17px] flex items-center justify-center bg-heritage-green text-white text-[9px] font-sans font-bold rounded-full"
+                      className="absolute top-0.5 right-0.5 w-[17px] h-[17px] flex items-center justify-center bg-heritage-green text-white text-[9px] font-sans font-bold"
                     >
                       {count > 9 ? "9+" : count}
                     </motion.span>

@@ -64,7 +64,7 @@ function SalePageContent() {
                 <Link
                   key={tier.value}
                   href={`/sale?discount=${tier.value}`}
-                  className="inline-flex items-center gap-2 px-6 h-12 bg-heritage-green text-white text-[11px] font-sans font-semibold tracking-[0.15em] uppercase hover:bg-[#163829] transition-all duration-300"
+                  className="inline-flex items-center gap-2 px-6 h-12 bg-heritage-green text-white text-[11px] font-sans font-semibold tracking-[0.15em] uppercase hover:bg-[#163829] transition-colors duration-300"
                 >
                   <span className="inline-flex items-center justify-center w-5 h-5 bg-red-600 text-white text-[9px] font-bold mr-1">
                     %
