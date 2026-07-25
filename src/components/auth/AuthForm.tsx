@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import HEMonogram from "@/components/brand/HEMonogram";
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
@@ -60,13 +61,13 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   return (
     <div className="min-h-screen bg-ivory flex items-center justify-center px-5 py-16">
       <div className="w-full max-w-[440px]">
-        {/* Wordmark */}
+        {/* Brand icon + wordmark */}
         <div className="text-center mb-10">
-          <Link
-            href="/"
-            className="font-serif text-lg tracking-[0.14em] text-heritage-green"
-          >
-            THE HERITAGE EDIT
+          <Link href="/" className="inline-flex flex-col items-center gap-3">
+            <HEMonogram variant="dark" size={48} />
+            <span className="font-serif text-lg tracking-[0.14em] text-heritage-green">
+              THE HERITAGE EDIT
+            </span>
           </Link>
         </div>
 

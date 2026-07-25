@@ -15,16 +15,16 @@ const FORMSPREE_URL = "https://formspree.io/f/maqrjzvj";
 
 const ACCORDION_SECTIONS = [
   {
-    title: "Made-to-Order",
-    content: `Every piece in The Heritage Edit's 128-collection is crafted by hand in our partner ateliers across Lagos, Accra, and Nairobi. When you place a made-to-order commission, our master tailors take your precise measurements — chest, shoulder span, arm length, torso rise, and thigh circumference — to build a pattern cut exclusively for your body.\n\nProduction typically requires 10–14 business days from order confirmation. During this window, your garment passes through six stages: pattern drafting, fabric selection and cutting, hand-stitching assembly, embellishment (hand-embroidery, beadwork, or Aso Oke weaving where applicable), quality inspection, and final pressing. Each stage is overseen by a senior craftsperson with a minimum of twelve years' experience.\n\nFor Agbada and ceremonial ensembles requiring extensive hand-embroidery, allow an additional 3–5 business days. You will receive progress photographs at the mid-point and final-inspection stages, along with your dedicated concierge's direct line for any adjustments.`,
+    title: "Made-to-Order: Crafted Exclusively for You",
+    content: `Every piece in our 128-item collection is meticulously custom-built upon order. Our master artisans require 10–14 business days for hand-tailoring, structural embroidery, and quality checks to ensure flawless execution before dispatch.`,
   },
   {
-    title: "International Shipping",
-    content: `We deliver to over 45 countries worldwide through our trusted courier partners — DHL Express, FedEx International Priority, and Aramex for select African corridors.\n\nEstimated transit times after dispatch:\n• Nigeria (Lagos, Abuja, Port Harcourt): 1–3 business days\n• West Africa (Ghana, Senegal, Côte d'Ivoire): 3–5 business days\n• East & Southern Africa (Kenya, South Africa, Tanzania): 4–7 business days\n• United Kingdom & Europe: 5–7 business days\n• United States & Canada: 5–8 business days\n• Middle East & Asia-Pacific: 6–10 business days\n\nAll international orders are shipped Delivery Duties Unpaid (DDU) unless you select our Duties Prepaid option at checkout, which covers import taxes, VAT, and customs clearance fees upfront so there are no surprises on delivery. Every shipment includes real-time tracking, signature confirmation, and full transit insurance at no additional cost.`,
+    title: "International Shipping: Lagos to the World",
+    content: `We ship globally via premium express couriers. International orders typically arrive within 5–9 business days after dispatch. All customs duties and local taxes are calculated securely at checkout with no hidden fees.`,
   },
   {
-    title: "Fast-Response Service",
-    content: `For clients preparing for time-sensitive occasions — weddings, galas, state functions, or red-carpet appearances — our Fast-Response Service offers priority access to our production line and a dedicated style concierge.\n\nExpress production compresses our standard 10–14 day timeline to 5–7 business days. Your order is elevated to the front of our atelier queue, assigned to our most experienced tailoring team, and given expedited quality review. Express shipping via DHL Express or FedEx Priority is included automatically.\n\nTo request Fast-Response Service, contact our concierge team at concierge@heritageedit.com or via WhatsApp at +234 901 234 5678 with your event date and requirements. A 30% priority surcharge applies to the garment total. Consultations are available seven days a week, 8 AM – 10 PM WAT.`,
+    title: "Fast-Response Service: We Reply Within 2 Hours",
+    content: `Our concierge team operates dedicated priority channels. Whether you need urgent styling advice, custom measurement support, or status updates on your private list order, we guarantee a response within 2 hours during business hours.`,
   },
 ];
 
@@ -40,7 +40,7 @@ const DIRECTORY_LINKS = [
   { href: "/shipment", label: "Shipment" },
   { href: "/about", label: "About Us" },
   { href: "/sustainability", label: "Sustainability" },
-  { href: "/journals", label: "The Heritage Edit Journals" },
+  { href: "/journals", label: "The Heritage Journals" },
   { href: "/terms", label: "Terms of Service" },
   { href: "/refund-policy", label: "Refund Policy" },
 ];
@@ -118,7 +118,7 @@ function AccordionItem({
         className="w-full flex items-center justify-between py-5 md:py-6 group text-left"
         aria-expanded={isOpen}
       >
-        <span className="text-[11px] md:text-xs font-sans font-medium tracking-[0.2em] uppercase text-white/80 group-hover:text-white transition-colors duration-300">
+        <span className="text-[13px] font-sans font-medium text-white group-hover:text-white/90 transition-colors duration-300">
           {title}
         </span>
         <ChevronDown
@@ -138,7 +138,7 @@ function AccordionItem({
             {content.split("\n\n").map((paragraph, i) => (
               <p
                 key={i}
-                className="text-[13px] font-sans text-white/45 leading-[1.8] mb-4 last:mb-0 whitespace-pre-line"
+                className="text-[13px] font-sans text-white/50 leading-[1.8] mb-4 last:mb-0 whitespace-pre-line"
               >
                 {paragraph}
               </p>
@@ -234,7 +234,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
           {/* Brand column */}
           <div className="lg:col-span-1">
-            <HEMonogram variant="white" size={48} className="mb-4" />
+            <HEMonogram variant="white" size={48} className="mb-4 opacity-60" />
             <h3 className="text-lg font-serif tracking-wide mb-4">
               THE HERITAGE EDIT
             </h3>
