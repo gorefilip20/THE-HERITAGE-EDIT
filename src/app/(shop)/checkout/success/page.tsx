@@ -13,9 +13,13 @@ function SuccessContent() {
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-20">
       <div className="max-w-lg w-full text-center">
-        <div className="w-20 h-20 bg-heritage-green/10 flex items-center justify-center mx-auto mb-8">
-          <CheckCircle size={40} strokeWidth={1.2} className="text-heritage-green" />
+        <div className="w-20 h-20 bg-emerald-50 flex items-center justify-center mx-auto mb-8">
+          <CheckCircle size={40} strokeWidth={1.2} className="text-emerald-600" />
         </div>
+
+        <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-gold mb-3">
+          Order Confirmed
+        </p>
 
         <h1 className="text-3xl font-serif text-obsidian mb-3">
           Thank You for Your Order
@@ -46,18 +50,20 @@ function SuccessContent() {
         </div>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          {orderNumber && (
+            <Link
+              href="/account"
+              className="inline-flex items-center justify-center h-12 px-8 bg-[#0D2C22] text-white text-[11px] font-semibold tracking-[0.15em] uppercase hover:bg-[#163829] transition-colors"
+            >
+              View Order
+            </Link>
+          )}
           <Link
             href="/shop"
-            className="luxury-button-primary gap-2"
+            className="inline-flex items-center justify-center gap-2 h-12 px-8 border border-[#0D2C22] text-[#0D2C22] text-[11px] font-semibold tracking-[0.15em] uppercase hover:bg-neutral-50 transition-colors"
           >
             Continue Shopping
             <ArrowRight size={14} />
-          </Link>
-          <Link
-            href="/account/orders"
-            className="luxury-button-secondary"
-          >
-            View Your Orders
           </Link>
         </div>
       </div>

@@ -110,13 +110,15 @@ export default function OrderTracking() {
                       className="relative mb-8 pl-20"
                     >
                       <div
-                        className={`absolute left-0 w-12 h-12 rounded-full flex items-center justify-center transition-all ${
-                          isCompleted
-                            ? "bg-heritage-green text-white"
-                            : "bg-neutral-100 text-neutral-400"
-                        } ${isCurrent ? "ring-4 ring-heritage-green/20" : ""}`}
+                        className={`absolute left-0 w-10 h-10 flex items-center justify-center transition-all ${
+                          isCompleted && !isCurrent
+                            ? "bg-emerald-600 text-white"
+                            : isCurrent
+                              ? "border-2 border-amber-500 bg-amber-50 text-amber-600"
+                              : "border-2 border-neutral-300 bg-white text-neutral-400"
+                        }`}
                       >
-                        <Icon size={20} />
+                        <Icon size={18} />
                       </div>
                       <div
                         className={`transition-all ${

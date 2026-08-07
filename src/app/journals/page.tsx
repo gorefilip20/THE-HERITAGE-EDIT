@@ -50,7 +50,7 @@ export default function JournalsPage() {
         Stories behind the collections, the artisans, and the traditions that shape every piece we make.
       </p>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-14">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-14">
         {JOURNALS.map((journal) => (
           <article key={journal.title} className="group">
             <div className="aspect-[16/9] bg-neutral-100 mb-5 overflow-hidden">

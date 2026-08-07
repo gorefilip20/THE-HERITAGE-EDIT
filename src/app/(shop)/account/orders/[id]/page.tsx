@@ -341,7 +341,7 @@ export default function OrderTrackingPage() {
           >
             <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-2">
               <div>
-                <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-heritage-purple mb-2">
+                <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-gold mb-2">
                   Order Tracking
                 </p>
                 <h1 className="text-2xl md:text-3xl font-serif text-obsidian">

@@ -21,14 +21,14 @@ const FILTER_SECTIONS = [
     label: "Designer",
     type: "checkbox" as const,
     options: [
-      { value: "gucci", label: "Gucci" },
-      { value: "prada", label: "Prada" },
-      { value: "bottega-veneta", label: "Bottega Veneta" },
-      { value: "saint-laurent", label: "Saint Laurent" },
-      { value: "balenciaga", label: "Balenciaga" },
-      { value: "valentino", label: "Valentino" },
-      { value: "celine", label: "Celine" },
-      { value: "loewe", label: "Loewe" },
+      { value: "the-heritage-edit", label: "The Heritage Edit" },
+      { value: "ozwald-boateng", label: "Ozwald Boateng" },
+      { value: "kenneth-ize", label: "Kenneth Ize" },
+      { value: "lisa-folawiyo", label: "Lisa Folawiyo" },
+      { value: "maki-oh", label: "Maki Oh" },
+      { value: "thebe-magugu", label: "Thebe Magugu" },
+      { value: "duro-olowu", label: "Duro Olowu" },
+      { value: "christie-brown", label: "Christie Brown" },
     ],
   },
   {
@@ -115,17 +115,17 @@ export default function CollectionPage() {
 
   return (
     <div>
-      {/* Collection header */}
-      <section className="bg-ivory py-16 md:py-20 border-b border-slate-border">
-        <div className="luxury-container text-center">
+      {/* Collection header — gradient hero */}
+      <section className="relative bg-gradient-to-br from-[#0D2C22] via-[#163829] to-[#2E1A47] py-20 md:py-28">
+        <div className="luxury-container text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <p className="text-[10px] font-sans font-medium tracking-[0.3em] uppercase text-heritage-purple mb-3">
+            <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-gold mb-3">
               Collection
             </p>
-            <h1 className="text-display-md md:text-display-lg font-serif italic text-obsidian">
+            <h1 className="text-display-md md:text-display-lg font-serif text-white">
               {collectionTitle}
             </h1>
           </motion.div>

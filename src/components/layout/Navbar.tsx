@@ -610,7 +610,7 @@ export function Navbar() {
                             className="object-cover transition-transform duration-700 ease-luxury group-hover:scale-105"
                           />
                         </div>
-                        <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-heritage-purple mb-1">
+                        <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-gold mb-1">
                           Editorial
                         </p>
                         <h4 className="text-sm font-serif text-obsidian group-hover:text-heritage-green transition-colors">
