@@ -6,6 +6,7 @@ import { slugify, generateItemCode } from "@/lib/utils";
 import { generateHeritageNarrative } from "@/lib/heritage-ai";
 import { getCurrentUser } from "@/lib/auth";
 import { watermarkDataUrl } from "@/lib/watermark";
+import { uploadProductImage, isCloudinaryConfigured } from "@/lib/cloudinary";
 
 const PRODUCT_CACHE_PREFIX = "products:";
 const PRODUCT_CACHE_TTL = 60 * 5; // 5 minutes
@@ -261,16 +262,24 @@ export async function POST(request: NextRequest) {
 
     const sku = generateItemCode();
 
-    let watermarkedImages: Array<{ url: string; originalUrl: string }> | null =
+    let processedImages: Array<{ url: string; originalUrl: string }> | null =
       null;
     if (input.imageUrls && input.imageUrls.length > 0) {
-      watermarkedImages = await Promise.all(
-        input.imageUrls.map(async (url: string) => {
+      const useCloudinary = isCloudinaryConfigured();
+      processedImages = await Promise.all(
+        input.imageUrls.map(async (dataUrl: string) => {
           try {
-            const wmUrl = await watermarkDataUrl(url);
-            return { url: wmUrl, originalUrl: url };
+            if (useCloudinary) {
+              const { url: cloudUrl } = await uploadProductImage(dataUrl);
+              return { url: cloudUrl, originalUrl: dataUrl.slice(0, 100) };
+            }
+            const wmUrl = await watermarkDataUrl(dataUrl);
+            return { url: wmUrl, originalUrl: dataUrl };
           } catch {
-            return { url, originalUrl: url };
+            if (useCloudinary) {
+              return { url: dataUrl.slice(0, 100), originalUrl: dataUrl.slice(0, 100) };
+            }
+            return { url: dataUrl, originalUrl: dataUrl };
           }
         }),
       );
@@ -288,9 +297,9 @@ export async function POST(request: NextRequest) {
         salePriceCents: input.salePriceCents ?? null,
         currency: input.currency,
         status: "AI_PENDING",
-        images: watermarkedImages
+        images: processedImages
           ? {
-              create: watermarkedImages.map(
+              create: processedImages.map(
                 (img: { url: string; originalUrl: string }, idx: number) => ({
                   url: img.url,
                   originalUrl: img.originalUrl,

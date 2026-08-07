@@ -75,6 +75,25 @@ export default function ProductDetailPage() {
   );
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+
+  const toggleWishlist = async () => {
+    if (!product) return;
+    const next = !isWishlisted;
+    setIsWishlisted(next);
+    try {
+      if (next) {
+        await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: product.id }),
+        });
+      } else {
+        await fetch(`/api/wishlist?productId=${product.id}`, { method: "DELETE" });
+      }
+    } catch {
+      setIsWishlisted(!next);
+    }
+  };
   const [isSizeDrawerOpen, setIsSizeDrawerOpen] = useState(false);
 
   /* ── Fetch product (server-side Redis cache via API) ── */
@@ -293,7 +312,7 @@ export default function ProductDetailPage() {
             {/* Action buttons */}
             <div className="absolute top-4 right-4 flex flex-col gap-2">
               <button
-                onClick={() => setIsWishlisted(!isWishlisted)}
+                onClick={() => toggleWishlist()}
                 className="w-10 h-10 flex items-center justify-center bg-white/90 backdrop-blur-sm shadow-sm hover:bg-white transition-colors"
                 aria-label="Add to wishlist"
               >

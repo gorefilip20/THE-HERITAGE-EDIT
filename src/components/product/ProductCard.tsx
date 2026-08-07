@@ -10,6 +10,7 @@ import { useLocale } from "@/context/LocaleContext";
 
 interface ProductCardProps {
   slug: string;
+  productId?: string;
   name: string;
   brandName: string;
   priceCents: number;
@@ -22,6 +23,7 @@ interface ProductCardProps {
 
 export function ProductCard({
   slug,
+  productId,
   name,
   brandName,
   priceCents,
@@ -35,6 +37,25 @@ export function ProductCard({
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  const toggleWishlist = async () => {
+    if (!productId) return;
+    const next = !isWishlisted;
+    setIsWishlisted(next);
+    try {
+      if (next) {
+        await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId }),
+        });
+      } else {
+        await fetch(`/api/wishlist?productId=${productId}`, { method: "DELETE" });
+      }
+    } catch {
+      setIsWishlisted(!next);
+    }
+  };
 
   const displayImage =
     isHovered && hoverImageUrl ? hoverImageUrl : imageUrl;
@@ -95,7 +116,7 @@ export function ProductCard({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setIsWishlisted(!isWishlisted);
+            toggleWishlist();
           }}
           className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110"
           aria-label="Add to wishlist"

@@ -152,6 +152,7 @@ function SalePageContent() {
               <ProductCard
                 key={product.id}
                 slug={product.slug}
+                    productId={product.id}
                 name={product.name}
                 brandName={product.brand.name}
                 priceCents={product.basePriceCents}

@@ -597,6 +597,24 @@ function ShopProductCard({
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
+  const toggleWishlist = async () => {
+    const next = !isWishlisted;
+    setIsWishlisted(next);
+    try {
+      if (next) {
+        await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: product.id }),
+        });
+      } else {
+        await fetch(`/api/wishlist?productId=${product.id}`, { method: "DELETE" });
+      }
+    } catch {
+      setIsWishlisted(!next);
+    }
+  };
+
   const primaryImage = product.images.find((i) => i.isPrimary) ?? product.images[0];
   const hoverImage = product.images.find((i) => !i.isPrimary && i.sortOrder === 1);
   const displayImage =
@@ -641,7 +659,7 @@ function ShopProductCard({
         <button
           onClick={(e) => {
             e.preventDefault();
-            setIsWishlisted(!isWishlisted);
+            toggleWishlist();
           }}
           className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white/85 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110"
           aria-label="Add to wishlist"

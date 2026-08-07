@@ -52,14 +52,14 @@ const DIRECTORY_LINKS = [
 const FOOTER_LINKS = {
   "Client Services": [
     { href: "/contact", label: "Contact Us" },
-    { href: "/about", label: "Shipping & Delivery" },
-    { href: "/about", label: "Returns & Exchanges" },
+    { href: "/shipment", label: "Shipping & Delivery" },
+    { href: "/refund-policy", label: "Returns & Exchanges" },
     { href: "/sizing", label: "Size Guide" },
     { href: "/faq", label: "FAQ" },
   ],
   "The House": [
     { href: "/about", label: "Our Story" },
-    { href: "/about", label: "African Artisans" },
+    { href: "/sustainability", label: "African Artisans" },
     { href: "/sustainability", label: "Sustainability" },
     { href: "/journals", label: "Heritage Journal" },
   ],
@@ -72,8 +72,8 @@ const FOOTER_LINKS = {
   ],
   Legal: [
     { href: "/terms", label: "Terms & Conditions" },
-    { href: "/about", label: "Privacy Policy" },
-    { href: "/about", label: "Cookie Policy" },
+    { href: "/privacy", label: "Privacy Policy" },
+    { href: "/privacy", label: "Cookie Policy" },
   ],
 };
 
@@ -259,7 +259,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://twitter.com"
+                href="https://x.com/theheritageedit"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-all duration-300"
@@ -273,7 +273,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://pinterest.com"
+                href="https://pinterest.com/theheritageedit"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-all duration-300"
