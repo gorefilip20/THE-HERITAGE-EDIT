@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Plus, Eye, Sparkles } from "lucide-react";
+import { Plus, Eye, Sparkles, Edit3 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/types";
 
@@ -80,9 +80,14 @@ export default function ProductsPage() {
                         {product.heritage ? <Sparkles size={14} className={product.heritage.isApproved ? "text-heritage-green" : "text-amber-400"} /> : <span className="text-xs text-neutral-300">—</span>}
                       </td>
                       <td className="px-4 py-3">
-                        <Link href={`/product/${product.slug}`} className="opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Eye size={14} className="text-neutral-400 hover:text-heritage-green" />
-                        </Link>
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Link href={`/admin/products/${product.id}/edit`} title="Edit">
+                            <Edit3 size={14} className="text-neutral-400 hover:text-heritage-green" />
+                          </Link>
+                          <Link href={`/product/${product.slug}`} title="View">
+                            <Eye size={14} className="text-neutral-400 hover:text-heritage-green" />
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );

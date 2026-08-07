@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "crypto";
 import { prisma } from "@/lib/db";
 import { hashPassword, verifyPassword, createToken } from "@/lib/auth";
+import { sendVerificationEmail } from "@/lib/email";
 import { z } from "zod";
 
 const loginSchema = z.object({
@@ -37,14 +39,21 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      const verifyToken = randomBytes(32).toString("hex");
+      const verifyExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
       const user = await prisma.user.create({
         data: {
           email: parsed.data.email,
           passwordHash: await hashPassword(parsed.data.password),
           firstName: parsed.data.firstName,
           lastName: parsed.data.lastName,
+          emailVerifyToken: verifyToken,
+          emailVerifyExpiry: verifyExpiry,
         },
       });
+
+      sendVerificationEmail(user.email, verifyToken).catch(() => {});
 
       const token = await createToken({ userId: user.id, role: user.role });
 

@@ -220,3 +220,111 @@ export async function sendShippingNotificationEmail(payload: ShippingNotificatio
     console.error("Failed to send shipping notification email:", err);
   }
 }
+
+export async function sendPasswordResetEmail(to: string, resetToken: string): Promise<void> {
+  const resetUrl = `${APP_URL}/auth/reset-password?token=${resetToken}`;
+  try {
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to,
+      subject: "Reset Your Password — THE HERITAGE EDIT",
+      html: `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
+<body style="margin: 0; padding: 0; background-color: #f7f7f6; font-family: -apple-system, sans-serif;">
+  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f7f7f6;"><tr><td align="center" style="padding: 40px 16px;">
+    <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff;">
+      <tr><td style="background: linear-gradient(135deg, #0D2C22 0%, #2E1A47 100%); padding: 36px 40px; text-align: center;">
+        <img src="${HE_MONOGRAM_GOLD_DATA_URI}" alt="HE" width="40" height="40" style="display: inline-block; margin-bottom: 12px;" />
+        <p style="margin: 0 0 6px; font-family: Georgia, serif; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #C9A96E;">Password Reset</p>
+        <h1 style="margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: 400; letter-spacing: 3px; color: #ffffff;">THE HERITAGE EDIT</h1>
+      </td></tr>
+      <tr><td style="padding: 36px 40px;">
+        <p style="margin: 0 0 16px; font-family: Georgia, serif; font-size: 18px; color: #111111;">Reset your password</p>
+        <p style="margin: 0 0 24px; font-size: 14px; color: #666666; line-height: 1.6;">We received a request to reset the password for your account. Click the button below to choose a new password. This link expires in 1 hour.</p>
+        <p style="text-align: center; margin: 0 0 24px;"><a href="${resetUrl}" style="display: inline-block; padding: 14px 40px; background-color: #0D2C22; color: #ffffff; font-size: 13px; font-weight: 600; text-decoration: none; letter-spacing: 1px;">Reset Password</a></p>
+        <p style="margin: 0; font-size: 12px; color: #999999;">If you didn't request this, you can safely ignore this email.</p>
+      </td></tr>
+      <tr><td style="padding: 24px 40px; background-color: #fafaf9; border-top: 1px solid #f0f0f0; text-align: center;">
+        <p style="margin: 0; font-family: Georgia, serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #999999;">THE HERITAGE EDIT</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`,
+      text: `THE HERITAGE EDIT — Password Reset\n\nReset your password by visiting: ${resetUrl}\n\nThis link expires in 1 hour. If you didn't request this, ignore this email.`,
+    });
+    console.log(`[Email] Password reset sent to ${to}`);
+  } catch (err) {
+    console.error("Failed to send password reset email:", err);
+  }
+}
+
+export async function sendVerificationEmail(to: string, verifyToken: string): Promise<void> {
+  const verifyUrl = `${APP_URL}/auth/verify-email?token=${verifyToken}`;
+  try {
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to,
+      subject: "Verify Your Email — THE HERITAGE EDIT",
+      html: `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
+<body style="margin: 0; padding: 0; background-color: #f7f7f6; font-family: -apple-system, sans-serif;">
+  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f7f7f6;"><tr><td align="center" style="padding: 40px 16px;">
+    <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff;">
+      <tr><td style="background: linear-gradient(135deg, #0D2C22 0%, #2E1A47 100%); padding: 36px 40px; text-align: center;">
+        <img src="${HE_MONOGRAM_GOLD_DATA_URI}" alt="HE" width="40" height="40" style="display: inline-block; margin-bottom: 12px;" />
+        <p style="margin: 0 0 6px; font-family: Georgia, serif; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #C9A96E;">Email Verification</p>
+        <h1 style="margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: 400; letter-spacing: 3px; color: #ffffff;">THE HERITAGE EDIT</h1>
+      </td></tr>
+      <tr><td style="padding: 36px 40px;">
+        <p style="margin: 0 0 16px; font-family: Georgia, serif; font-size: 18px; color: #111111;">Verify your email address</p>
+        <p style="margin: 0 0 24px; font-size: 14px; color: #666666; line-height: 1.6;">Welcome to The Heritage Edit. Please verify your email address to complete your registration and unlock the full experience.</p>
+        <p style="text-align: center; margin: 0 0 24px;"><a href="${verifyUrl}" style="display: inline-block; padding: 14px 40px; background-color: #0D2C22; color: #ffffff; font-size: 13px; font-weight: 600; text-decoration: none; letter-spacing: 1px;">Verify Email</a></p>
+        <p style="margin: 0; font-size: 12px; color: #999999;">This link expires in 24 hours.</p>
+      </td></tr>
+      <tr><td style="padding: 24px 40px; background-color: #fafaf9; border-top: 1px solid #f0f0f0; text-align: center;">
+        <p style="margin: 0; font-family: Georgia, serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #999999;">THE HERITAGE EDIT</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`,
+      text: `THE HERITAGE EDIT — Email Verification\n\nVerify your email by visiting: ${verifyUrl}\n\nThis link expires in 24 hours.`,
+    });
+    console.log(`[Email] Verification email sent to ${to}`);
+  } catch (err) {
+    console.error("Failed to send verification email:", err);
+  }
+}
+
+export async function sendWelcomeEmail(to: string, firstName: string): Promise<void> {
+  try {
+    await resend.emails.send({
+      from: FROM_ADDRESS,
+      to,
+      subject: `Welcome to The Heritage Edit, ${firstName}`,
+      html: `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /></head>
+<body style="margin: 0; padding: 0; background-color: #f7f7f6; font-family: -apple-system, sans-serif;">
+  <table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f7f7f6;"><tr><td align="center" style="padding: 40px 16px;">
+    <table cellpadding="0" cellspacing="0" border="0" width="600" style="max-width: 600px; background-color: #ffffff;">
+      <tr><td style="background: linear-gradient(135deg, #0D2C22 0%, #2E1A47 100%); padding: 36px 40px; text-align: center;">
+        <img src="${HE_MONOGRAM_GOLD_DATA_URI}" alt="HE" width="40" height="40" style="display: inline-block; margin-bottom: 12px;" />
+        <p style="margin: 0 0 6px; font-family: Georgia, serif; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; color: #C9A96E;">Welcome</p>
+        <h1 style="margin: 0; font-family: Georgia, serif; font-size: 22px; font-weight: 400; letter-spacing: 3px; color: #ffffff;">THE HERITAGE EDIT</h1>
+      </td></tr>
+      <tr><td style="padding: 36px 40px;">
+        <p style="margin: 0 0 16px; font-family: Georgia, serif; font-size: 20px; color: #111111;">Welcome, ${firstName}.</p>
+        <p style="margin: 0 0 16px; font-size: 14px; color: #666666; line-height: 1.7;">You've joined an exclusive community of connoisseurs who appreciate the intersection of African heritage and contemporary luxury.</p>
+        <p style="margin: 0 0 24px; font-size: 14px; color: #666666; line-height: 1.7;">Every piece in our collection carries a Heritage Narrative — the story of its craftsmanship, cultural significance, and the artisans who brought it to life.</p>
+        <p style="text-align: center; margin: 0 0 24px;"><a href="${APP_URL}/shop" style="display: inline-block; padding: 14px 40px; background-color: #0D2C22; color: #ffffff; font-size: 13px; font-weight: 600; text-decoration: none; letter-spacing: 1px;">Explore the Collection</a></p>
+      </td></tr>
+      <tr><td style="padding: 24px 40px; background-color: #fafaf9; border-top: 1px solid #f0f0f0; text-align: center;">
+        <p style="margin: 0 0 4px; font-family: Georgia, serif; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #999999;">THE HERITAGE EDIT</p>
+        <p style="margin: 0; font-size: 11px; color: #bbbbbb;">Curated luxury, delivered with care.</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`,
+      text: `Welcome to The Heritage Edit, ${firstName}!\n\nYou've joined an exclusive community of connoisseurs who appreciate the intersection of African heritage and contemporary luxury.\n\nExplore the collection: ${APP_URL}/shop\n\n---\nCurated luxury, delivered with care.`,
+    });
+    console.log(`[Email] Welcome email sent to ${to}`);
+  } catch (err) {
+    console.error("Failed to send welcome email:", err);
+  }
+}

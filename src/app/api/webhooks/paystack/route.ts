@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
           data: {
             status: "CONFIRMED",
             paymentStatus: "CAPTURED",
-            stripePaymentId: event.data.id?.toString() ?? null,
+            paymentId: event.data.id?.toString() ?? null,
           },
         });
 

@@ -150,6 +150,16 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
                   Minimum 8 characters.
                 </p>
               )}
+              {!isRegister && (
+                <div className="mt-2 text-right">
+                  <Link
+                    href="/auth/forgot-password"
+                    className="text-[11px] font-sans text-neutral-400 hover:text-heritage-green transition-colors"
+                  >
+                    Forgot password?
+                  </Link>
+                </div>
+              )}
             </div>
 
             <button

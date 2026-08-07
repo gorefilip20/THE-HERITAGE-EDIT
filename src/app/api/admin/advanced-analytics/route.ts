@@ -146,7 +146,7 @@ export async function GET(request: NextRequest) {
     // --- Payment method split ---
     const allOrdersForPayment = await prisma.order.findMany({
       where: { createdAt: { gte: startDate } },
-      select: { stripePaymentId: true },
+      select: { paymentId: true },
     });
 
     let paystackCount = 0;
@@ -154,9 +154,9 @@ export async function GET(request: NextRequest) {
     let unknownCount = 0;
 
     for (const o of allOrdersForPayment) {
-      if (o.stripePaymentId?.startsWith("FLW_")) {
+      if (o.paymentId?.startsWith("FLW_")) {
         flutterwaveCount++;
-      } else if (o.stripePaymentId) {
+      } else if (o.paymentId) {
         paystackCount++;
       } else {
         unknownCount++;

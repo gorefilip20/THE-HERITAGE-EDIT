@@ -46,17 +46,22 @@ enum UserRole {
 }
 
 model User {
-  id                 String    @id @default(cuid())
-  email              String    @unique
-  passwordHash       String
-  firstName          String
-  lastName           String
-  role               UserRole  @default(CUSTOMER)
-  phone              String?
-  registrationSource String?
-  lastLoginAt        DateTime?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  id                     String    @id @default(cuid())
+  email                  String    @unique
+  passwordHash           String
+  firstName              String
+  lastName               String
+  role                   UserRole  @default(CUSTOMER)
+  phone                  String?
+  registrationSource     String?
+  lastLoginAt            DateTime?
+  emailVerified          Boolean   @default(false)
+  emailVerifyToken       String?
+  emailVerifyExpiry      DateTime?
+  passwordResetToken     String?
+  passwordResetExpiry    DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   addresses     Address[]
   orders        Order[]
@@ -255,7 +260,7 @@ model Order {
   totalCents       Int
   currency         String        @default("NGN")
   shippingAddressId String?
-  stripePaymentId  String?
+  paymentId        String?
   paymentProvider  String?
   shippingMethod   String?
   trackingNumber   String?
