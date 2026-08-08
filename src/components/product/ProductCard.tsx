@@ -5,10 +5,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Heart, ShoppingBag } from "lucide-react";
-import { formatPrice, getImagePlaceholder } from "@/lib/utils";
+import { getImagePlaceholder } from "@/lib/utils";
+import { useLocale } from "@/context/LocaleContext";
 
 interface ProductCardProps {
   slug: string;
+  productId?: string;
   name: string;
   brandName: string;
   priceCents: number;
@@ -21,18 +23,39 @@ interface ProductCardProps {
 
 export function ProductCard({
   slug,
+  productId,
   name,
   brandName,
   priceCents,
   salePriceCents,
-  currency = "USD",
+  currency,
   imageUrl,
   hoverImageUrl,
   imageAlt,
 }: ProductCardProps) {
+  const { formatPrice } = useLocale();
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
+
+  const toggleWishlist = async () => {
+    if (!productId) return;
+    const next = !isWishlisted;
+    setIsWishlisted(next);
+    try {
+      if (next) {
+        await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId }),
+        });
+      } else {
+        await fetch(`/api/wishlist?productId=${productId}`, { method: "DELETE" });
+      }
+    } catch {
+      setIsWishlisted(!next);
+    }
+  };
 
   const displayImage =
     isHovered && hoverImageUrl ? hoverImageUrl : imageUrl;
@@ -69,7 +92,7 @@ export function ProductCard({
 
         {/* Sale badge */}
         {hasDiscount && (
-          <span className="absolute top-3 left-3 px-2.5 py-1 bg-obsidian text-white text-[10px] font-sans font-semibold tracking-wider uppercase">
+          <span className="absolute top-3 left-3 px-2.5 py-1 bg-red-600 text-white text-[10px] font-sans font-semibold tracking-wider uppercase">
             -{discountPercent}%
           </span>
         )}
@@ -93,7 +116,7 @@ export function ProductCard({
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
-            setIsWishlisted(!isWishlisted);
+            toggleWishlist();
           }}
           className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110"
           aria-label="Add to wishlist"
@@ -112,16 +135,16 @@ export function ProductCard({
           {brandName}
         </p>
         <Link href={`/product/${slug}`}>
-          <h3 className="text-[13px] font-sans font-normal text-obsidian leading-snug line-clamp-2 group-hover:text-heritage-green transition-colors duration-300">
+          <h3 className="text-[14px] font-sans font-normal text-obsidian leading-snug line-clamp-2 group-hover:text-heritage-green transition-colors duration-300">
             {name}
           </h3>
         </Link>
         <div className="flex items-center gap-2 pt-0.5">
-          <span className={`text-[13px] font-sans font-medium ${hasDiscount ? "text-red-600" : "text-obsidian"}`}>
+          <span className={`text-[16px] font-serif ${hasDiscount ? "text-red-600" : "text-obsidian"}`}>
             {formatPrice(salePriceCents ?? priceCents, currency)}
           </span>
           {hasDiscount && (
-            <span className="text-[13px] font-sans text-neutral-400 line-through">
+            <span className="text-[14px] font-sans text-neutral-400 line-through">
               {formatPrice(priceCents, currency)}
             </span>
           )}

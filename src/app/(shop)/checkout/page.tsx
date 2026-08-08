@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { CheckoutForm } from "@/components/checkout/CheckoutForm";
+import HEMonogram from "@/components/brand/HEMonogram";
 
 export default function CheckoutPage() {
   return (
@@ -10,8 +11,9 @@ export default function CheckoutPage() {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <Link
             href="/"
-            className="text-base font-serif tracking-[0.12em] text-[#0D2C22]"
+            className="flex items-center gap-2.5 text-base font-serif tracking-[0.12em] text-[#0D2C22]"
           >
+            <HEMonogram variant="dark" size={28} />
             THE HERITAGE EDIT
           </Link>
           <div className="flex items-center gap-2">

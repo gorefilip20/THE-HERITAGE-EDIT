@@ -35,6 +35,11 @@ const config: Config = {
         },
         ivory: "#FBFBFA",
         obsidian: "#111111",
+        gold: {
+          DEFAULT: "#B08D57",
+          light: "#C9A96E",
+          dark: "#8A6D3B",
+        },
         slate: {
           border: "#EAEAEA",
         },

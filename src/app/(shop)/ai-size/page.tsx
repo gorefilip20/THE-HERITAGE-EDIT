@@ -92,7 +92,7 @@ export default function AISizePrediction() {
             animate={{ opacity: 1 }}
             className="max-w-2xl mx-auto"
           >
-            <div className="bg-neutral-50 p-8 md:p-12 rounded-lg">
+            <div className="bg-neutral-50 p-8 md:p-12">
               <h2 className="text-2xl font-serif text-obsidian mb-8">Your Measurements</h2>
 
               <div className="space-y-6">
@@ -107,7 +107,7 @@ export default function AISizePrediction() {
                       placeholder="e.g., 170"
                       value={profile.height}
                       onChange={(e) => setProfile({ ...profile, height: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-border rounded-lg focus:outline-none focus:border-obsidian"
+                      className="w-full px-4 py-3 border border-slate-border focus:outline-none focus:border-obsidian"
                     />
                   </div>
                   <div>
@@ -119,7 +119,7 @@ export default function AISizePrediction() {
                       placeholder="e.g., 65"
                       value={profile.weight}
                       onChange={(e) => setProfile({ ...profile, weight: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-border rounded-lg focus:outline-none focus:border-obsidian"
+                      className="w-full px-4 py-3 border border-slate-border focus:outline-none focus:border-obsidian"
                     />
                   </div>
                 </div>
@@ -135,7 +135,7 @@ export default function AISizePrediction() {
                       placeholder="Optional"
                       value={profile.chest}
                       onChange={(e) => setProfile({ ...profile, chest: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-border rounded-lg focus:outline-none focus:border-obsidian"
+                      className="w-full px-4 py-3 border border-slate-border focus:outline-none focus:border-obsidian"
                     />
                   </div>
                   <div>
@@ -147,7 +147,7 @@ export default function AISizePrediction() {
                       placeholder="Optional"
                       value={profile.waist}
                       onChange={(e) => setProfile({ ...profile, waist: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-border rounded-lg focus:outline-none focus:border-obsidian"
+                      className="w-full px-4 py-3 border border-slate-border focus:outline-none focus:border-obsidian"
                     />
                   </div>
                   <div>
@@ -159,7 +159,7 @@ export default function AISizePrediction() {
                       placeholder="Optional"
                       value={profile.hips}
                       onChange={(e) => setProfile({ ...profile, hips: e.target.value })}
-                      className="w-full px-4 py-3 border border-slate-border rounded-lg focus:outline-none focus:border-obsidian"
+                      className="w-full px-4 py-3 border border-slate-border focus:outline-none focus:border-obsidian"
                     />
                   </div>
                 </div>
@@ -172,7 +172,7 @@ export default function AISizePrediction() {
                   <select
                     value={profile.shoeSize}
                     onChange={(e) => setProfile({ ...profile, shoeSize: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-border rounded-lg focus:outline-none focus:border-obsidian"
+                    className="w-full px-4 py-3 border border-slate-border focus:outline-none focus:border-obsidian"
                   >
                     <option value="">Select size...</option>
                     {Array.from({ length: 15 }, (_, i) => 35 + i).map((size) => (
@@ -193,7 +193,7 @@ export default function AISizePrediction() {
                     placeholder="e.g., M, L, XL"
                     value={profile.previousSizes}
                     onChange={(e) => setProfile({ ...profile, previousSizes: e.target.value })}
-                    className="w-full px-4 py-3 border border-slate-border rounded-lg focus:outline-none focus:border-obsidian"
+                    className="w-full px-4 py-3 border border-slate-border focus:outline-none focus:border-obsidian"
                   />
                 </div>
 
@@ -217,7 +217,7 @@ export default function AISizePrediction() {
             animate={{ opacity: 1 }}
             className="max-w-2xl mx-auto"
           >
-            <div className="bg-green-50 border border-green-200 rounded-lg p-8 md:p-12 mb-8">
+            <div className="bg-green-50 border border-green-200 p-8 md:p-12 mb-8">
               <div className="flex items-start gap-4 mb-6">
                 <CheckCircle className="w-8 h-8 text-green-600 flex-shrink-0 mt-1" />
                 <div>
@@ -228,7 +228,7 @@ export default function AISizePrediction() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-lg p-6 mb-6">
+              <div className="bg-white p-6 mb-6">
                 <p className="text-[11px] font-sans font-medium tracking-wider uppercase text-neutral-500 mb-2">
                   Primary Size
                 </p>
@@ -249,7 +249,7 @@ export default function AISizePrediction() {
                     {prediction.alternatives.map((alt) => (
                       <span
                         key={alt}
-                        className="px-4 py-2 bg-white border border-green-200 text-green-900 text-[12px] font-sans font-medium rounded-lg"
+                        className="px-4 py-2 bg-white border border-green-200 text-green-900 text-[12px] font-sans font-medium"
                       >
                         {alt}
                       </span>
@@ -260,7 +260,7 @@ export default function AISizePrediction() {
             </div>
 
             {/* Tips */}
-            <div className="bg-neutral-50 p-8 rounded-lg mb-8">
+            <div className="bg-neutral-50 p-8 mb-8">
               <h3 className="text-lg font-serif text-obsidian mb-6">Sizing Tips</h3>
               <div className="space-y-3">
                 {prediction.tips.map((tip, idx) => (

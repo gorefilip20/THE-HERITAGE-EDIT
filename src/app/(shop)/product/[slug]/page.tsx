@@ -40,15 +40,15 @@ const SIZE_CHART: Record<string, Record<string, string>> = {
 const ACCORDION_SECTIONS = [
   {
     key: "description",
-    title: "Description",
+    title: "Heritage Narrative",
   },
   {
     key: "sizefit",
-    title: "Size & Fit",
+    title: "Care Instructions",
   },
   {
     key: "shipping",
-    title: "Premium Shipping & Returns",
+    title: "Shipping & Returns",
   },
 ] as const;
 
@@ -75,6 +75,25 @@ export default function ProductDetailPage() {
   );
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [addedToCart, setAddedToCart] = useState(false);
+
+  const toggleWishlist = async () => {
+    if (!product) return;
+    const next = !isWishlisted;
+    setIsWishlisted(next);
+    try {
+      if (next) {
+        await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: product.id }),
+        });
+      } else {
+        await fetch(`/api/wishlist?productId=${product.id}`, { method: "DELETE" });
+      }
+    } catch {
+      setIsWishlisted(!next);
+    }
+  };
   const [isSizeDrawerOpen, setIsSizeDrawerOpen] = useState(false);
 
   /* ── Fetch product (server-side Redis cache via API) ── */
@@ -293,7 +312,7 @@ export default function ProductDetailPage() {
             {/* Action buttons */}
             <div className="absolute top-4 right-4 flex flex-col gap-2">
               <button
-                onClick={() => setIsWishlisted(!isWishlisted)}
+                onClick={() => toggleWishlist()}
                 className="w-10 h-10 flex items-center justify-center bg-white/90 backdrop-blur-sm shadow-sm hover:bg-white transition-colors"
                 aria-label="Add to wishlist"
               >
@@ -343,7 +362,7 @@ export default function ProductDetailPage() {
             <div>
               <Link
                 href={`/shop?brand=${product.brand.slug}`}
-                className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-heritage-purple hover:text-heritage-purple/70 transition-colors"
+                className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-gold hover:text-[#C9A96E] transition-colors"
               >
                 {product.brand.name}
               </Link>
@@ -557,7 +576,7 @@ export default function ProductDetailPage() {
                 "w-full h-14 text-[13px] font-sans font-semibold tracking-wider uppercase flex items-center justify-center gap-3 transition-all duration-300 active:scale-[0.98]",
                 addedToCart
                   ? "bg-emerald-700 text-white"
-                  : "bg-heritage-green text-white hover:shadow-lg hover:shadow-heritage-green/20 disabled:opacity-40 disabled:cursor-not-allowed",
+                  : "bg-heritage-green text-white hover:bg-[#163829] disabled:opacity-40 disabled:cursor-not-allowed",
               )}
             >
               {addedToCart ? (
@@ -649,7 +668,7 @@ export default function ProductDetailPage() {
       {product.heritage && product.heritage.isApproved && (
         <div className="mt-20 lg:mt-28">
           <div className="max-w-3xl mx-auto text-center">
-            <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-heritage-purple/60 mb-4">
+            <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-gold mb-4">
               The Heritage Narrative
             </p>
             <h2 className="text-display-sm font-serif italic text-obsidian mb-8">
@@ -674,7 +693,7 @@ export default function ProductDetailPage() {
             {/* Occasion suitability */}
             {product.heritage.rightOccasion.length > 0 && (
               <div className="mt-12 pt-8 border-t border-slate-border text-left">
-                <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-heritage-green/50 mb-5 text-center">
+                <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-gold mb-5 text-center">
                   The Right Occasion
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -758,7 +777,7 @@ function CompleteTheLook({ recommendations }: { recommendations: string[] }) {
     <div className="mt-16 pt-12 border-t border-slate-border">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-10">
-          <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-heritage-purple/60 mb-3">
+          <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-gold mb-3">
             The Luxury Matchmaker
           </p>
           <h3 className="text-display-sm font-serif italic text-obsidian mb-3">

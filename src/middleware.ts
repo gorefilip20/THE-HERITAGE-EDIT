@@ -1,9 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 
-const SECRET = new TextEncoder().encode(
-  process.env.NEXTAUTH_SECRET ?? "fallback-dev-secret-change-me",
-);
+const jwtSecret = process.env.NEXTAUTH_SECRET;
+
+function getSecret() {
+  if (!jwtSecret) {
+    throw new Error("NEXTAUTH_SECRET is not configured");
+  }
+  return new TextEncoder().encode(jwtSecret);
+}
 
 const ADMIN_PATHS = ["/admin", "/api/admin"];
 const AUTH_API_PATHS = ["/api/auth"];
@@ -44,7 +49,7 @@ async function verifyAuth(
   token: string,
 ): Promise<{ userId: string; role: string } | null> {
   try {
-    const { payload } = await jwtVerify(token, SECRET);
+    const { payload } = await jwtVerify(token, getSecret());
     return payload as { userId: string; role: string };
   } catch {
     return null;

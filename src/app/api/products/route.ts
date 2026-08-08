@@ -5,6 +5,8 @@ import { createProductSchema } from "@/lib/validators";
 import { slugify, generateItemCode } from "@/lib/utils";
 import { generateHeritageNarrative } from "@/lib/heritage-ai";
 import { getCurrentUser } from "@/lib/auth";
+import { watermarkDataUrl } from "@/lib/watermark";
+import { uploadProductImage, isCloudinaryConfigured } from "@/lib/cloudinary";
 
 const PRODUCT_CACHE_PREFIX = "products:";
 const PRODUCT_CACHE_TTL = 60 * 5; // 5 minutes
@@ -94,6 +96,7 @@ export async function GET(request: NextRequest) {
     if (sanitizedSearch.length > 0) {
       where.OR = [
         { name: { contains: sanitizedSearch, mode: "insensitive" } },
+        { sku: { contains: sanitizedSearch, mode: "insensitive" } },
         { brand: { name: { contains: sanitizedSearch, mode: "insensitive" } } },
         {
           description: {
@@ -259,6 +262,29 @@ export async function POST(request: NextRequest) {
 
     const sku = generateItemCode();
 
+    let processedImages: Array<{ url: string; originalUrl: string }> | null =
+      null;
+    if (input.imageUrls && input.imageUrls.length > 0) {
+      const useCloudinary = isCloudinaryConfigured();
+      processedImages = await Promise.all(
+        input.imageUrls.map(async (dataUrl: string) => {
+          try {
+            if (useCloudinary) {
+              const { url: cloudUrl } = await uploadProductImage(dataUrl);
+              return { url: cloudUrl, originalUrl: dataUrl.slice(0, 100) };
+            }
+            const wmUrl = await watermarkDataUrl(dataUrl);
+            return { url: wmUrl, originalUrl: dataUrl };
+          } catch {
+            if (useCloudinary) {
+              return { url: dataUrl.slice(0, 100), originalUrl: dataUrl.slice(0, 100) };
+            }
+            return { url: dataUrl, originalUrl: dataUrl };
+          }
+        }),
+      );
+    }
+
     const product = await prisma.product.create({
       data: {
         sku,
@@ -271,13 +297,16 @@ export async function POST(request: NextRequest) {
         salePriceCents: input.salePriceCents ?? null,
         currency: input.currency,
         status: "AI_PENDING",
-        images: input.imageUrls
+        images: processedImages
           ? {
-              create: input.imageUrls.map((url, idx) => ({
-                url,
-                sortOrder: idx,
-                isPrimary: idx === 0,
-              })),
+              create: processedImages.map(
+                (img: { url: string; originalUrl: string }, idx: number) => ({
+                  url: img.url,
+                  originalUrl: img.originalUrl,
+                  sortOrder: idx,
+                  isPrimary: idx === 0,
+                }),
+              ),
             }
           : undefined,
         variants: input.variants

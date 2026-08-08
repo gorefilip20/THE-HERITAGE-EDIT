@@ -20,9 +20,22 @@ export default function WarehouseDashboard() {
 
   useEffect(() => {
     fetch("/api/warehouse/metrics")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch");
+        return r.json();
+      })
       .then((d) => setMetrics(d))
-      .catch(() => {})
+      .catch(() => {
+        setMetrics({
+          totalItems: 0,
+          lowStockItems: 0,
+          pendingShipments: 0,
+          completedShipments: 0,
+          inventoryValue: 0,
+          stockAlerts: [],
+          pendingOrders: [],
+        });
+      })
       .finally(() => setLoading(false));
   }, []);
 

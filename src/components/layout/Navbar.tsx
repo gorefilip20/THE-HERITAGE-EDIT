@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, User, ShoppingBag, Menu, X, Heart, ChevronRight } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 import { cn, getImagePlaceholder } from "@/lib/utils";
+import { useLocale } from "@/context/LocaleContext";
+import HEMonogram from "@/components/brand/HEMonogram";
 
 /* ──────────────────────────────────────────────────────────
    MEGA-MENU DATA
@@ -231,7 +233,7 @@ const MEGA_MENU: MegaMenuCategory[] = [
         links: [
           { label: "Gift Guide", href: "/life?category=gifts" },
           { label: "Gift Cards", href: "/gift-cards" },
-          { label: "Under $100", href: "/life?category=gifts&maxPrice=10000" },
+          { label: "Under ₦100,000", href: "/life?category=gifts&maxPrice=10000" },
           { label: "Luxury Gifts", href: "/life?category=gifts&minPrice=50000" },
         ],
       },
@@ -289,6 +291,7 @@ export function Navbar() {
   const [mobileSubMenu, setMobileSubMenu] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const { openCart, itemCount } = useCartStore();
+  const { formatPrice, t } = useLocale();
   const count = itemCount();
   const megaTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -353,7 +356,7 @@ export function Navbar() {
         <div className="hidden lg:block border-b border-slate-border">
           <div className="luxury-container flex items-center justify-between h-8">
             <span className="text-[10px] font-sans font-medium tracking-[0.2em] uppercase text-neutral-400">
-              Complimentary shipping on orders over $500
+              {t("shipping.free")} {formatPrice(50_000_000)}
             </span>
             <div className="flex items-center gap-6">
               <Link
@@ -384,7 +387,8 @@ export function Navbar() {
               {isMobileMenuOpen ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
             </button>
 
-            <Link href="/">
+            <Link href="/" className="flex items-center gap-2.5">
+              <HEMonogram variant="dark" size={28} />
               <span className="text-[15px] font-serif font-semibold tracking-[0.12em] text-obsidian whitespace-nowrap select-none">
                 THE HERITAGE EDIT
               </span>
@@ -408,7 +412,7 @@ export function Navbar() {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    className="absolute top-0.5 right-0.5 w-[17px] h-[17px] flex items-center justify-center bg-heritage-green text-white text-[9px] font-sans font-bold rounded-full"
+                    className="absolute top-0.5 right-0.5 w-[17px] h-[17px] flex items-center justify-center bg-heritage-green text-white text-[9px] font-sans font-bold"
                   >
                     {count > 9 ? "9+" : count}
                   </motion.span>
@@ -453,7 +457,8 @@ export function Navbar() {
             </nav>
 
             {/* Center logo */}
-            <Link href="/" className="px-8 xl:px-12">
+            <Link href="/" className="px-8 xl:px-12 flex items-center gap-3">
+              <HEMonogram variant="dark" size={30} />
               <span className="text-[17px] font-serif font-semibold tracking-[0.12em] text-obsidian whitespace-nowrap select-none">
                 THE HERITAGE EDIT
               </span>
@@ -493,7 +498,20 @@ export function Navbar() {
                 ))}
               </nav>
 
-              <div className="flex items-center gap-4 ml-4 xl:ml-6 pl-4 xl:pl-6 border-l border-slate-border">
+              <Link
+                href="/journals"
+                className="px-3 xl:px-4 py-6 text-[11px] font-sans font-medium tracking-[0.14em] uppercase text-obsidian/80 hover:text-obsidian transition-colors duration-200"
+              >
+                Journals
+              </Link>
+              <Link
+                href="/about"
+                className="px-3 xl:px-4 py-6 text-[11px] font-sans font-medium tracking-[0.14em] uppercase text-obsidian/80 hover:text-obsidian transition-colors duration-200"
+              >
+                About
+              </Link>
+
+              <div className="flex items-center gap-4 ml-2 xl:ml-4 pl-4 xl:pl-6 border-l border-slate-border">
                 <button
                   onClick={() => setIsSearchOpen(true)}
                   className="p-2 text-obsidian/60 hover:text-obsidian transition-colors"
@@ -525,7 +543,7 @@ export function Navbar() {
                     <motion.span
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      className="absolute top-0.5 right-0.5 w-[17px] h-[17px] flex items-center justify-center bg-heritage-green text-white text-[9px] font-sans font-bold rounded-full"
+                      className="absolute top-0.5 right-0.5 w-[17px] h-[17px] flex items-center justify-center bg-heritage-green text-white text-[9px] font-sans font-bold"
                     >
                       {count > 9 ? "9+" : count}
                     </motion.span>
@@ -592,7 +610,7 @@ export function Navbar() {
                             className="object-cover transition-transform duration-700 ease-luxury group-hover:scale-105"
                           />
                         </div>
-                        <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-heritage-purple mb-1">
+                        <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-gold mb-1">
                           Editorial
                         </p>
                         <h4 className="text-sm font-serif text-obsidian group-hover:text-heritage-green transition-colors">
@@ -764,7 +782,7 @@ export function Navbar() {
               </form>
 
               <div className="mt-10 flex flex-wrap justify-center gap-2">
-                {["The Row", "Bottega Veneta", "Cashmere", "Silk", "Tailoring"].map((term) => (
+                {["Agbada", "Aso Oke", "Ankara", "Senator Wear", "Coral Beads"].map((term) => (
                   <button
                     key={term}
                     onClick={() => {

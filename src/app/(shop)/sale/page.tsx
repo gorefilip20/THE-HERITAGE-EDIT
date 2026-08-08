@@ -42,10 +42,7 @@ function SalePageContent() {
   return (
     <div className="bg-white min-h-screen">
       {/* Hero - Sale Banner */}
-      <section className="relative bg-gradient-to-r from-red-700 to-red-900 overflow-hidden py-12 md:py-20">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%22 y=%2250%22 font-size=%2280%22 fill=%22white%22 text-anchor=%22middle%22 dominant-baseline=%22middle%22>%25</text></svg>')] bg-repeat opacity-5"></div>
-        </div>
+      <section className="relative bg-gradient-to-br from-[#0D2C22] to-[#2E1A47] overflow-hidden py-16 md:py-24">
         <div className="relative luxury-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -53,13 +50,13 @@ function SalePageContent() {
             transition={{ duration: 0.8 }}
             className="max-w-2xl"
           >
-            <p className="text-[12px] font-sans font-semibold tracking-[0.3em] uppercase text-white/60 mb-4">
-              Limited Time Offer
+            <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-gold mb-4">
+              Private Sale
             </p>
             <h1 className="text-display-lg md:text-display-xl font-serif italic text-white mb-6 leading-tight">
               End of Season Sale
             </h1>
-            <p className="text-[15px] font-sans text-white/70 leading-relaxed mb-8 max-w-lg">
+            <p className="text-[15px] font-sans text-white/60 leading-relaxed mb-8 max-w-lg">
               Up to 70% off on selected heritage pieces. Luxury African fashion at exceptional prices.
             </p>
             <div className="flex flex-wrap gap-4">
@@ -67,8 +64,11 @@ function SalePageContent() {
                 <Link
                   key={tier.value}
                   href={`/sale?discount=${tier.value}`}
-                  className={`inline-flex items-center gap-2 px-6 h-12 ${tier.color} text-white text-[11px] font-sans font-semibold tracking-[0.15em] uppercase hover:shadow-lg transition-all duration-300`}
+                  className="inline-flex items-center gap-2 px-6 h-12 bg-heritage-green text-white text-[11px] font-sans font-semibold tracking-[0.15em] uppercase hover:bg-[#163829] transition-colors duration-300"
                 >
+                  <span className="inline-flex items-center justify-center w-5 h-5 bg-red-600 text-white text-[9px] font-bold mr-1">
+                    %
+                  </span>
                   {tier.label}
                   <ArrowRight size={12} />
                 </Link>
@@ -152,6 +152,7 @@ function SalePageContent() {
               <ProductCard
                 key={product.id}
                 slug={product.slug}
+                    productId={product.id}
                 name={product.name}
                 brandName={product.brand.name}
                 priceCents={product.basePriceCents}

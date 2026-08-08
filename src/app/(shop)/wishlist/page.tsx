@@ -61,6 +61,9 @@ export default function WishlistPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="mb-10">
+        <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-gold mb-3">
+          Saved Pieces
+        </p>
         <h1 className="text-display-sm font-serif text-[#0D2C22] mb-2">My Wishlist</h1>
         <p className="text-sm font-sans text-neutral-500">
           {items.length} {items.length === 1 ? "item" : "items"} saved
@@ -68,7 +71,7 @@ export default function WishlistPage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="bg-white rounded-xl border border-neutral-200 p-16 text-center">
+        <div className="bg-white border border-neutral-200 p-16 text-center">
           <Heart className="h-12 w-12 text-neutral-300 mx-auto mb-4" />
           <h2 className="text-lg font-serif text-neutral-800 mb-2">Your wishlist is empty</h2>
           <p className="text-sm text-neutral-500 mb-6 max-w-md mx-auto">
@@ -76,23 +79,24 @@ export default function WishlistPage() {
           </p>
           <Link
             href="/shop"
-            className="inline-flex px-8 py-3 bg-[#0D2C22] text-white text-xs font-semibold tracking-wider uppercase rounded-lg hover:shadow-lg hover:shadow-[#0D2C22]/20 transition-all"
+            className="inline-flex items-center h-12 px-8 bg-[#0D2C22] text-white text-[11px] font-semibold tracking-[0.15em] uppercase hover:bg-[#163829] transition-colors"
           >
             Explore Collection
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {items.map((product) => (
-            <div key={product.id} className="group bg-white rounded-xl border border-neutral-200 overflow-hidden hover:shadow-md transition-all">
+            <div key={product.id} className="group">
               {/* Image */}
-              <Link href={`/product/${product.slug}`} className="block relative aspect-[3/4] overflow-hidden">
+              <Link href={`/product/${product.slug}`} className="block relative aspect-[3/4] bg-[#f8f7f5] overflow-hidden mb-4">
                 {product.images[0] ? (
                   <Image
                     src={product.images[0].url}
                     alt={product.images[0].altText || product.name}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="object-cover group-hover:scale-[1.04] transition-transform duration-700"
                   />
                 ) : (
                   <div className="w-full h-full bg-neutral-100 flex items-center justify-center">
@@ -100,48 +104,47 @@ export default function WishlistPage() {
                   </div>
                 )}
                 {product.comparePriceCents && product.comparePriceCents > product.priceCents && (
-                  <div className="absolute top-3 left-3 px-2 py-0.5 bg-red-500 text-white text-[9px] font-bold tracking-wider uppercase rounded">
+                  <span className="absolute top-3 left-3 px-2.5 py-1 bg-red-600 text-white text-[10px] font-sans font-semibold tracking-wider uppercase">
                     Sale
-                  </div>
+                  </span>
                 )}
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    removeFromWishlist(product.id);
+                  }}
+                  className="absolute top-3 right-3 w-8 h-8 bg-white/90 backdrop-blur-sm flex items-center justify-center hover:bg-white transition-colors"
+                  aria-label="Remove from wishlist"
+                >
+                  <Heart size={14} fill="#ef4444" className="text-red-500" />
+                </button>
               </Link>
 
               {/* Info */}
-              <div className="p-4">
+              <div className="space-y-1.5">
                 {product.brand && (
-                  <p className="text-[10px] font-semibold tracking-[0.15em] uppercase text-neutral-400 mb-1">
+                  <p className="text-[10px] font-sans font-semibold tracking-[0.2em] uppercase text-neutral-500">
                     {product.brand.name}
                   </p>
                 )}
                 <Link href={`/product/${product.slug}`}>
-                  <h3 className="text-sm font-medium text-neutral-800 line-clamp-1 hover:text-[#0D2C22] transition-colors">
+                  <h3 className="text-[14px] font-sans text-obsidian leading-snug line-clamp-2 group-hover:text-heritage-green transition-colors duration-300">
                     {product.name}
                   </h3>
                 </Link>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className="text-sm font-semibold text-neutral-900">{formatPrice(product.priceCents)}</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[16px] font-serif text-obsidian">{formatPrice(product.priceCents)}</span>
                   {product.comparePriceCents && product.comparePriceCents > product.priceCents && (
-                    <span className="text-xs text-neutral-400 line-through">{formatPrice(product.comparePriceCents)}</span>
+                    <span className="text-[14px] font-sans text-neutral-400 line-through">{formatPrice(product.comparePriceCents)}</span>
                   )}
                 </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-neutral-100">
-                  <button
-                    onClick={() => removeFromWishlist(product.id)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-medium text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={12} />
-                    Remove
-                  </button>
-                  <Link
-                    href={`/product/${product.slug}`}
-                    className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 bg-[#0D2C22] text-white text-[10px] font-medium tracking-wider uppercase rounded-lg hover:bg-[#0D2C22]/90 transition-colors"
-                  >
-                    <ShoppingBag size={12} />
-                    View
-                  </Link>
-                </div>
+                <Link
+                  href={`/product/${product.slug}`}
+                  className="inline-flex items-center gap-1.5 mt-1 text-[11px] font-sans font-medium tracking-[0.1em] uppercase text-heritage-green hover:text-[#163829] transition-colors"
+                >
+                  <ShoppingBag size={12} />
+                  Move to Bag
+                </Link>
               </div>
             </div>
           ))}

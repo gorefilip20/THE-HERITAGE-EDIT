@@ -6,6 +6,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { ArrowLeft, Truck, Lock, AlertCircle } from "lucide-react";
 import { getImagePlaceholder, formatPrice } from "@/lib/utils";
+import { useCartStore } from "@/store/cart-store";
 
 interface CartItem {
   id: string;
@@ -26,78 +27,72 @@ interface ShippingOption {
 
 const SHIPPING_OPTIONS: ShippingOption[] = [
   {
-    id: "standard",
-    name: "Standard Shipping",
-    description: "Delivery within 5-7 business days",
-    price: 1500,
-    estimatedDays: 7,
+    id: "dhl-express",
+    name: "DHL Express Worldwide",
+    description: "Delivery within 2-4 business days",
+    price: 2500000,
+    estimatedDays: 4,
     trackingAvailable: true,
   },
   {
-    id: "express",
-    name: "Express Shipping",
-    description: "Delivery within 2-3 business days",
-    price: 3500,
-    estimatedDays: 3,
+    id: "standard-courier",
+    name: "Standard Courier",
+    description: "Delivery within 5-9 business days",
+    price: 800000,
+    estimatedDays: 9,
     trackingAvailable: true,
   },
   {
-    id: "overnight",
-    name: "Overnight Shipping",
-    description: "Next business day delivery",
-    price: 7500,
-    estimatedDays: 1,
+    id: "lagos-same-day",
+    name: "Lagos Same-Day",
+    description: "Same day delivery (Lagos only)",
+    price: 500000,
+    estimatedDays: 0,
     trackingAvailable: true,
   },
 ];
 
 const PAYMENT_METHODS = [
   { id: "paystack", name: "Paystack", icon: "💳", description: "Card, Bank Transfer, Mobile Money" },
-  { id: "flutterwave", name: "Flutterwave", icon: "🌊", description: "Multiple payment options" },
-  { id: "stripe", name: "Stripe", icon: "🎯", description: "International cards" },
+  { id: "flutterwave", name: "Flutterwave", icon: "🌊", description: "International cards & payments" },
 ];
 
 export default function EnhancedCheckout() {
   const [step, setStep] = useState<"shipping" | "payment" | "review">("shipping");
-  const [selectedShipping, setSelectedShipping] = useState("standard");
+  const [selectedShipping, setSelectedShipping] = useState("standard-courier");
   const [selectedPayment, setSelectedPayment] = useState("paystack");
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
 
-  // Mock cart data
-  const cartItems: CartItem[] = [
-    {
-      id: "1",
-      name: "Ankara Dress",
-      price: 15000,
-      quantity: 1,
-      image: getImagePlaceholder(200, 250),
-    },
-    {
-      id: "2",
-      name: "Agbada Robe",
-      price: 25000,
-      quantity: 1,
-      image: getImagePlaceholder(200, 250),
-    },
-  ];
+  const storeItems = useCartStore((s) => s.items);
+  const subtotalCents = useCartStore((s) => s.subtotalCents);
+
+  const cartItems: CartItem[] = storeItems.map((item) => ({
+    id: `${item.productId}-${item.variantId}`,
+    name: item.name,
+    price: item.priceCents * item.quantity,
+    quantity: item.quantity,
+    image: item.imageUrl || getImagePlaceholder(200, 250),
+  }));
 
   const shippingCost = SHIPPING_OPTIONS.find((s) => s.id === selectedShipping)?.price || 0;
-  const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = Math.round(subtotal * 0.1);
+  const subtotal = subtotalCents();
+  const tax = Math.round(subtotal * 0.075);
   const total = subtotal + tax + shippingCost;
 
   const handlePayment = async () => {
+    if (!email) return;
     setLoading(true);
     try {
       if (selectedPayment === "paystack") {
-        // Initiate Paystack payment
         const response = await fetch("/api/checkout/paystack", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            amount: total,
-            email: "customer@example.com",
-            reference: `order_${Date.now()}`,
+            items: storeItems.map((i) => ({ productId: i.productId, variantId: i.variantId, quantity: i.quantity })),
+            email,
+            shippingAddress: { firstName: "", lastName: "", line1: "", city: "", postalCode: "", country: "NG", phone },
           }),
         });
         const data = await response.json();
@@ -105,14 +100,13 @@ export default function EnhancedCheckout() {
           window.location.href = data.authorizationUrl;
         }
       } else if (selectedPayment === "flutterwave") {
-        // Initiate Flutterwave payment
         const response = await fetch("/api/checkout/flutterwave", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             amount: total,
-            email: "customer@example.com",
-            phone: "+234XXXXXXXXXX",
+            email,
+            phone: phone || undefined,
           }),
         });
         const data = await response.json();
@@ -183,7 +177,7 @@ export default function EnhancedCheckout() {
                   {SHIPPING_OPTIONS.map((option) => (
                     <label
                       key={option.id}
-                      className="flex items-start gap-4 p-4 border border-slate-border rounded-lg cursor-pointer hover:border-obsidian transition-colors"
+                      className="flex items-start gap-4 p-4 border border-slate-border cursor-pointer hover:border-obsidian transition-colors"
                     >
                       <input
                         type="radio"
@@ -234,7 +228,7 @@ export default function EnhancedCheckout() {
                   {PAYMENT_METHODS.map((method) => (
                     <label
                       key={method.id}
-                      className="flex items-start gap-4 p-4 border border-slate-border rounded-lg cursor-pointer hover:border-obsidian transition-colors"
+                      className="flex items-start gap-4 p-4 border border-slate-border cursor-pointer hover:border-obsidian transition-colors"
                     >
                       <input
                         type="radio"
@@ -259,7 +253,7 @@ export default function EnhancedCheckout() {
                 </div>
 
                 {/* Security Notice */}
-                <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-lg mb-8">
+                <div className="flex items-start gap-3 p-4 bg-green-50 border border-green-200 mb-8">
                   <Lock size={16} className="text-green-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-[12px] font-sans font-medium text-green-900">
@@ -298,7 +292,7 @@ export default function EnhancedCheckout() {
                 <h2 className="text-lg font-serif text-obsidian mb-6">Review Your Order</h2>
 
                 {/* Order Summary */}
-                <div className="bg-neutral-50 p-6 rounded-lg mb-8">
+                <div className="bg-neutral-50 p-6 mb-8">
                   <h3 className="font-medium text-obsidian mb-4">Order Summary</h3>
                   <div className="space-y-3 mb-4 pb-4 border-b border-slate-border">
                     {cartItems.map((item) => (
@@ -351,7 +345,7 @@ export default function EnhancedCheckout() {
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <div className="sticky top-6 bg-neutral-50 p-6 rounded-lg">
+            <div className="sticky top-6 bg-neutral-50 p-6">
               <h3 className="font-serif text-lg text-obsidian mb-6">Order Summary</h3>
 
               <div className="space-y-4 mb-6 pb-6 border-b border-slate-border">

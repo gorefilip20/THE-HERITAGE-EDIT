@@ -168,7 +168,7 @@ function AccountInner() {
     <div className="max-w-[1200px] mx-auto px-5 sm:px-8 lg:px-16 pt-10 pb-24">
       {/* Header */}
       <div className="mb-10">
-        <p className="text-[10px] font-sans font-medium tracking-[0.3em] uppercase text-heritage-green/50 mb-2">
+        <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-gold mb-2">
           My Account
         </p>
         <h1 className="font-serif italic font-medium text-[clamp(28px,3vw,38px)] tracking-tight text-obsidian">
@@ -223,7 +223,9 @@ function TabButton({ label, active, onClick }: { label: Tab; active: boolean; on
   return (
     <button
       onClick={onClick}
-      className="flex items-center justify-between py-4 px-1 border-b border-[#EAEAEA] w-full text-left group"
+      className={`flex items-center justify-between py-4 px-3 border-b border-[#EAEAEA] w-full text-left group ${
+        active ? "border-l-2 border-l-heritage-green bg-[#F4F8F6]" : ""
+      }`}
     >
       <span
         className={`text-[12px] font-sans tracking-[0.12em] uppercase transition-colors ${
@@ -233,7 +235,7 @@ function TabButton({ label, active, onClick }: { label: Tab; active: boolean; on
         {label}
       </span>
       {label === "Wishlist" && wishCount !== null && wishCount > 0 && (
-        <span className="min-w-[18px] h-[18px] px-1.5 flex items-center justify-center bg-heritage-green text-white text-[10px] font-semibold rounded-full">
+        <span className="min-w-[18px] h-[18px] px-1.5 flex items-center justify-center bg-heritage-green text-white text-[10px] font-semibold">
           {wishCount}
         </span>
       )}

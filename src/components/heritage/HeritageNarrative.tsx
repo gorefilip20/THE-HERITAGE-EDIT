@@ -25,7 +25,7 @@ export function HeritageNarrativeComponent({ heritage }: HeritageNarrativeProps)
     <section className="border-t border-slate-border">
       {/* Section header */}
       <div className="pt-12 pb-8 text-center">
-        <p className="text-[10px] font-sans font-medium tracking-[0.3em] uppercase text-heritage-purple mb-3">
+        <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-gold mb-3">
           AI-Curated
         </p>
         <h2 className="text-display-sm md:text-display-md font-serif italic text-obsidian">

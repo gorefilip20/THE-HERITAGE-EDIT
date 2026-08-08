@@ -19,9 +19,21 @@ export default function SupportDashboard() {
 
   useEffect(() => {
     fetch("/api/support/metrics")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch");
+        return r.json();
+      })
       .then((d) => setMetrics(d))
-      .catch(() => {})
+      .catch(() => {
+        setMetrics({
+          openTickets: 0,
+          resolvedToday: 0,
+          avgResponseTime: 0,
+          customerSatisfaction: 0,
+          recentTickets: [],
+          topIssues: [],
+        });
+      })
       .finally(() => setLoading(false));
   }, []);
 

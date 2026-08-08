@@ -24,14 +24,14 @@ import type { Product, PaginatedResponse } from "@/types";
    ────────────────────────────────────────────────────────── */
 
 const PRICE_RANGES = [
-  { label: "Under $500", min: 0, max: 500 },
-  { label: "$500 – $1,000", min: 500, max: 1000 },
-  { label: "$1,000 – $2,500", min: 1000, max: 2500 },
-  { label: "$2,500 – $5,000", min: 2500, max: 5000 },
-  { label: "$5,000+", min: 5000, max: 0 },
+  { label: "Under ₦500,000", min: 0, max: 50000000 },
+  { label: "₦500K – ₦1M", min: 50000000, max: 100000000 },
+  { label: "₦1M – ₦2M", min: 100000000, max: 200000000 },
+  { label: "₦2M – ₦4M", min: 200000000, max: 400000000 },
+  { label: "₦4M+", min: 400000000, max: 0 },
 ];
 
-const SIZES = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "ONE SIZE"];
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL", "MTM", "ONE"];
 
 const SORT_OPTIONS = [
   { value: "newest", label: "New Arrivals" },
@@ -597,6 +597,24 @@ function ShopProductCard({
   const [isHovered, setIsHovered] = useState(false);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
+  const toggleWishlist = async () => {
+    const next = !isWishlisted;
+    setIsWishlisted(next);
+    try {
+      if (next) {
+        await fetch("/api/wishlist", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ productId: product.id }),
+        });
+      } else {
+        await fetch(`/api/wishlist?productId=${product.id}`, { method: "DELETE" });
+      }
+    } catch {
+      setIsWishlisted(!next);
+    }
+  };
+
   const primaryImage = product.images.find((i) => i.isPrimary) ?? product.images[0];
   const hoverImage = product.images.find((i) => !i.isPrimary && i.sortOrder === 1);
   const displayImage =
@@ -641,7 +659,7 @@ function ShopProductCard({
         <button
           onClick={(e) => {
             e.preventDefault();
-            setIsWishlisted(!isWishlisted);
+            toggleWishlist();
           }}
           className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-white/85 backdrop-blur-sm rounded-full opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-white hover:scale-110"
           aria-label="Add to wishlist"

@@ -5,8 +5,8 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(cents: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
+export function formatPrice(cents: number, currency = "NGN"): string {
+  return new Intl.NumberFormat("en-NG", {
     style: "currency",
     currency,
     minimumFractionDigits: 0,
@@ -14,10 +14,10 @@ export function formatPrice(cents: number, currency = "USD"): string {
   }).format(cents / 100);
 }
 
-export function formatPriceCompact(cents: number, currency = "USD"): string {
+export function formatPriceCompact(cents: number, currency = "NGN"): string {
   const value = cents / 100;
   if (value >= 1000) {
-    return new Intl.NumberFormat("en-US", {
+    return new Intl.NumberFormat("en-NG", {
       style: "currency",
       currency,
       notation: "compact",
@@ -42,13 +42,12 @@ export function generateOrderNumber(): string {
 }
 
 export function generateSKU(_brand: string, _category: string): string {
-  const seq = Date.now().toString().slice(-8).padStart(8, "0");
-  return `P${seq}`;
+  return generateItemCode();
 }
 
 export function generateItemCode(): string {
-  const seq = Date.now().toString().slice(-8).padStart(8, "0");
-  return `P00${seq}`;
+  const random = Math.floor(100000 + Math.random() * 900000);
+  return `HERIT${random}`;
 }
 
 export function getImagePlaceholder(width: number, height: number): string {
