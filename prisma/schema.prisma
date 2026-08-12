@@ -276,3 +276,27 @@ model OrderItem {
 
   @@map("order_items")
 }
+
+model ContactSubmission {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String?
+  message   String
+  status    String   @default("NEW")
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([status])
+  @@map("contact_submissions")
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String?  @default("homepage")
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@map("newsletter_subscribers")
+}

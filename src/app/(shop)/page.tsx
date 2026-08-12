@@ -594,25 +594,74 @@ export default function HomePage() {
               Early access to new arrivals, editorial features, and exclusive
               invitations to private sales events.
             </p>
-            <form
-              onSubmit={(e) => e.preventDefault()}
-              className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto"
-            >
-              <input
-                type="email"
-                placeholder="your@email.com"
-                className="w-full sm:flex-1 h-12 px-5 bg-white/10 border border-white/10 text-sm font-sans text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 transition-colors"
-              />
-              <button
-                type="submit"
-                className="w-full sm:w-auto h-12 px-8 bg-white text-heritage-purple text-[11px] font-sans font-semibold tracking-[0.2em] uppercase hover:bg-ivory transition-colors"
-              >
-                Subscribe
-              </button>
-            </form>
+            <NewsletterSignup />
           </motion.div>
         </div>
       </section>
     </div>
+  );
+}
+
+/* ──────────────────────────────────────────────────────────
+   Newsletter signup — persists to /api/newsletter.
+   ────────────────────────────────────────────────────────── */
+function NewsletterSignup() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [message, setMessage] = useState<string | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim()) return;
+    setStatus("loading");
+    setMessage(null);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), source: "homepage" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Failed to subscribe");
+      }
+      setStatus("done");
+      setMessage("Welcome to the inner circle — you're on the list.");
+      setEmail("");
+    } catch (err) {
+      setStatus("error");
+      setMessage(err instanceof Error ? err.message : "Something went wrong");
+    }
+  }
+
+  return (
+    <>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto"
+      >
+        <input
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="your@email.com"
+          disabled={status === "loading" || status === "done"}
+          className="w-full sm:flex-1 h-12 px-5 bg-white/10 border border-white/10 text-sm font-sans text-white placeholder:text-white/30 focus:outline-none focus:border-white/30 transition-colors disabled:opacity-60"
+        />
+        <button
+          type="submit"
+          disabled={status === "loading" || status === "done"}
+          className="w-full sm:w-auto h-12 px-8 bg-white text-heritage-purple text-[11px] font-sans font-semibold tracking-[0.2em] uppercase hover:bg-ivory transition-colors disabled:opacity-70"
+        >
+          {status === "loading" ? "Subscribing…" : "Subscribe"}
+        </button>
+      </form>
+      {message && (
+        <p className={`mt-4 text-xs font-sans ${status === "error" ? "text-rose-300" : "text-white/70"}`}>
+          {message}
+        </p>
+      )}
+    </>
   );
 }

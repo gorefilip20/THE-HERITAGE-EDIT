@@ -13,13 +13,29 @@ export default function ContactPage() {
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    // Simulate submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSubmitted(true);
-    setLoading(false);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Failed to send message");
+      }
+      setSubmitted(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -103,6 +119,11 @@ export default function ContactPage() {
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-neutral-200 p-6 md:p-8">
+                  {submitError && (
+                    <div className="mb-5 p-3 bg-[#FBEAEA] border border-[#f3d3d3] text-[13px] text-[#b91c1c]">
+                      {submitError}
+                    </div>
+                  )}
                   <h3 className="text-lg font-serif text-neutral-800 mb-6">Send us a Message</h3>
                   <div className="space-y-5">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

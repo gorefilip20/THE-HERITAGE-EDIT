@@ -168,6 +168,13 @@ export function CheckoutForm() {
       }
 
       checkout.setOrderNumber(data.orderNumber);
+      /* Snapshot for the post-payment success page (survives the redirect). */
+      try {
+        localStorage.setItem(
+          "heritage-checkout-success",
+          JSON.stringify({ email, orderNumber: data.orderNumber, clearedAt: Date.now() }),
+        );
+      } catch { /* storage unavailable — the order query param still carries the reference */ }
       clearCart();
 
       window.location.href = data.authorizationUrl;
@@ -204,6 +211,13 @@ export function CheckoutForm() {
       }
 
       checkout.setOrderNumber(data.orderNumber);
+      /* Snapshot for the post-payment success page (survives the redirect). */
+      try {
+        localStorage.setItem(
+          "heritage-checkout-success",
+          JSON.stringify({ email, orderNumber: data.orderNumber, clearedAt: Date.now() }),
+        );
+      } catch { /* storage unavailable — the order query param still carries the reference */ }
       clearCart();
 
       if (data.sessionUrl) {
