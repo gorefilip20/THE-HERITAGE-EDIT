@@ -19,7 +19,7 @@ export default function ProductsPage() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/products?pageSize=50")
+    fetch("/api/products?pageSize=50", { cache: "no-store" })
       .then((res) => res.json())
       .then((data) => setProducts(data.data ?? []))
       .catch(() => {})

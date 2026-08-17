@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { safeRedisGet, safeRedisSet } from "@/lib/redis";
+import { safeRedisDel, safeRedisGet, safeRedisKeys, safeRedisSet } from "@/lib/redis";
 import { getCurrentUser } from "@/lib/auth";
 
 const PDP_CACHE_PREFIX = "pdp:";
+const PRODUCT_CACHE_PREFIX = "products:";
 const PDP_CACHE_TTL = 60 * 3; // 3 minutes
 
 export async function GET(
@@ -85,7 +86,7 @@ export async function PATCH(
 
     const existing = await prisma.product.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, slug: true },
     });
 
     if (!existing) {
@@ -146,6 +147,13 @@ export async function PATCH(
         },
       });
     });
+
+    const listCacheKeys = await safeRedisKeys(`${PRODUCT_CACHE_PREFIX}*`);
+    await safeRedisDel(
+      ...listCacheKeys,
+      `${PDP_CACHE_PREFIX}${id}`,
+      `${PDP_CACHE_PREFIX}${existing.slug}`,
+    );
 
     return NextResponse.json(product);
   } catch (err) {
