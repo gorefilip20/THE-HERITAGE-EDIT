@@ -100,8 +100,9 @@ export default function EditProductPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error ?? "Failed to save product");
       setProduct(data);
-      setNotice("Product saved successfully.");
       setImageUrls(data.images.map((image: Product["images"][number]) => image.url));
+      setNotice("Product saved successfully. Returning to products…");
+      window.setTimeout(() => router.replace("/admin/products"), 800);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save product");
     } finally {
@@ -156,7 +157,7 @@ export default function EditProductPage() {
         </section>
         <div className="flex gap-3">
           <button type="submit" disabled={isSaving || !canSave} className="luxury-button-primary inline-flex items-center gap-2 disabled:cursor-not-allowed disabled:opacity-50">{isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} {isSaving ? "Saving…" : "Save changes"}</button>
-          <button type="button" onClick={() => router.push("/admin/products")} className="border border-slate-border px-5 py-3 text-xs uppercase tracking-wider text-neutral-600 hover:bg-ivory">Cancel</button>
+          <button type="button" onClick={() => router.push("/admin/products")} className="border border-slate-border px-5 py-3 text-xs uppercase tracking-wider text-neutral-600 hover:bg-ivory">Back to products</button>
         </div>
       </form>
     </div>
