@@ -103,16 +103,48 @@ export async function PATCH(
     if (body.status !== undefined) updateData.status = body.status;
     if (body.isFeatured !== undefined) updateData.isFeatured = body.isFeatured;
 
-    const product = await prisma.product.update({
-      where: { id },
-      data: updateData,
-      include: {
-        brand: true,
-        category: true,
-        images: { orderBy: { sortOrder: "asc" } },
-        variants: { orderBy: { size: "asc" } },
-        heritage: true,
-      },
+    if (body.imageUrls !== undefined) {
+      if (!Array.isArray(body.imageUrls) || body.imageUrls.length > 8) {
+        return NextResponse.json(
+          { error: "imageUrls must be an array with at most 8 images" },
+          { status: 400 },
+        );
+      }
+      const invalidImage = body.imageUrls.some(
+        (url: unknown) => typeof url !== "string" || url.length === 0,
+      );
+      if (invalidImage) {
+        return NextResponse.json(
+          { error: "Each image URL must be a non-empty string" },
+          { status: 400 },
+        );
+      }
+    }
+
+    const product = await prisma.$transaction(async (tx) => {
+      if (body.imageUrls !== undefined) {
+        await tx.productImage.deleteMany({ where: { productId: id } });
+        await tx.productImage.createMany({
+          data: body.imageUrls.map((url: string, index: number) => ({
+            productId: id,
+            url,
+            sortOrder: index,
+            isPrimary: index === 0,
+          })),
+        });
+      }
+
+      return tx.product.update({
+        where: { id },
+        data: updateData,
+        include: {
+          brand: true,
+          category: true,
+          images: { orderBy: { sortOrder: "asc" } },
+          variants: { orderBy: { size: "asc" } },
+          heritage: true,
+        },
+      });
     });
 
     return NextResponse.json(product);
