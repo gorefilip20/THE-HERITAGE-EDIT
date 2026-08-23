@@ -17,15 +17,23 @@ export default function AdminSetupPage() {
         method: "POST",
         headers: { "x-admin-setup-token": token },
       });
-      const body = await response.json().catch(() => ({}));
+      const raw = await response.text();
+      let body: { error?: string; success?: boolean; message?: string } = {};
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        body = {};
+      }
       if (!response.ok) {
-        setStatus(body.error ?? "Activation failed. Check the token and deployment.");
+        setStatus(body.error ?? `Activation failed (HTTP ${response.status}). Check the deployment runtime logs.`);
         return;
       }
-      setStatus("Admin account activated. Remove all ADMIN_SETUP_* variables from Hostinger and redeploy now.");
+      setStatus(body.message ?? "Admin account activated. Remove all ADMIN_SETUP_* variables from Hostinger and redeploy now.");
+      
       setToken("");
-    } catch {
-      setStatus("The activation request could not be completed. Check that the latest deployment is live.");
+    } catch (error) {
+      console.error(error);
+      setStatus("The activation request could not be completed. Check that the latest deployment is live and that the browser is online.");
     } finally {
       setBusy(false);
     }
