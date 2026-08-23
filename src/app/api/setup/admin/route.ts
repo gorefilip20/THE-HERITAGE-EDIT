@@ -8,6 +8,7 @@ export async function POST(request: NextRequest) {
   const email = process.env.ADMIN_SETUP_EMAIL?.trim().toLowerCase();
   const password = process.env.ADMIN_SETUP_PASSWORD;
   const providedToken = request.headers.get("x-admin-setup-token");
+  const allowReset = process.env.ADMIN_SETUP_ALLOW_RESET === "true";
 
   if (!setupToken || !email || !password || providedToken !== setupToken) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const existing = await prisma.user.findUnique({ where: { email } });
-    if (existing?.role === UserRole.SUPER_ADMIN) {
+    if (existing?.role === UserRole.SUPER_ADMIN && !allowReset) {
       return NextResponse.json(
         { error: "A SUPER_ADMIN already exists for this email. Remove setup variables." },
         { status: 409 },
@@ -51,7 +52,9 @@ export async function POST(request: NextRequest) {
       success: true,
       email: user.email,
       role: user.role,
-      message: "Admin account provisioned. Remove ADMIN_SETUP_* variables now.",
+      message: allowReset
+        ? "Admin password reset. Remove all ADMIN_SETUP_* variables now."
+        : "Admin account provisioned. Remove ADMIN_SETUP_* variables now.",
     });
   } catch (error) {
     console.error("Admin setup error:", error);
