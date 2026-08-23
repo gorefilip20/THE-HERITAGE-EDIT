@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
     const { searchParams } = request.nextUrl;
 
     const page = Math.max(1, parseInt(searchParams.get("page") ?? "1"));

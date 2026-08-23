@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/auth";
 
 export async function GET(request: NextRequest) {
   try {
+    await requireAdmin();
     const searchParams = request.nextUrl.searchParams;
     const period = searchParams.get("period") || "30days";
 

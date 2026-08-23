@@ -1,11 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { requireAdmin } from "@/lib/auth";
 
 export async function GET() {
   try {
+    await requireAdmin();
     const [
       orderAggregates,
       totalOrders,
+      registeredUserCount,
       stockOutCount,
       pendingAiCount,
       topProducts,
@@ -15,6 +18,7 @@ export async function GET() {
         _sum: { totalCents: true },
       }),
       prisma.order.count({ where: { status: { not: "CANCELLED" } } }),
+      prisma.user.count(),
       prisma.productVariant.count({ where: { stockCount: 0 } }),
       prisma.product.count({
         where: { status: { in: ["AI_PENDING", "AI_REVIEW"] } },
@@ -42,8 +46,10 @@ export async function GET() {
     return NextResponse.json({
       totalRevenueCents,
       orderCount: totalOrders,
+      registeredUserCount,
       averageOrderValueCents,
-      conversionRate: 3.2,
+      // Visitor tracking is not persisted yet, so do not report a fabricated rate.
+      conversionRate: 0,
       stockOutAlerts: stockOutCount,
       pendingAiReview: pendingAiCount,
       topProducts: topProducts.map((tp) => ({

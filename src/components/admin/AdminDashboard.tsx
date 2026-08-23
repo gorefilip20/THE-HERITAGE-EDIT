@@ -8,6 +8,7 @@ import {
   AlertTriangle,
   Sparkles,
   BarChart3,
+  Users,
 } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import type { AdminMetrics } from "@/types";
@@ -103,6 +104,12 @@ export function AdminDashboard() {
           value={(metrics?.orderCount || 0).toLocaleString()}
           icon={ShoppingCart}
           accent="green"
+        />
+        <MetricCard
+          label="Registered Users"
+          value={(metrics?.registeredUserCount || 0).toLocaleString()}
+          icon={Users}
+          accent="amber"
         />
         <MetricCard
           label="Average Order Value"

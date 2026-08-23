@@ -119,6 +119,7 @@ export interface ShippingAddress {
 export interface AdminMetrics {
   totalRevenueCents: number;
   orderCount: number;
+  registeredUserCount: number;
   averageOrderValueCents: number;
   conversionRate: number;
   stockOutAlerts: number;
