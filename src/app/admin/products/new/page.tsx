@@ -522,12 +522,12 @@ export default function NewProductPage() {
               {isSubmitting ? (
                 <>
                   <Loader2 size={16} className="animate-spin" />
-                  <span>Creating Product &amp; Generating Heritage...</span>
+                  <span>Saving product to storefront...</span>
                 </>
               ) : (
                 <>
                   <Sparkles size={16} />
-                  <span>Draft Product &amp; Generate Heritage</span>
+                  <span>Create &amp; Publish Product</span>
                 </>
               )}
             </button>
@@ -657,7 +657,9 @@ export default function NewProductPage() {
                         }`}
                       />
                       <span className="text-[10px] font-sans font-medium tracking-wider uppercase text-neutral-400">
-                        {heritage.isApproved ? "Live" : "Awaiting Review"}
+                        {displayProduct?.status === "PUBLISHED" || heritage.isApproved
+                          ? "Live on storefront"
+                          : "Awaiting Review"}
                       </span>
                     </div>
                   </div>
@@ -867,7 +869,7 @@ export default function NewProductPage() {
                   </AnimatePresence>
 
                   {/* Publish action bar */}
-                  {!heritage.isApproved && (
+                  {displayProduct?.status !== "PUBLISHED" && !heritage.isApproved && (
                     <div className="flex items-center gap-3 pt-4 border-t border-neutral-100">
                       <button
                         onClick={handleApproveAndPublish}
