@@ -71,73 +71,82 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           HERO — FULL-BLEED CINEMATIC
          ═══════════════════════════════════════════ */}
-      <section className="relative h-screen min-h-[700px] max-h-[1100px] bg-obsidian overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src={getImagePlaceholder(1920, 1080)}
-            alt="Autumn/Winter 2026 Campaign"
-            fill
-            className="object-cover opacity-50"
-            priority
-          />
+      <section className="relative overflow-hidden bg-[#f4eadc] text-obsidian">
+        <div className="absolute inset-0 pointer-events-none opacity-70">
+          <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-[#e9b8a6]/50 blur-3xl" />
+          <div className="absolute right-0 top-0 h-96 w-96 rounded-full bg-[#c9d8c1]/70 blur-3xl" />
+          <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-[#d9c4e8]/50 blur-3xl" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-t from-obsidian/80 via-obsidian/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-obsidian/40 to-transparent" />
 
-        <div className="relative luxury-container h-full flex flex-col justify-end pb-20 md:pb-28">
+        <div className="luxury-container relative grid min-h-[calc(100svh-88px)] items-center gap-10 py-12 md:grid-cols-[0.92fr_1.08fr] md:gap-16 md:py-20 lg:min-h-[760px]">
           <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1, delay: 0.3, ease }}
-            className="max-w-2xl"
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, ease }}
+            className="relative z-10 max-w-xl"
           >
-            <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-white/40 mb-5">
-              The Finest Edit in African Fashion
-            </p>
-            <h1 className="text-display-lg md:text-display-xl font-serif italic text-white mb-6 leading-[1.05]">
-              Wear Your
-              <br />
-              Heritage
+            <div className="mb-7 flex items-center gap-3">
+              <span className="h-px w-10 bg-heritage-green" />
+              <p className="text-[10px] font-sans font-semibold tracking-[0.34em] uppercase text-heritage-green">
+                The finest edit in African fashion
+              </p>
+            </div>
+            <h1 className="max-w-[11ch] text-[clamp(4rem,13vw,8.5rem)] font-serif font-medium leading-[0.84] tracking-[-0.06em] text-obsidian">
+              Wear your <span className="text-heritage-purple italic">heritage.</span>
             </h1>
-            <p className="text-[15px] font-sans text-white/50 leading-[1.8] mb-10 max-w-lg">
-              Discover Africa&apos;s finest designers and textiles — from hand-woven
-              Aso Oke to bold Ankara prints. Luxury fashion rooted in centuries
-              of cultural artistry, delivered worldwide.
+            <p className="mt-8 max-w-md text-[15px] font-sans leading-[1.75] text-obsidian/65 md:text-[17px]">
+              Curated fashion, fearless design, and hand-finished pieces from Africa&apos;s most compelling designers — delivered to wherever you are.
             </p>
-            <div className="flex items-center gap-6">
+            <div className="mt-9 flex flex-wrap items-center gap-3">
               <Link
                 href="/shop"
-                className="inline-flex items-center gap-3 h-12 px-8 bg-white text-obsidian text-[11px] font-sans font-semibold tracking-[0.2em] uppercase hover:bg-ivory transition-colors duration-300"
+                className="luxury-button-primary group bg-heritage-green px-7 shadow-[0_14px_30px_rgba(26,58,42,0.18)] hover:bg-heritage-green-600"
               >
-                Shop the Collection
-                <ArrowRight size={14} />
+                Shop the edit
+                <ArrowRight size={15} className="transition-transform duration-300 group-hover:translate-x-1" />
               </Link>
-              <button className="inline-flex items-center gap-3 text-[11px] font-sans font-medium tracking-[0.15em] uppercase text-white/50 hover:text-white transition-colors duration-300">
-                <span className="w-10 h-10 border border-white/20 flex items-center justify-center">
-                  <Play size={12} fill="currentColor" />
-                </span>
-                Watch Film
-              </button>
+              <Link
+                href="/about"
+                className="inline-flex h-12 items-center gap-2 border-b border-obsidian/25 px-3 text-[11px] font-sans font-semibold tracking-[0.18em] uppercase text-obsidian transition-colors hover:border-heritage-purple hover:text-heritage-purple"
+              >
+                Our story
+                <ChevronRight size={14} />
+              </Link>
+            </div>
+            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-[10px] font-sans font-medium tracking-[0.14em] uppercase text-obsidian/45">
+              <span>Worldwide delivery</span>
+              <span>Secure checkout</span>
+              <span>Authentic craft</span>
             </div>
           </motion.div>
-        </div>
 
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2"
-        >
-          <span className="text-[9px] font-sans tracking-[0.3em] uppercase text-white/20">
-            Scroll
-          </span>
           <motion.div
-            animate={{ y: [0, 6, 0] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
-            className="w-px h-8 bg-gradient-to-b from-white/30 to-transparent"
-          />
-        </motion.div>
+            initial={{ opacity: 0, scale: 0.96, rotate: 1 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            transition={{ duration: 1, delay: 0.12, ease }}
+            className="relative mx-auto w-full max-w-[620px]"
+          >
+            <div className="relative aspect-[0.82] overflow-hidden rounded-[2px] bg-heritage-green shadow-[0_28px_80px_rgba(46,26,71,0.2)]">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgba(244,234,220,0.92)_0_11%,transparent_11.5%),radial-gradient(circle_at_74%_70%,rgba(213,164,177,0.8)_0_16%,transparent_16.5%),linear-gradient(132deg,#1a3a2a_0%,#2e1a47_52%,#b7635f_100%)]" />
+              <div className="absolute -right-16 top-10 h-[72%] w-[58%] rotate-[18deg] rounded-[48%_52%_42%_58%] border-[26px] border-[#e9b8a6]/80 opacity-90" />
+              <div className="absolute -left-16 bottom-[-12%] h-[70%] w-[70%] -rotate-[28deg] rounded-[45%] border-[32px] border-[#d9c4e8]/70" />
+              <div className="absolute inset-x-7 top-7 bottom-7 border border-white/30" />
+              <div className="absolute left-8 top-8 text-[9px] font-sans font-semibold tracking-[0.3em] uppercase text-white/75">T H E  E D I T</div>
+              <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between text-white">
+                <div>
+                  <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-white/60">New season / 01</p>
+                  <p className="mt-2 max-w-[9ch] text-4xl font-serif italic leading-[0.9] md:text-6xl">Crafted to be remembered.</p>
+                </div>
+                <span className="mb-1 flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-sm"><ArrowRight size={16} /></span>
+              </div>
+            </div>
+            <div className="absolute -bottom-5 -left-3 rounded-sm bg-white px-4 py-3 shadow-xl md:-left-8">
+              <p className="text-[9px] font-sans font-semibold tracking-[0.2em] uppercase text-heritage-purple">Curated globally</p>
+              <p className="mt-1 font-serif text-lg text-obsidian">Rooted in Africa</p>
+            </div>
+            <div className="absolute -right-2 top-8 hidden rounded-full bg-heritage-purple px-4 py-2 text-[9px] font-sans font-semibold tracking-[0.2em] uppercase text-white shadow-lg md:block md:-right-7">Limited pieces</div>
+          </motion.div>
+        </div>
       </section>
 
       {/* ═══════════════════════════════════════════
