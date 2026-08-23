@@ -3,7 +3,6 @@ import { prisma } from "@/lib/db";
 import { safeRedisGet, safeRedisSet, safeRedisKeys, safeRedisDel } from "@/lib/redis";
 import { createProductSchema } from "@/lib/validators";
 import { slugify, generateItemCode } from "@/lib/utils";
-import { generateHeritageNarrative } from "@/lib/heritage-ai";
 import { getCurrentUser } from "@/lib/auth";
 
 const PRODUCT_CACHE_PREFIX = "products:";
@@ -270,7 +269,7 @@ export async function POST(request: NextRequest) {
         basePriceCents: input.basePriceCents,
         salePriceCents: input.salePriceCents ?? null,
         currency: input.currency,
-        status: "AI_PENDING",
+        status: input.publishImmediately ? "PUBLISHED" : "DRAFT",
         images: input.imageUrls
           ? {
               create: input.imageUrls.map((url, idx) => ({
@@ -304,47 +303,10 @@ export async function POST(request: NextRequest) {
     const keys = await safeRedisKeys(`${PRODUCT_CACHE_PREFIX}*`);
     if (keys.length > 0) await safeRedisDel(...keys);
 
-    let heritage = null;
-    let finalStatus: string = product.status;
-    try {
-      const { data, model } = await generateHeritageNarrative(
-        product.name,
-        brand.name,
-        category.name,
-      );
-
-      heritage = await prisma.heritageNarrative.create({
-        data: {
-          productId: product.id,
-          historyAndHeritage: data.history_and_heritage,
-          whenToWear: data.when_to_wear,
-          rightOccasion: data.right_occasion,
-          styleRecommendations: data.style_recommendations,
-          aiModelUsed: model,
-        },
-      });
-
-      const targetStatus = input.publishImmediately ? "PUBLISHED" : "AI_REVIEW";
-      await prisma.product.update({
-        where: { id: product.id },
-        data: { status: targetStatus },
-      });
-      finalStatus = targetStatus;
-    } catch (aiErr) {
-      console.error(
-        `Heritage AI generation failed for product ${product.id}:`,
-        aiErr,
-      );
-      const fallbackStatus = input.publishImmediately ? "PUBLISHED" : "DRAFT";
-      await prisma.product.update({
-        where: { id: product.id },
-        data: { status: fallbackStatus },
-      });
-      finalStatus = fallbackStatus;
-    }
-
+    /* Product persistence and storefront visibility must not depend on the
+       external AI provider. The admin UI requests heritage generation separately. */
     return NextResponse.json(
-      { ...product, status: finalStatus, heritage },
+      { ...product, status: product.status, heritage: null },
       { status: 201 },
     );
   } catch (err) {

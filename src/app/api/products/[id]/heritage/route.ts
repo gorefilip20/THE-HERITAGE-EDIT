@@ -2,11 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateHeritageNarrative } from "@/lib/heritage-ai";
 import { getCurrentUser } from "@/lib/auth";
+import { safeRedisKeys, safeRedisDel } from "@/lib/redis";
+
+const PRODUCT_CACHE_PREFIX = "products:";
 
 export async function POST(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
+  let originalStatus: string = "DRAFT";
   try {
     const { id } = await params;
     const user = await getCurrentUser();
@@ -25,6 +29,8 @@ export async function POST(
     if (!product) {
       return NextResponse.json({ error: "Product not found" }, { status: 404 });
     }
+
+    originalStatus = product.status;
 
     await prisma.heritageNarrative.deleteMany({
       where: { productId: product.id },
@@ -54,8 +60,11 @@ export async function POST(
 
     await prisma.product.update({
       where: { id: product.id },
-      data: { status: "AI_REVIEW" },
+      data: { status: originalStatus === "PUBLISHED" ? "PUBLISHED" : "AI_REVIEW" },
     });
+
+    const keys = await safeRedisKeys(`${PRODUCT_CACHE_PREFIX}*`);
+    if (keys.length > 0) await safeRedisDel(...keys);
 
     return NextResponse.json({
       ...heritage,
@@ -72,7 +81,7 @@ export async function POST(
     try {
       await prisma.product.update({
         where: { id },
-        data: { status: "DRAFT" },
+        data: { status: originalStatus === "PUBLISHED" ? "PUBLISHED" : "DRAFT" },
       });
     } catch {
       /* product may not exist */
@@ -94,6 +103,10 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
+    const user = await getCurrentUser();
+    if (!user || (user.role !== "ADMIN" && user.role !== "SUPER_ADMIN")) {
+      return NextResponse.json({ error: "Admin access required" }, { status: 403 });
+    }
     const body = await request.json();
 
     const heritage = await prisma.heritageNarrative.findUnique({
@@ -141,6 +154,8 @@ export async function PATCH(
         where: { id },
         data: { status: "PUBLISHED" },
       });
+      const keys = await safeRedisKeys(`${PRODUCT_CACHE_PREFIX}*`);
+      if (keys.length > 0) await safeRedisDel(...keys);
     }
 
     return NextResponse.json(updated);

@@ -130,7 +130,7 @@ export default function NewProductPage() {
           return;
         }
 
-        if (data.status === "DRAFT" || data.status === "PUBLISHED" || data.status === "ARCHIVED") {
+        if (data.status === "DRAFT" || data.status === "ARCHIVED") {
           clearInterval(interval);
           setSubmitError(
             "Heritage narrative generation failed — the product was saved as a Draft. " +
@@ -198,6 +198,7 @@ export default function NewProductPage() {
           description: formData.description || undefined,
           variants: activeVariants.length > 0 ? activeVariants : undefined,
           imageUrls: imagePreviews.length > 0 ? imagePreviews : undefined,
+          publishImmediately: true,
         }),
       });
 
@@ -210,6 +211,10 @@ export default function NewProductPage() {
       setCreatedProduct(product);
       if (product.heritage) {
         setEditFields(product.heritage);
+      } else {
+        // Generate the narrative separately; product creation and storefront visibility
+        // do not wait for an external AI provider.
+        void fetch(`/api/products/${product.id}/heritage`, { method: "POST" });
       }
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Something went wrong");
