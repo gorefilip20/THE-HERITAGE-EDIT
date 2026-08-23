@@ -43,7 +43,7 @@ In the Node.js app screen, add every variable from **`.env.production.example`**
 Minimum to boot and take payments:
 - `DATABASE_URL` (from step 1)
 - `NEXTAUTH_SECRET` — generate: `openssl rand -base64 48`
-- `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` — `https://yourdomain.com`
+- `NEXTAUTH_URL` and `NEXT_PUBLIC_APP_URL` — `https://theheritageedit.shop`
 - `NODE_ENV=production`
 - `PAYSTACK_SECRET_KEY` — your live key
 - (optional) Stripe, Resend, Cloudinary, AI keys
@@ -60,8 +60,8 @@ npm run build               # builds the production .next output
 ```
 
 ## 6. Start it
-Back on the Node.js app page click **Restart**. Visit `https://yourdomain.com`.
-Health check: `https://yourdomain.com/api/health`.
+Back on the Node.js app page click **Restart**. Visit `https://theheritageedit.shop`.
+Health check: `https://theheritageedit.shop/api/health`.
 
 ### If the build fails on the server (out of memory)
 Build the exact same way on a **Linux** machine (or WSL) with Node 18/20, then upload
@@ -74,13 +74,13 @@ Do **not** copy a Windows `node_modules` to the server.
 > for the hPanel Node.js app, the root `server.js` above is the simplest entry point.
 
 ## 7. Point your domain
-If the app root is under your primary domain, hPanel maps it automatically. Otherwise
+For this project, set the application URL to `theheritageedit.shop` (and configure `www.theheritageedit.shop` if you want the www alias). If the app root is under your primary domain, hPanel maps it automatically. Otherwise
 set the domain/subdomain’s document root (or the Node.js app’s **Application URL**) to
 this app. Allow DNS to propagate.
 
 ## 8. Configure webhooks (after the domain is live)
-- **Paystack dashboard → Webhooks:** `https://yourdomain.com/api/webhooks/paystack`
-- **Stripe dashboard → Webhooks:** `https://yourdomain.com/api/webhooks/stripe`
+- **Paystack dashboard → Webhooks:** `https://theheritageedit.shop/api/webhooks/paystack`
+- **Stripe dashboard → Webhooks:** `https://theheritageedit.shop/api/webhooks/stripe`
   (copy the signing secret into `STRIPE_WEBHOOK_SECRET`, then Restart)
 
 ---

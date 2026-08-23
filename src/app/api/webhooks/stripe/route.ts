@@ -11,7 +11,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
   apiVersion: "2024-04-10",
 });
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://heritageedit.com";
@@ -520,6 +520,11 @@ async function sendVIPReceipt(payload: VIPReceiptPayload) {
     "Curated luxury, delivered with care.",
     "concierge@heritageedit.com",
   ].join("\n");
+
+  if (!resend) {
+    console.warn("Skipping VIP receipt email: RESEND_API_KEY is not configured.");
+    return;
+  }
 
   try {
     const { error } = await resend.emails.send({
