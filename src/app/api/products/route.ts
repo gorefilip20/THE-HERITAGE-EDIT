@@ -256,7 +256,7 @@ export async function POST(request: NextRequest) {
       slug = `${slug}-${suffix}`;
     }
 
-    const sku = generateItemCode();
+    const sku = input.sku?.trim() || generateItemCode();
 
     const product = await prisma.product.create({
       data: {

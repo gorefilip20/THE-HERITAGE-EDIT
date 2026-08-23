@@ -192,6 +192,7 @@ export default function NewProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
+          sku: formData.sku || undefined,
           brandId: formData.brandId,
           categoryId: formData.categoryId,
           basePriceCents: Math.round(parseFloat(formData.basePriceCents) * 100),
