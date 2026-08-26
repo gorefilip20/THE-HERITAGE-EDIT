@@ -38,7 +38,7 @@ interface CreatedProduct {
   slug: string;
   basePriceCents: number;
   status: string;
-  brand: { id: string; name: string };
+  brand: { id: string; name: string } | null;
   category: { id: string; name: string };
   images: Array<{ id: string; url: string }>;
   heritage: HeritageData | null;
@@ -74,6 +74,52 @@ const CATEGORIES = [
   { id: "cat-swimwear", name: "Swimwear" },
 ];
 
+const DEPARTMENT_OPTIONS = [
+  { value: "Women", label: "Women" },
+  { value: "Men", label: "Men" },
+  { value: "Kids", label: "Kids" },
+  { value: "Accessories", label: "Accessories" },
+  { value: "Life", label: "Life" },
+] as const;
+
+const CLOTHING_OPTIONS: Record<string, Array<{ value: string; label: string; categorySlug: string }>> = {
+  Women: [
+    { value: "Dresses", label: "Dresses", categorySlug: "dresses" },
+    { value: "Tops & Blouses", label: "Tops & Blouses", categorySlug: "tops-blouses" },
+    { value: "Coats & Jackets", label: "Coats & Jackets", categorySlug: "coats-jackets" },
+    { value: "Trousers & Shorts", label: "Trousers & Shorts", categorySlug: "trousers-shorts" },
+    { value: "Knitwear", label: "Knitwear", categorySlug: "knitwear" },
+    { value: "Shoes", label: "Shoes", categorySlug: "shoes" },
+  ],
+  Men: [
+    { value: "Suits & Tailoring", label: "Suits & Tailoring", categorySlug: "suits-tailoring" },
+    { value: "Agbada & Robes", label: "Agbada & Robes", categorySlug: "agbada-robes" },
+    { value: "Senator Wear", label: "Senator Wear", categorySlug: "senator-wear" },
+    { value: "Native Wear", label: "Native Wear", categorySlug: "native-wear" },
+    { value: "Shirts", label: "Shirts", categorySlug: "shirts" },
+    { value: "Trousers & Shorts", label: "Trousers & Shorts", categorySlug: "trousers-shorts" },
+    { value: "Shoes", label: "Shoes", categorySlug: "shoes" },
+  ],
+  Kids: [
+    { value: "Girls", label: "Girls", categorySlug: "girls" },
+    { value: "Boys", label: "Boys", categorySlug: "boys" },
+    { value: "Kids Dresses", label: "Kids Dresses", categorySlug: "dresses" },
+    { value: "Kids Footwear", label: "Kids Footwear", categorySlug: "footwear" },
+  ],
+  Accessories: [
+    { value: "Bags", label: "Bags", categorySlug: "bags" },
+    { value: "Jewelry", label: "Jewelry", categorySlug: "jewelry" },
+    { value: "Belts", label: "Belts", categorySlug: "belts" },
+    { value: "Watches", label: "Watches", categorySlug: "watches" },
+    { value: "Accessories", label: "Accessories", categorySlug: "accessories" },
+  ],
+  Life: [
+    { value: "Home", label: "Home", categorySlug: "home" },
+    { value: "Beauty", label: "Beauty", categorySlug: "beauty" },
+    { value: "Travel", label: "Travel", categorySlug: "travel" },
+  ],
+};
+
 const SIZES = ["XXS", "XS", "S", "M", "L", "XL", "XXL"];
 
 type HeritageTab = "story" | "occasions" | "lookbook";
@@ -85,6 +131,8 @@ export default function NewProductPage() {
   const [formData, setFormData] = useState({
     name: "",
     brandId: "",
+    department: "",
+    clothingType: "",
     categoryId: "",
     basePriceCents: "",
     sku: "",
@@ -195,6 +243,8 @@ export default function NewProductPage() {
           sku: formData.sku || undefined,
           brandId: formData.brandId,
           categoryId: formData.categoryId,
+          department: formData.department,
+          clothingType: formData.clothingType,
           basePriceCents: Math.round(parseFloat(formData.basePriceCents) * 100),
           description: formData.description || undefined,
           variants: activeVariants.length > 0 ? activeVariants : undefined,
@@ -372,26 +422,21 @@ export default function NewProductPage() {
               )}
             </div>
 
-            {/* Brand & Category */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Brand & Editorial taxonomy */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400 mb-1.5">
-                  Brand
+                  Brand <span className="normal-case tracking-normal text-neutral-300">(optional)</span>
                 </label>
                 <div className="relative">
                   <select
                     value={formData.brandId}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, brandId: e.target.value }))
-                    }
-                    required
+                    onChange={(e) => setFormData((p) => ({ ...p, brandId: e.target.value }))}
                     className="w-full h-11 pl-3 pr-8 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 appearance-none focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                   >
-                    <option value="">Select brand</option>
+                    <option value="">Independent / no brand</option>
                     {BRANDS.map((b) => (
-                      <option key={b.id} value={b.id}>
-                        {b.name}
-                      </option>
+                      <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
@@ -399,23 +444,38 @@ export default function NewProductPage() {
               </div>
               <div>
                 <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400 mb-1.5">
-                  Category
+                  Department <span className="text-rose-400">*</span>
                 </label>
                 <div className="relative">
                   <select
-                    value={formData.categoryId}
-                    onChange={(e) =>
-                      setFormData((p) => ({ ...p, categoryId: e.target.value }))
-                    }
+                    value={formData.department}
+                    onChange={(e) => setFormData((p) => ({ ...p, department: e.target.value, clothingType: "", categoryId: "" }))}
                     required
                     className="w-full h-11 pl-3 pr-8 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 appearance-none focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
                   >
-                    <option value="">Select category</option>
-                    {CATEGORIES.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
+                    <option value="">Select department</option>
+                    {DEPARTMENT_OPTIONS.map((d) => <option key={d.value} value={d.value}>{d.label}</option>)}
+                  </select>
+                  <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400 mb-1.5">
+                  Clothing / collection <span className="text-rose-400">*</span>
+                </label>
+                <div className="relative">
+                  <select
+                    value={formData.clothingType}
+                    onChange={(e) => {
+                      const selected = (CLOTHING_OPTIONS[formData.department] ?? []).find((o) => o.value === e.target.value);
+                      setFormData((p) => ({ ...p, clothingType: e.target.value, categoryId: selected?.categorySlug ?? "" }));
+                    }}
+                    required
+                    disabled={!formData.department}
+                    className="w-full h-11 pl-3 pr-8 rounded-lg border border-neutral-200 bg-white text-sm font-sans text-neutral-900 appearance-none disabled:bg-neutral-50 disabled:text-neutral-300 focus:outline-none focus:border-[#0D2C22] focus:ring-1 focus:ring-[#0D2C22]/20 transition-all"
+                  >
+                    <option value="">{formData.department ? "Select clothing type" : "Select department first"}</option>
+                    {(CLOTHING_OPTIONS[formData.department] ?? []).map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
                   </select>
                   <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-400 pointer-events-none" />
                 </div>
@@ -516,7 +576,7 @@ export default function NewProductPage() {
             {/* Submit */}
             <button
               type="submit"
-              disabled={isSubmitting || !formData.name || !formData.brandId || !formData.categoryId}
+              disabled={isSubmitting || !formData.name || !formData.department || !formData.clothingType || !formData.categoryId}
               className="w-full h-12 rounded-lg bg-gradient-to-r from-[#0D2C22] to-[#0D2C22]/90 text-white text-sm font-sans font-semibold tracking-wide flex items-center justify-center gap-2.5 transition-all duration-300 hover:shadow-lg hover:shadow-[#0D2C22]/20 active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:shadow-none"
             >
               {isSubmitting ? (
@@ -644,7 +704,7 @@ export default function NewProductPage() {
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-[10px] font-sans font-medium tracking-[0.15em] uppercase text-[#2E1A47]">
-                        {displayProduct?.brand.name}
+                        {displayProduct?.brand?.name ?? "The Heritage Edit"}
                       </p>
                       <p className="text-sm font-sans font-medium text-neutral-900 truncate">
                         {displayProduct?.name}

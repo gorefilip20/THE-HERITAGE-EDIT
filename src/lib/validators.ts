@@ -5,6 +5,8 @@ export const createProductSchema = z.object({
   sku: z.string().trim().min(1).max(100).optional(),
   brandId: z.string().min(1),
   categoryId: z.string().min(1),
+  department: z.string().trim().min(1).max(80),
+  clothingType: z.string().trim().min(1).max(100),
   basePriceCents: z.number().int().positive(),
   salePriceCents: z.number().int().positive().nullable().optional(),
   description: z.string().optional(),

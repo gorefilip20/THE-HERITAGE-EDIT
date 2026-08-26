@@ -143,6 +143,8 @@ model Product {
   description String?
   brandId     String
   categoryId  String
+  department  String        @default("Uncategorized")
+  clothingType String       @default("General")
   basePriceCents Int
   salePriceCents Int?
   currency    String        @default("USD")

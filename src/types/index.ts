@@ -52,6 +52,8 @@ export interface Product {
   salePriceCents: number | null;
   currency: string;
   status: "DRAFT" | "AI_PENDING" | "AI_REVIEW" | "PUBLISHED" | "ARCHIVED";
+  department: string;
+  clothingType: string;
   isFeatured: boolean;
   brand: Brand;
   category: Category;

@@ -43,7 +43,7 @@ export async function POST(
 
     const { data, model } = await generateHeritageNarrative(
       product.name,
-      product.brand.name,
+      product.brand?.name ?? "The Heritage Edit",
       product.category.name,
     );
 
@@ -69,7 +69,7 @@ export async function POST(
     return NextResponse.json({
       ...heritage,
       productName: product.name,
-      brandName: product.brand.name,
+      brandName: product.brand?.name ?? "The Heritage Edit",
     });
   } catch (err) {
     const { id } = await params;

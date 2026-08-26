@@ -38,6 +38,8 @@ export async function GET(request: NextRequest) {
   );
   const brands = searchParams.getAll("brand");
   const category = searchParams.get("category");
+  const department = searchParams.get("department");
+  const clothingType = searchParams.get("clothingType");
   const collection = searchParams.get("collection");
   const sizes = searchParams.getAll("size");
   const colors = searchParams.getAll("color");
@@ -69,6 +71,12 @@ export async function GET(request: NextRequest) {
   }
   if (category) {
     where.category = { slug: category };
+  }
+  if (department) {
+    where.department = department;
+  }
+  if (clothingType) {
+    where.clothingType = clothingType;
   }
   if (collection) {
     where.collections = { some: { collection: { slug: collection } } };
@@ -203,9 +211,11 @@ export async function POST(request: NextRequest) {
 
     const input = parsed.data;
 
-    let brand = await prisma.brand.findUnique({ where: { id: input.brandId } });
+    let brand = input.brandId
+      ? await prisma.brand.findUnique({ where: { id: input.brandId } })
+      : null;
 
-    if (!brand) {
+    if (input.brandId && !brand) {
       brand = await prisma.brand.findFirst({
         where: {
           OR: [
@@ -245,6 +255,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    if (!brand) {
+      brand = await prisma.brand.upsert({
+        where: { slug: "the-heritage-edit" },
+        update: {},
+        create: { name: "The Heritage Edit", slug: "the-heritage-edit" },
+      });
+    }
+
     let slug = slugify(`${brand.name}-${input.name}`);
 
     const existingSlug = await prisma.product.findUnique({
@@ -266,6 +284,8 @@ export async function POST(request: NextRequest) {
         description: input.description?.trim() ?? null,
         brandId: brand.id,
         categoryId: category.id,
+        department: input.department,
+        clothingType: input.clothingType,
         basePriceCents: input.basePriceCents,
         salePriceCents: input.salePriceCents ?? null,
         currency: input.currency,
