@@ -43,6 +43,8 @@ const SORT_OPTIONS = [
 interface FilterState {
   brand: string[];
   category: string;
+  department: string;
+  clothingType: string;
   size: string[];
   minPrice: string;
   maxPrice: string;
@@ -103,6 +105,8 @@ function ShopPageInner() {
   const filters: FilterState = {
     brand: searchParams.getAll("brand"),
     category: searchParams.get("category") ?? "",
+    department: searchParams.get("department") ?? "",
+    clothingType: searchParams.get("clothingType") ?? "",
     size: searchParams.getAll("size"),
     minPrice: searchParams.get("minPrice") ?? "",
     maxPrice: searchParams.get("maxPrice") ?? "",
@@ -114,6 +118,8 @@ function ShopPageInner() {
   const activeFilterCount =
     filters.brand.length +
     (filters.category ? 1 : 0) +
+    (filters.department ? 1 : 0) +
+    (filters.clothingType ? 1 : 0) +
     filters.size.length +
     (filters.minPrice || filters.maxPrice ? 1 : 0) +
     (filters.search ? 1 : 0);
@@ -124,7 +130,7 @@ function ShopPageInner() {
       const params = new URLSearchParams();
       const merged = { ...filters, ...updates };
 
-      if (updates.brand !== undefined || updates.category !== undefined ||
+      if (updates.brand !== undefined || updates.category !== undefined || updates.department !== undefined || updates.clothingType !== undefined ||
           updates.size !== undefined || updates.minPrice !== undefined ||
           updates.maxPrice !== undefined || updates.search !== undefined) {
         merged.page = 1;
@@ -132,6 +138,8 @@ function ShopPageInner() {
 
       merged.brand.forEach((b) => params.append("brand", b));
       if (merged.category) params.set("category", merged.category);
+      if (merged.department) params.set("department", merged.department);
+      if (merged.clothingType) params.set("clothingType", merged.clothingType);
       merged.size.forEach((s) => params.append("size", s));
       if (merged.minPrice) params.set("minPrice", merged.minPrice);
       if (merged.maxPrice) params.set("maxPrice", merged.maxPrice);
@@ -436,6 +444,41 @@ function ShopPageInner() {
               value={filters.sort}
               onChange={(sort) => updateURL({ sort })}
             />
+          </div>
+        </div>
+
+        {/* Men’s quick filters */}
+        <div className="mt-8 rounded-2xl border border-[#0D2C22]/10 bg-[#F7F4EE] px-4 py-4 md:px-6 md:py-5">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-[10px] font-sans font-semibold tracking-[0.22em] uppercase text-[#0D2C22]/60">The Men’s Edit</p>
+              <p className="mt-1 text-sm font-serif italic text-obsidian">Find your signature silhouette</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { label: "Senator Wear", value: "Senator Wear" },
+                { label: "Agbada & Robes", value: "Agbada & Robes" },
+                { label: "Suits & Tailoring", value: "Suits & Tailoring" },
+              ].map((option) => {
+                const active = filters.department === "Men" && filters.clothingType === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => updateURL(active ? { department: "", clothingType: "", category: "" } : { department: "Men", clothingType: option.value, category: "" })}
+                    className={cn(
+                      "rounded-full border px-4 py-2 text-[11px] font-sans font-medium tracking-wide transition-all",
+                      active
+                        ? "border-[#0D2C22] bg-[#0D2C22] text-white shadow-sm"
+                        : "border-[#0D2C22]/15 bg-white text-[#0D2C22] hover:border-[#0D2C22]/40 hover:bg-white/70",
+                    )}
+                    aria-pressed={active}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
