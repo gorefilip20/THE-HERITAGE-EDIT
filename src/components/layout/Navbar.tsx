@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, User, ShoppingBag, Menu, X, Heart, ChevronRight } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
 import { cn, getImagePlaceholder } from "@/lib/utils";
+import { BrandMark } from "@/components/brand/BrandMark";
 
 /* ──────────────────────────────────────────────────────────
    MEGA-MENU DATA
@@ -384,11 +385,7 @@ export function Navbar() {
               {isMobileMenuOpen ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
             </button>
 
-            <Link href="/">
-              <span className="text-[15px] font-serif font-semibold tracking-[0.12em] text-obsidian whitespace-nowrap select-none">
-                THE HERITAGE EDIT
-              </span>
-            </Link>
+            <BrandMark href="/" size="sm" className="text-obsidian" />
 
             <div className="flex items-center gap-3">
               <button
@@ -453,11 +450,7 @@ export function Navbar() {
             </nav>
 
             {/* Center logo */}
-            <Link href="/" className="px-8 xl:px-12">
-              <span className="text-[17px] font-serif font-semibold tracking-[0.12em] text-obsidian whitespace-nowrap select-none">
-                THE HERITAGE EDIT
-              </span>
-            </Link>
+            <BrandMark href="/" size="md" className="text-obsidian px-8 xl:px-12" />
 
             {/* Right nav links + icons */}
             <div className="flex items-center justify-end">

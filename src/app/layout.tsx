@@ -33,12 +33,25 @@ export const metadata: Metadata = {
   },
   description:
     "Ultra-premium traditional African attire and world-class luxury — Senator wear, hand-woven Aso Oke, Agbada, and matching footwear, bags, and jewelry. Every piece with heritage, every piece with a story.",
+  icons: {
+    icon: "/brand/the-heritage-edit-logo.jpg",
+    shortcut: "/brand/the-heritage-edit-logo.jpg",
+    apple: "/brand/the-heritage-edit-logo.jpg",
+  },
   openGraph: {
     type: "website",
     siteName: "THE HERITAGE EDIT",
     title: "THE HERITAGE EDIT — Ultra-Premium African Luxury Attire",
     description:
-      "Ultra-premium traditional African attire and world-class luxury accessories. Every piece with heritage, every piece with a story.",
+      "Ultra-premium traditional African fashion and world-class luxury accessories. Every piece with heritage, every piece with a story.",
+    images: [
+      {
+        url: "/brand/the-heritage-edit-logo.jpg",
+        width: 1024,
+        height: 1024,
+        alt: "THE HERITAGE EDIT emblem",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",

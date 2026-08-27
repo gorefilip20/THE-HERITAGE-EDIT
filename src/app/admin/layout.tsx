@@ -21,6 +21,7 @@ import {
   Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BrandMark } from "@/components/brand/BrandMark";
 
 const ADMIN_NAV = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -78,6 +79,7 @@ export default function AdminLayout({
               <span className="hidden sm:inline">Store</span>
             </Link>
             <span className="text-white/20">|</span>
+            <BrandMark href="/" size="sm" showWordmark={false} className="text-white" />
             <span className="text-sm font-sans font-semibold tracking-wider">
               HERITAGE ADMIN
             </span>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BrandMark } from "@/components/brand/BrandMark";
 
 const FOOTER_LINKS = {
   "Client Services": [
@@ -37,9 +38,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-16">
           {/* Brand column */}
           <div className="lg:col-span-1">
-            <h3 className="text-lg font-serif tracking-wide mb-4">
-              THE HERITAGE EDIT
-            </h3>
+            <BrandMark href="/" size="md" className="text-white mb-4" />
             <p className="text-[13px] font-sans text-white/50 leading-relaxed max-w-xs mb-6">
               The finest edit in African fashion. Connecting the world with
               Africa&apos;s most celebrated designers and centuries of textile

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2, Eye, EyeOff } from "lucide-react";
+import { BrandMark } from "@/components/brand/BrandMark";
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
@@ -62,12 +63,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       <div className="w-full max-w-[440px]">
         {/* Wordmark */}
         <div className="text-center mb-10">
-          <Link
-            href="/"
-            className="font-serif text-lg tracking-[0.14em] text-heritage-green"
-          >
-            THE HERITAGE EDIT
-          </Link>
+          <BrandMark href="/" size="md" className="text-heritage-green" />
         </div>
 
         <div className="bg-white border border-slate-border">
