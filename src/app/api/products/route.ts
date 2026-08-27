@@ -41,6 +41,9 @@ export async function GET(request: NextRequest) {
   const department = searchParams.get("department");
   const clothingType = searchParams.get("clothingType");
   const collection = searchParams.get("collection");
+  const gender = searchParams.get("gender");
+  const tag = searchParams.get("tag");
+  const discount = searchParams.get("discount");
   const sizes = searchParams.getAll("size");
   const colors = searchParams.getAll("color");
   const minPrice = searchParams.get("minPrice");
@@ -73,14 +76,49 @@ export async function GET(request: NextRequest) {
     where.category = { slug: category };
   }
   if (department) {
-    where.department = department;
+    const legacyCategoryMap: Record<string, string[]> = {
+      Women: ["dresses", "ankara-dresses", "kente-wear", "dashiki-tops", "aso-oke", "tops-blouses", "coats-jackets", "trousers-shorts", "knitwear", "shoes"],
+      Men: ["agbada-robes", "suits-tailoring", "tailored-suits", "senator-wear", "native-wear", "dashiki-tops", "outerwear", "shoes"],
+      Kids: ["girls", "boys", "ankara-dresses", "kente-wear", "dashiki", "agbada", "baby", "baby-sets", "baby-gifts", "shoes"],
+      Accessories: ["bags", "bags-clutches", "jewelry", "accessories", "belts", "watches", "shoes", "shoes-sandals"],
+      Life: ["textiles", "wall-art", "fragrance", "tableware", "skincare", "body-care", "hair-care", "gifts"],
+    };
+    const legacyCategories = legacyCategoryMap[department];
+    if (legacyCategories) {
+      where.OR = [
+        { department },
+        { department: "Uncategorized", category: { slug: { in: legacyCategories } } },
+      ];
+    } else {
+      where.department = department;
+    }
   }
   if (clothingType) {
     where.clothingType = clothingType;
   }
   if (collection) {
-    where.collections = { some: { collection: { slug: collection } } };
+    const departmentByCollection: Record<string, string> = {
+      women: "Women",
+      men: "Men",
+      kids: "Kids",
+      accessories: "Accessories",
+      life: "Life",
+    };
+    const departmentForCollection = departmentByCollection[collection.toLowerCase()];
+    if (departmentForCollection) where.department = departmentForCollection;
+    else where.collections = { some: { collection: { slug: collection } } };
   }
+  if (gender) {
+    const departmentByGender: Record<string, string> = { women: "Women", men: "Men", kids: "Kids" };
+    if (departmentByGender[gender.toLowerCase()]) where.department = departmentByGender[gender.toLowerCase()];
+  }
+  if (tag === "sale") {
+    where.salePriceCents = { not: null };
+  }
+  // The current sale page uses discount tiers as a merchandising filter. The
+  // persisted sale-price condition above keeps the result truthful even when
+  // the tier is only a presentation label.
+  void discount;
   if (sizes.length > 0 || colors.length > 0) {
     const variantWhere: Record<string, unknown> = {};
     if (sizes.length > 0) variantWhere.size = { in: sizes };

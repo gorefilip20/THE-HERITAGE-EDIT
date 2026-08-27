@@ -115,6 +115,9 @@ function ShopPageInner() {
     page: parseInt(searchParams.get("page") ?? "1"),
   };
 
+  const showMensQuickFilters =
+    filters.department === "Men" || (!filters.department && !filters.category && !filters.search);
+
   const activeFilterCount =
     filters.brand.length +
     (filters.category ? 1 : 0) +
@@ -448,7 +451,7 @@ function ShopPageInner() {
         </div>
 
         {/* Men’s quick filters */}
-        <div className="mt-8 rounded-2xl border border-[#0D2C22]/10 bg-[#F7F4EE] px-4 py-4 md:px-6 md:py-5">
+        {showMensQuickFilters && <div className="mt-8 rounded-2xl border border-[#0D2C22]/10 bg-[#F7F4EE] px-4 py-4 md:px-6 md:py-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-[10px] font-sans font-semibold tracking-[0.22em] uppercase text-[#0D2C22]/60">The Men’s Edit</p>
@@ -480,7 +483,7 @@ function ShopPageInner() {
               })}
             </div>
           </div>
-        </div>
+        </div>}
       </div>
 
       {/* ── MAIN CONTENT ── */}

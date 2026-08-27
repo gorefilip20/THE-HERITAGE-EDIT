@@ -75,7 +75,16 @@ export default function CollectionPage() {
   const fetchProducts = useCallback(async () => {
     setIsLoading(true);
     const params = new URLSearchParams();
-    params.set("collection", slug);
+    const departmentByCollection: Record<string, string> = {
+      women: "Women",
+      men: "Men",
+      kids: "Kids",
+      accessories: "Accessories",
+      life: "Life",
+    };
+    const department = departmentByCollection[slug.toLowerCase()];
+    if (department) params.set("department", department);
+    else params.set("collection", slug);
     params.set("sort", sort);
     params.set("pageSize", "24");
 
