@@ -570,7 +570,7 @@ export default function HomePage() {
 
           <div className="text-center">
             <a
-              href="https://instagram.com/theheritageedit"
+              href="https://www.instagram.com/theheritageedit_/?igsh=MWJyMTZpNGMyeHUxYg=="
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 h-12 px-8 border border-obsidian text-obsidian text-[11px] font-sans font-semibold tracking-[0.15em] uppercase hover:bg-neutral-50 transition-colors"

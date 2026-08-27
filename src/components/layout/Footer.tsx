@@ -47,7 +47,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-4">
               <a
-                href="https://instagram.com"
+                href="https://www.instagram.com/theheritageedit_/?igsh=MWJyMTZpNGMyeHUxYg=="
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-all duration-300"
@@ -77,7 +77,7 @@ export function Footer() {
                 </svg>
               </a>
               <a
-                href="https://tiktok.com"
+                href="https://www.tiktok.com/@theheritageedit7?_r=1&_t=ZS-99DbzxgaoE8"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-9 h-9 border border-white/20 flex items-center justify-center text-white/50 hover:text-white hover:border-white/50 transition-all duration-300"
