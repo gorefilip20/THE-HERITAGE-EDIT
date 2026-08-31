@@ -115,8 +115,22 @@ function ShopPageInner() {
     page: parseInt(searchParams.get("page") ?? "1"),
   };
 
-  const showMensQuickFilters =
-    filters.department === "Men" || (!filters.department && !filters.category && !filters.search);
+  const showQuickFilters =
+    !filters.category && !filters.search &&
+    (filters.department === "Men" || filters.department === "Women" || !filters.department);
+  const quickFilterDepartment = filters.department === "Women" ? "Women" : "Men";
+  const quickFilterOptions = quickFilterDepartment === "Women"
+    ? [
+        { label: "Dresses", value: "Dresses" },
+        { label: "Tops & Blouses", value: "Tops & Blouses" },
+        { label: "Coats & Jackets", value: "Coats & Jackets" },
+        { label: "Trousers & Shorts", value: "Trousers & Shorts" },
+      ]
+    : [
+        { label: "Senator Wear", value: "Senator Wear" },
+        { label: "Agbada & Robes", value: "Agbada & Robes" },
+        { label: "Suits & Tailoring", value: "Suits & Tailoring" },
+      ];
 
   const activeFilterCount =
     filters.brand.length +
@@ -450,25 +464,23 @@ function ShopPageInner() {
           </div>
         </div>
 
-        {/* Men’s quick filters */}
-        {showMensQuickFilters && <div className="mt-8 rounded-2xl border border-[#0D2C22]/10 bg-[#F7F4EE] px-4 py-4 md:px-6 md:py-5">
+        {/* Department quick filters */}
+        {showQuickFilters && <div className="mt-8 rounded-2xl border border-[#0D2C22]/10 bg-[#F7F4EE] px-4 py-4 md:px-6 md:py-5">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-[10px] font-sans font-semibold tracking-[0.22em] uppercase text-[#0D2C22]/60">The Men’s Edit</p>
+              <p className="text-[10px] font-sans font-semibold tracking-[0.22em] uppercase text-[#0D2C22]/60">
+                {quickFilterDepartment === "Women" ? "The Women’s Edit" : "The Men’s Edit"}
+              </p>
               <p className="mt-1 text-sm font-serif italic text-obsidian">Find your signature silhouette</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {[
-                { label: "Senator Wear", value: "Senator Wear" },
-                { label: "Agbada & Robes", value: "Agbada & Robes" },
-                { label: "Suits & Tailoring", value: "Suits & Tailoring" },
-              ].map((option) => {
-                const active = filters.department === "Men" && filters.clothingType === option.value;
+              {quickFilterOptions.map((option) => {
+                const active = filters.department === quickFilterDepartment && filters.clothingType === option.value;
                 return (
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => updateURL(active ? { department: "", clothingType: "", category: "" } : { department: "Men", clothingType: option.value, category: "" })}
+                    onClick={() => updateURL(active ? { department: "", clothingType: "", category: "" } : { department: quickFilterDepartment, clothingType: option.value, category: "" })}
                     className={cn(
                       "rounded-full border px-4 py-2 text-[11px] font-sans font-medium tracking-wide transition-all",
                       active
