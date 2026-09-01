@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 export default function AdminSetupPage() {
@@ -13,9 +14,11 @@ export default function AdminSetupPage() {
     setBusy(true);
 
     try {
+      const cleanToken = token.trim();
       const response = await fetch("/api/setup/admin", {
         method: "POST",
-        headers: { "x-admin-setup-token": token },
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token: cleanToken }),
       });
       const raw = await response.text();
       let body: { error?: string; success?: boolean; message?: string } = {};
@@ -51,11 +54,15 @@ export default function AdminSetupPage() {
           <label className="block text-sm font-medium">
             Setup token
             <input
-              type="password"
+              type="text"
               value={token}
               onChange={(event) => setToken(event.target.value)}
               required
               autoComplete="off"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              inputMode="text"
               className="mt-2 h-12 w-full rounded-xl border border-black/15 px-4 outline-none focus:border-[#6c4a45]"
               placeholder="Enter the Hostinger ADMIN_SETUP_TOKEN"
             />
@@ -68,7 +75,16 @@ export default function AdminSetupPage() {
             {busy ? "Activating…" : "Activate admin account"}
           </button>
         </form>
-        {status && <p className="mt-5 rounded-xl bg-black/[0.04] p-4 text-sm leading-6">{status}</p>}
+        {status && (
+          <div className="mt-5 rounded-xl bg-black/[0.04] p-4 text-sm leading-6">
+            <p>{status}</p>
+            {status.toLowerCase().includes("provisioned") || status.toLowerCase().includes("reset") ? (
+              <Link href="/auth/login" className="mt-3 inline-block font-semibold underline">
+                Continue to admin login
+              </Link>
+            ) : null}
+          </div>
+        )}
       </div>
     </main>
   );

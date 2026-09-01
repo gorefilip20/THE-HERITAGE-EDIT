@@ -4,14 +4,32 @@ import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
-  const setupToken = process.env.ADMIN_SETUP_TOKEN;
+  const setupToken = process.env.ADMIN_SETUP_TOKEN?.trim();
   const email = process.env.ADMIN_SETUP_EMAIL?.trim().toLowerCase();
   const password = process.env.ADMIN_SETUP_PASSWORD;
-  const providedToken = request.headers.get("x-admin-setup-token");
+  const providedHeaderToken = request.headers.get("x-admin-setup-token");
+  let bodyToken = "";
+  try {
+    const body = await request.json();
+    bodyToken = typeof body?.token === "string" ? body.token : "";
+  } catch {
+    // Header-only requests are supported for curl and API clients.
+  }
+  const providedToken = (providedHeaderToken || bodyToken).trim();
   const allowReset = process.env.ADMIN_SETUP_ALLOW_RESET === "true";
 
-  if (!setupToken || !email || !password || providedToken !== setupToken) {
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!setupToken || !email || !password) {
+    return NextResponse.json(
+      { error: "Admin setup is not configured on this deployment. Add ADMIN_SETUP_TOKEN, ADMIN_SETUP_EMAIL, and ADMIN_SETUP_PASSWORD in Hostinger." },
+      { status: 503 },
+    );
+  }
+
+  if (!providedToken || providedToken !== setupToken) {
+    return NextResponse.json(
+      { error: "The setup token is incorrect. Copy the current ADMIN_SETUP_TOKEN from Hostinger and try again." },
+      { status: 401 },
+    );
   }
 
   if (password.length < 8) {
