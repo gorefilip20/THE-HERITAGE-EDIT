@@ -3,7 +3,10 @@ import { z } from "zod";
 export const createProductSchema = z.object({
   name: z.string().min(2).max(200),
   sku: z.string().trim().min(1).max(100).optional(),
-  brandId: z.string().min(1),
+  brandId: z.preprocess(
+    (value) => (typeof value === "string" && value.trim() === "" ? undefined : value),
+    z.string().trim().min(1).optional(),
+  ),
   categoryId: z.string().min(1),
   department: z.string().trim().min(1).max(80),
   clothingType: z.string().trim().min(1).max(100),

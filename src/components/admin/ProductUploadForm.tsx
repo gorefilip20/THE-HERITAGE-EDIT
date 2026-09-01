@@ -87,7 +87,7 @@ export function ProductUploadForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
-          brandId: formData.brandId,
+          brandId: formData.brandId || undefined,
           categoryId: formData.categoryId,
           basePriceCents: Math.round(parseFloat(formData.basePriceCents) * 100),
           variants: activeVariants.map((v) => ({

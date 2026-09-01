@@ -250,8 +250,8 @@ export default function NewProductPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: formData.name,
-          sku: formData.sku || undefined,
-          brandId: formData.brandId,
+          sku: formData.sku.trim() || undefined,
+          brandId: formData.brandId || undefined,
           categoryId: formData.categoryId,
           department: formData.department,
           clothingType: formData.clothingType,
