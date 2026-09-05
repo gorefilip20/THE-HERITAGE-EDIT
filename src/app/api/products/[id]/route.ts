@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { safeRedisGet, safeRedisSet } from "@/lib/redis";
+import { safeRedisGet, safeRedisSet, safeRedisDel, safeRedisKeys } from "@/lib/redis";
 import { getCurrentUser } from "@/lib/auth";
 
 const PDP_CACHE_PREFIX = "pdp:";
@@ -85,7 +85,7 @@ export async function PATCH(
 
     const existing = await prisma.product.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, slug: true },
     });
 
     if (!existing) {
@@ -115,6 +115,10 @@ export async function PATCH(
       },
     });
 
+    await safeRedisDel(`${PDP_CACHE_PREFIX}${id}`, `${PDP_CACHE_PREFIX}${existing.slug}`);
+    const productKeys = await safeRedisKeys("products:*");
+    if (productKeys.length > 0) await safeRedisDel(...productKeys);
+
     return NextResponse.json(product);
   } catch (err) {
     console.error("Product update error:", err);
@@ -141,7 +145,7 @@ export async function DELETE(
 
     const existing = await prisma.product.findUnique({
       where: { id },
-      select: { id: true, status: true },
+      select: { id: true, slug: true, status: true },
     });
 
     if (!existing) {
@@ -155,6 +159,10 @@ export async function DELETE(
       where: { id },
       data: { status: "ARCHIVED" },
     });
+
+    await safeRedisDel(`${PDP_CACHE_PREFIX}${id}`, `${PDP_CACHE_PREFIX}${existing.slug}`);
+    const productKeys = await safeRedisKeys("products:*");
+    if (productKeys.length > 0) await safeRedisDel(...productKeys);
 
     return NextResponse.json({ success: true });
   } catch (err) {

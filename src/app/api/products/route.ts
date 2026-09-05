@@ -8,6 +8,10 @@ import { getCurrentUser } from "@/lib/auth";
 const PRODUCT_CACHE_PREFIX = "products:";
 const PRODUCT_CACHE_TTL = 60 * 5; // 5 minutes
 
+function departmentSlug(department: string): string {
+  return department.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
 function buildCacheKey(params: URLSearchParams): string {
   const sorted = Array.from(params.entries())
     .filter(([, v]) => v !== "")
@@ -356,6 +360,26 @@ export async function POST(request: NextRequest) {
         variants: { orderBy: { size: "asc" } },
       },
     });
+
+    const collectionRules = [
+      { slug: "new-arrivals", name: "New Arrivals", description: "The latest additions to our curated collection of African fashion", enabled: product.status === "PUBLISHED" },
+      { slug: departmentSlug(input.department), name: input.department, description: `${input.department} collection`, enabled: true },
+      { slug: "heritage-classics", name: "Heritage Classics", description: "Timeless pieces that honor centuries of African textile artistry", enabled: /agbada|aso oke|heritage|artisan/i.test(`${input.name} ${input.clothingType} ${category.slug}`) },
+      { slug: "wedding-ceremony", name: "Wedding & Ceremony", description: "Luxurious pieces for life's most important celebrations", enabled: /bridal|wedding|ceremony/i.test(`${input.name} ${input.description ?? ""} ${input.clothingType} ${category.slug}`) },
+    ].filter((rule) => rule.enabled && rule.slug);
+
+    for (const rule of collectionRules) {
+      const collection = await prisma.collection.upsert({
+        where: { slug: rule.slug },
+        update: {},
+        create: { slug: rule.slug, name: rule.name, description: rule.description, isFeatured: ["new-arrivals", "women", "men", "wedding-ceremony", "heritage-classics"].includes(rule.slug) },
+      });
+      await prisma.collectionProduct.upsert({
+        where: { collectionId_productId: { collectionId: collection.id, productId: product.id } },
+        update: {},
+        create: { collectionId: collection.id, productId: product.id, sortOrder: 0 },
+      });
+    }
 
     /* Invalidate product list cache on new product */
     const keys = await safeRedisKeys(`${PRODUCT_CACHE_PREFIX}*`);

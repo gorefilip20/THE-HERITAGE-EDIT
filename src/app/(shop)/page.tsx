@@ -13,24 +13,24 @@ const ease = [0.16, 1, 0.3, 1];
 
 const EDITORIAL_BLOCKS = [
   {
+    key: "agbada",
     title: "The Agbada Collection",
     subtitle: "Regal Presence",
-    category: "Agbada & Robes",
-    image: getImagePlaceholder(700, 900),
+    query: "category=agbada-robes",
     href: "/shop?category=agbada-robes",
   },
   {
+    key: "ankara",
     title: "Ankara Reimagined",
     subtitle: "Bold & Contemporary",
-    category: "Ankara Dresses",
-    image: getImagePlaceholder(700, 900),
+    query: "category=ankara-dresses",
     href: "/shop?category=ankara-dresses",
   },
   {
+    key: "bridal",
     title: "The Bridal Edit",
     subtitle: "Ceremony & Celebration",
-    category: "Wedding & Ceremony",
-    image: getImagePlaceholder(700, 900),
+    query: "collection=wedding-ceremony",
     href: "/collection/wedding-ceremony",
   },
 ];
@@ -53,18 +53,38 @@ const BRAND_MARQUEE = [
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
+  const [editorialProducts, setEditorialProducts] = useState<Record<string, Product[]>>({});
+  const [isHomeLoading, setIsHomeLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/products?featured=true&pageSize=8")
-      .then((r) => r.json())
-      .then((d) => setFeaturedProducts(d.data ?? []))
-      .catch(() => {});
-
-    fetch("/api/products?sort=newest&pageSize=4")
-      .then((r) => r.json())
-      .then((d) => setNewArrivals(d.data ?? []))
-      .catch(() => {});
+    const loadHomeProducts = async () => {
+      try {
+        const responses = await Promise.all([
+          fetch("/api/products?featured=true&pageSize=8"),
+          fetch("/api/products?sort=newest&pageSize=8"),
+          ...EDITORIAL_BLOCKS.map((block) => fetch(`/api/products?${block.query}&pageSize=1`)),
+        ]);
+        const payloads = await Promise.all(responses.map((response) => response.json()));
+        setFeaturedProducts(payloads[0]?.data ?? []);
+        setNewArrivals(payloads[1]?.data ?? []);
+        const nextEditorial: Record<string, Product[]> = {};
+        EDITORIAL_BLOCKS.forEach((block, index) => {
+          nextEditorial[block.key] = payloads[index + 2]?.data ?? [];
+        });
+        setEditorialProducts(nextEditorial);
+      } catch {
+        // The homepage keeps its visual structure even if a non-critical catalog request fails.
+      } finally {
+        setIsHomeLoading(false);
+      }
+    };
+    void loadHomeProducts();
   }, []);
+
+  const editorialWithProducts = EDITORIAL_BLOCKS.map((block, index) => ({
+    ...block,
+    product: editorialProducts[block.key]?.[0] ?? newArrivals[index] ?? null,
+  }));
 
   return (
     <div className="bg-white">
@@ -193,10 +213,10 @@ export default function HomePage() {
             transition={{ duration: 0.6, ease }}
             className="md:col-span-7"
           >
-            <Link href={EDITORIAL_BLOCKS[0].href} className="group block">
+            <Link href={editorialWithProducts[0].product ? `/product/${editorialWithProducts[0].product.slug}` : editorialWithProducts[0].href} className="group block">
               <div className="relative aspect-[4/5] bg-ivory overflow-hidden mb-5">
                 <Image
-                  src={EDITORIAL_BLOCKS[0].image}
+                  src={editorialWithProducts[0].product?.images[0]?.url ?? getImagePlaceholder(700, 900)}
                   alt={EDITORIAL_BLOCKS[0].title}
                   fill
                   sizes="(max-width: 768px) 100vw, 58vw"
@@ -211,17 +231,17 @@ export default function HomePage() {
                 </div>
               </div>
               <p className="text-[10px] font-sans font-medium tracking-[0.2em] uppercase text-neutral-400 mb-2">
-                {EDITORIAL_BLOCKS[0].subtitle}
+                {editorialWithProducts[0].subtitle}
               </p>
               <h3 className="text-xl md:text-2xl font-serif text-obsidian group-hover:text-heritage-green transition-colors duration-300">
-                {EDITORIAL_BLOCKS[0].title}
+                {editorialWithProducts[0].title}
               </h3>
             </Link>
           </motion.div>
 
           {/* Two stacked right */}
           <div className="md:col-span-5 flex flex-col gap-4 md:gap-6">
-            {EDITORIAL_BLOCKS.slice(1).map((block, idx) => (
+            {editorialWithProducts.slice(1).map((block, idx) => (
               <motion.div
                 key={block.title}
                 initial={{ opacity: 0, y: 30 }}
@@ -229,10 +249,10 @@ export default function HomePage() {
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.6, delay: (idx + 1) * 0.15, ease }}
               >
-                <Link href={block.href} className="group block">
+                <Link href={block.product ? `/product/${block.product.slug}` : block.href} className="group block">
                   <div className="relative aspect-[5/4] bg-ivory overflow-hidden mb-4">
                     <Image
-                      src={block.image}
+                      src={block.product?.images[0]?.url ?? getImagePlaceholder(700, 900)}
                       alt={block.title}
                       fill
                       sizes="(max-width: 768px) 100vw, 40vw"
@@ -256,8 +276,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           NEW ARRIVALS — HORIZONTAL SCROLL
          ═══════════════════════════════════════════ */}
-      {newArrivals.length > 0 && (
-        <section className="bg-ivory py-24 md:py-32">
+      <section className="bg-ivory py-24 md:py-32">
           <div className="luxury-container">
             <div className="flex items-end justify-between mb-14">
               <motion.div
@@ -281,24 +300,35 @@ export default function HomePage() {
                 <ChevronRight size={12} />
               </Link>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
-              {newArrivals.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  slug={product.slug}
-                  name={product.name}
-                  brandName={product.brand.name}
-                  priceCents={product.basePriceCents}
-                  salePriceCents={product.salePriceCents}
-                  currency={product.currency}
-                  imageUrl={product.images[0]?.url ?? getImagePlaceholder(600, 800)}
-                  hoverImageUrl={product.images[1]?.url}
-                />
-              ))}
-            </div>
+            {isHomeLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                {Array.from({ length: 4 }).map((_, index) => <div key={index} className="aspect-[3/4] bg-white/70 animate-pulse" />)}
+              </div>
+            ) : newArrivals.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                {newArrivals.map((product) => (
+                  <ProductCard
+                    key={product.id}
+                    slug={product.slug}
+                    name={product.name}
+                    brandName={product.brand?.name ?? "The Heritage Edit"}
+                    priceCents={product.basePriceCents}
+                    salePriceCents={product.salePriceCents}
+                    currency={product.currency}
+                    imageUrl={product.images[0]?.url ?? getImagePlaceholder(600, 800)}
+                    hoverImageUrl={product.images[1]?.url}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="border border-dashed border-heritage-green/20 bg-white/50 px-6 py-14 text-center">
+                <p className="font-serif text-xl italic text-obsidian">Your next signature piece is on its way.</p>
+                <p className="mt-2 text-sm font-sans text-neutral-400">Newly published products will appear here first.</p>
+                <Link href="/shop" className="mt-6 inline-flex luxury-button-secondary">Explore the collection</Link>
+              </div>
+            )}
           </div>
         </section>
-      )}
 
       {/* ═══════════════════════════════════════════
           FEATURED PIECES — FULL LUXURY GRID
@@ -328,13 +358,13 @@ export default function HomePage() {
             </Link>
           </div>
           <div className="luxury-grid">
-            {featuredProducts.length > 0
-              ? featuredProducts.map((product) => (
+            {(featuredProducts.length > 0 ? featuredProducts : newArrivals).length > 0
+              ? (featuredProducts.length > 0 ? featuredProducts : newArrivals).map((product) => (
                   <ProductCard
                     key={product.id}
                     slug={product.slug}
                     name={product.name}
-                    brandName={product.brand.name}
+                    brandName={product.brand?.name ?? "The Heritage Edit"}
                     priceCents={product.basePriceCents}
                     salePriceCents={product.salePriceCents}
                     currency={product.currency}
