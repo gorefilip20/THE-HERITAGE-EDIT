@@ -6,8 +6,8 @@ import { BrandMark } from "@/components/brand/BrandMark";
 const FOOTER_LINKS = {
   "Client Services": [
     { href: "/contact", label: "Contact Us" },
-    { href: "/about", label: "Shipping & Delivery" },
-    { href: "/about", label: "Returns & Exchanges" },
+    { href: "/shipping-delivery", label: "Shipping & Delivery" },
+    { href: "/returns-exchanges", label: "Returns & Exchanges" },
     { href: "/about", label: "Size Guide" },
     { href: "/about", label: "FAQ" },
   ],
@@ -25,8 +25,8 @@ const FOOTER_LINKS = {
     { href: "/collection/heritage-classics", label: "Heritage Classics" },
   ],
   Legal: [
-    { href: "/about", label: "Terms & Conditions" },
-    { href: "/about", label: "Privacy Policy" },
+    { href: "/terms-conditions", label: "Terms & Conditions" },
+    { href: "/privacy-policy", label: "Privacy Policy" },
     { href: "/about", label: "Cookie Policy" },
   ],
 };
