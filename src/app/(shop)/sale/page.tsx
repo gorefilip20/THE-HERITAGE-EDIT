@@ -29,6 +29,7 @@ function SalePageContent() {
     const params = new URLSearchParams();
     params.set("pageSize", "24");
     params.set("tag", "sale");
+    params.set("compact", "true");
     if (discount) params.set("discount", discount);
     if (gender) params.set("gender", gender);
 

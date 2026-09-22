@@ -28,6 +28,7 @@ function KidsPageContent() {
     setLoading(true);
     const params = new URLSearchParams();
     params.set("pageSize", "12");
+    params.set("compact", "true");
     if (category) params.set("category", category);
     params.set("tag", "kids");
 

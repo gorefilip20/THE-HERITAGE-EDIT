@@ -87,6 +87,7 @@ export default function CollectionPage() {
     else params.set("collection", slug);
     params.set("sort", sort);
     params.set("pageSize", "24");
+    params.set("compact", "true");
 
     Object.entries(activeFilters).forEach(([key, values]) => {
       values.forEach((v) => params.append(key, v));

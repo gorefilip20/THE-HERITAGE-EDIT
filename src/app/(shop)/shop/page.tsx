@@ -188,6 +188,7 @@ function ShopPageInner() {
         const params = new URLSearchParams(searchParams.toString());
         params.set("pageSize", "24");
         if (!params.has("sort")) params.set("sort", "newest");
+        params.set("compact", "true");
 
         const res = await fetch(`/api/products?${params.toString()}`, {
           signal: controller.signal,
@@ -1004,4 +1005,3 @@ function ProductSkeleton() {
     </div>
   );
 }
-
