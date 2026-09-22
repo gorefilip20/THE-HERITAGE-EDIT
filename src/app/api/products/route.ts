@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import sharp from "sharp";
 import { prisma } from "@/lib/db";
 import { safeRedisGet, safeRedisSet, safeRedisKeys, safeRedisDel } from "@/lib/redis";
 import { createProductSchema } from "@/lib/validators";
@@ -7,6 +8,7 @@ import { getCurrentUser } from "@/lib/auth";
 
 const PRODUCT_CACHE_PREFIX = "products:";
 const PRODUCT_CACHE_TTL = 60 * 5; // 5 minutes
+const thumbnailCache = new Map<string, string>();
 
 function departmentSlug(department: string): string {
   return department.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
@@ -29,6 +31,55 @@ async function getCachedProducts(key: string) {
 
 async function setCachedProducts(key: string, data: unknown) {
   await safeRedisSet(key, JSON.stringify(data), PRODUCT_CACHE_TTL);
+}
+
+/**
+ * Admin uploads may be stored as inline data URLs. They are useful as the
+ * original source, but sending several originals in a catalog response makes
+ * the storefront feel blocked. Keep remote URLs untouched and create a small,
+ * cached WebP thumbnail only for compact storefront listings.
+ */
+async function toListingImage(url: string): Promise<string> {
+  if (!url.startsWith("data:image/")) return url;
+  const cached = thumbnailCache.get(url);
+  if (cached) return cached;
+
+  const comma = url.indexOf(",");
+  if (comma < 0) return url;
+  try {
+    const input = Buffer.from(url.slice(comma + 1), "base64");
+    const output = await sharp(input)
+      .resize({ width: 720, withoutEnlargement: true })
+      .webp({ quality: 72 })
+      .toBuffer();
+    const thumbnail = `data:image/webp;base64,${output.toString("base64")}`;
+    if (thumbnailCache.size >= 120) {
+      const oldest = thumbnailCache.keys().next().value;
+      if (oldest) thumbnailCache.delete(oldest);
+    }
+    thumbnailCache.set(url, thumbnail);
+    return thumbnail;
+  } catch (error) {
+    console.error("Product thumbnail optimization failed:", error);
+    return url;
+  }
+}
+
+async function compactListingProducts(products: any[]) {
+  return Promise.all(
+    products.map(async (product) => ({
+      ...product,
+      images: await Promise.all(
+        (product.images ?? []).map(async (image: { url: string; alt: string | null }) => ({
+          ...image,
+          url: await toListingImage(image.url),
+        })),
+      ),
+      // Listing cards do not need variants or generated narratives.
+      variants: [],
+      heritage: null,
+    })),
+  );
 }
 
 export async function GET(request: NextRequest) {
@@ -55,6 +106,7 @@ export async function GET(request: NextRequest) {
   const sort = searchParams.get("sort");
   const search = searchParams.get("search");
   const featured = searchParams.get("featured");
+  const compact = searchParams.get("compact") === "true";
 
   /* ── Cache lookup ── */
   const cacheKey = buildCacheKey(searchParams);
@@ -205,7 +257,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     const responseData = {
-      data: products,
+      data: compact ? await compactListingProducts(products) : products,
       total,
       page,
       pageSize,

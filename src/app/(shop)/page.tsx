@@ -60,9 +60,9 @@ export default function HomePage() {
     const loadHomeProducts = async () => {
       try {
         const responses = await Promise.all([
-          fetch("/api/products?featured=true&pageSize=8"),
-          fetch("/api/products?sort=newest&pageSize=8"),
-          ...EDITORIAL_BLOCKS.map((block) => fetch(`/api/products?${block.query}&pageSize=1`)),
+          fetch("/api/products?featured=true&pageSize=8&compact=true"),
+          fetch("/api/products?sort=newest&pageSize=8&compact=true"),
+          ...EDITORIAL_BLOCKS.map((block) => fetch(`/api/products?${block.query}&pageSize=1&compact=true`)),
         ]);
         const payloads = await Promise.all(responses.map((response) => response.json()));
         setFeaturedProducts(payloads[0]?.data ?? []);
