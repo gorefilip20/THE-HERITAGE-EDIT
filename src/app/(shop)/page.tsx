@@ -59,17 +59,16 @@ export default function HomePage() {
   useEffect(() => {
     const loadHomeProducts = async () => {
       try {
-        const responses = await Promise.all([
-          fetch("/api/products?featured=true&pageSize=8&compact=true"),
-          fetch("/api/products?sort=newest&pageSize=8&compact=true"),
-          ...EDITORIAL_BLOCKS.map((block) => fetch(`/api/products?${block.query}&pageSize=1&compact=true`)),
-        ]);
-        const payloads = await Promise.all(responses.map((response) => response.json()));
-        setFeaturedProducts(payloads[0]?.data ?? []);
-        setNewArrivals(payloads[1]?.data ?? []);
+        // One deferred catalogue request keeps the first paint responsive on
+        // shared hosting. Editorial cards gracefully fall back to these items.
+        const response = await fetch("/api/products?sort=newest&pageSize=8&compact=true");
+        const payload = await response.json();
+        const products = payload?.data ?? [];
+        setFeaturedProducts(products);
+        setNewArrivals(products);
         const nextEditorial: Record<string, Product[]> = {};
         EDITORIAL_BLOCKS.forEach((block, index) => {
-          nextEditorial[block.key] = payloads[index + 2]?.data ?? [];
+          nextEditorial[block.key] = products[index] ? [products[index]] : [];
         });
         setEditorialProducts(nextEditorial);
       } catch {
@@ -78,7 +77,26 @@ export default function HomePage() {
         setIsHomeLoading(false);
       }
     };
-    void loadHomeProducts();
+    let cancelled = false;
+    const run = () => {
+      if (!cancelled) void loadHomeProducts();
+    };
+    const browserWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    const usesIdleCallback = typeof browserWindow.requestIdleCallback === "function";
+    const idleWindow = usesIdleCallback
+      ? browserWindow.requestIdleCallback(run, { timeout: 1200 })
+      : globalThis.setTimeout(run, 250);
+    return () => {
+      cancelled = true;
+      if (usesIdleCallback && typeof browserWindow.cancelIdleCallback === "function") {
+        browserWindow.cancelIdleCallback(idleWindow as number);
+      } else {
+        globalThis.clearTimeout(idleWindow);
+      }
+    };
   }, []);
 
   const editorialWithProducts = EDITORIAL_BLOCKS.map((block, index) => ({
@@ -98,26 +116,26 @@ export default function HomePage() {
           <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-[#d9c4e8]/50 blur-3xl" />
         </div>
 
-        <div className="luxury-container relative grid min-h-[calc(100svh-88px)] items-center gap-10 py-12 md:grid-cols-[0.92fr_1.08fr] md:gap-16 md:py-20 lg:min-h-[760px]">
+        <div className="luxury-container relative grid items-center gap-8 py-10 sm:py-12 md:min-h-[640px] md:grid-cols-[0.92fr_1.08fr] md:gap-16 md:py-16 lg:min-h-[700px]">
           <motion.div
             initial={{ opacity: 0, x: -24 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease }}
             className="relative z-10 max-w-xl"
           >
-            <div className="mb-7 flex items-center gap-3">
+            <div className="mb-5 flex items-center gap-3 md:mb-7">
               <span className="h-px w-10 bg-heritage-green" />
               <p className="text-[10px] font-sans font-semibold tracking-[0.34em] uppercase text-heritage-green">
                 The finest edit in African fashion
               </p>
             </div>
-            <h1 className="max-w-[11ch] text-[clamp(4rem,13vw,8.5rem)] font-serif font-medium leading-[0.84] tracking-[-0.06em] text-obsidian">
+            <h1 className="max-w-[11ch] text-[clamp(3.35rem,13vw,8.5rem)] font-serif font-medium leading-[0.86] tracking-[-0.06em] text-obsidian">
               Wear your <span className="text-heritage-purple italic">heritage.</span>
             </h1>
-            <p className="mt-8 max-w-md text-[15px] font-sans leading-[1.75] text-obsidian/65 md:text-[17px]">
+            <p className="mt-5 max-w-md text-[14px] font-sans leading-[1.65] text-obsidian/65 md:mt-8 md:text-[17px] md:leading-[1.75]">
               Curated fashion, fearless design, and hand-finished pieces from Africa&apos;s most compelling designers — delivered to wherever you are.
             </p>
-            <div className="mt-9 flex flex-wrap items-center gap-3">
+            <div className="mt-6 flex flex-wrap items-center gap-3 md:mt-9">
               <Link
                 href="/shop"
                 className="luxury-button-primary group bg-heritage-green px-7 shadow-[0_14px_30px_rgba(26,58,42,0.18)] hover:bg-heritage-green-600"
@@ -133,7 +151,7 @@ export default function HomePage() {
                 <ChevronRight size={14} />
               </Link>
             </div>
-            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2 text-[10px] font-sans font-medium tracking-[0.14em] uppercase text-obsidian/45">
+            <div className="mt-7 flex flex-wrap gap-x-4 gap-y-2 text-[9px] font-sans font-medium tracking-[0.12em] uppercase text-obsidian/45 md:mt-10 md:gap-x-6 md:text-[10px]">
               <span>Worldwide delivery</span>
               <span>Secure checkout</span>
               <span>Authentic craft</span>
@@ -144,23 +162,23 @@ export default function HomePage() {
             initial={{ opacity: 0, scale: 0.96, rotate: 1 }}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 1, delay: 0.12, ease }}
-            className="relative mx-auto w-full max-w-[620px]"
+            className="relative mx-auto w-full max-w-[620px] md:mt-0"
           >
-            <div className="relative aspect-[0.82] overflow-hidden rounded-[2px] bg-heritage-green shadow-[0_28px_80px_rgba(46,26,71,0.2)]">
+            <div className="relative mx-auto aspect-[0.98] w-[min(88vw,420px)] overflow-hidden rounded-[2px] bg-heritage-green shadow-[0_20px_55px_rgba(46,26,71,0.18)] md:aspect-[0.82] md:w-full md:shadow-[0_28px_80px_rgba(46,26,71,0.2)]">
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_28%_22%,rgba(244,234,220,0.92)_0_11%,transparent_11.5%),radial-gradient(circle_at_74%_70%,rgba(213,164,177,0.8)_0_16%,transparent_16.5%),linear-gradient(132deg,#1a3a2a_0%,#2e1a47_52%,#b7635f_100%)]" />
               <div className="absolute -right-16 top-10 h-[72%] w-[58%] rotate-[18deg] rounded-[48%_52%_42%_58%] border-[26px] border-[#e9b8a6]/80 opacity-90" />
               <div className="absolute -left-16 bottom-[-12%] h-[70%] w-[70%] -rotate-[28deg] rounded-[45%] border-[32px] border-[#d9c4e8]/70" />
               <div className="absolute inset-x-7 top-7 bottom-7 border border-white/30" />
               <div className="absolute left-8 top-8 text-[9px] font-sans font-semibold tracking-[0.3em] uppercase text-white/75">T H E  E D I T</div>
-              <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between text-white">
+              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between text-white md:bottom-8 md:left-8 md:right-8">
                 <div>
                   <p className="text-[10px] font-sans font-semibold tracking-[0.3em] uppercase text-white/60">New season / 01</p>
-                  <p className="mt-2 max-w-[9ch] text-4xl font-serif italic leading-[0.9] md:text-6xl">Crafted to be remembered.</p>
+                  <p className="mt-2 max-w-[9ch] text-3xl font-serif italic leading-[0.9] md:text-6xl">Crafted to be remembered.</p>
                 </div>
                 <span className="mb-1 flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-white/10 backdrop-blur-sm"><ArrowRight size={16} /></span>
               </div>
             </div>
-            <div className="absolute -bottom-5 -left-3 rounded-sm bg-white px-4 py-3 shadow-xl md:-left-8">
+            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 rounded-sm bg-white px-3 py-2 shadow-xl md:-bottom-5 md:left-auto md:-left-8 md:translate-x-0 md:px-4 md:py-3">
               <p className="text-[9px] font-sans font-semibold tracking-[0.2em] uppercase text-heritage-purple">Curated globally</p>
               <p className="mt-1 font-serif text-lg text-obsidian">Rooted in Africa</p>
             </div>
@@ -169,10 +187,24 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section className="border-b border-slate-border bg-white py-4 md:py-5">
+        <div className="luxury-container flex flex-wrap items-center justify-center gap-x-5 gap-y-2 md:justify-between">
+          <p className="w-full text-center text-[10px] font-sans font-semibold tracking-[0.22em] uppercase text-neutral-400 md:w-auto md:text-left">
+            Shop the latest edit
+          </p>
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+            <Link href="/shop?sort=newest" className="rounded-full border border-heritage-green/30 px-4 py-2 text-[10px] font-sans font-semibold tracking-[0.14em] uppercase text-heritage-green transition-colors hover:bg-heritage-green hover:text-white">New arrivals</Link>
+            <Link href="/collection/women" className="rounded-full border border-slate-border px-4 py-2 text-[10px] font-sans font-semibold tracking-[0.14em] uppercase text-obsidian transition-colors hover:border-heritage-green hover:text-heritage-green">Women</Link>
+            <Link href="/collection/men" className="rounded-full border border-slate-border px-4 py-2 text-[10px] font-sans font-semibold tracking-[0.14em] uppercase text-obsidian transition-colors hover:border-heritage-green hover:text-heritage-green">Men</Link>
+            <Link href="/life" className="rounded-full border border-slate-border px-4 py-2 text-[10px] font-sans font-semibold tracking-[0.14em] uppercase text-obsidian transition-colors hover:border-heritage-green hover:text-heritage-green">Life</Link>
+          </div>
+        </div>
+      </section>
+
       {/* ═══════════════════════════════════════════
           BRAND MARQUEE
          ═══════════════════════════════════════════ */}
-      <section className="border-y border-slate-border bg-ivory py-6 overflow-hidden">
+      <section className="border-y border-slate-border bg-ivory py-3 overflow-hidden md:py-5">
         <div className="flex animate-marquee whitespace-nowrap">
           {[...BRAND_MARQUEE, ...BRAND_MARQUEE].map((brand, i) => (
             <span
