@@ -16,7 +16,7 @@ export default function PrivacyPolicyPage() {
         { title: "Data collection", paragraphs: ["We collect customer details including name, email address, phone number, and shipping address solely to process orders and provide customer support."] },
         { title: "Data protection", paragraphs: ["Customer payment details are handled securely by regulated payment processors. We do not store full credit or debit card numbers."] },
         { title: "Data sharing", paragraphs: ["Personal information is never sold, traded, or rented to third parties. Information may be handled by trusted service providers only when necessary to process an order, deliver a package, or provide customer support."] },
-        { title: "Privacy questions", paragraphs: ["Queries regarding personal data can be directed to officialtheheritageedit@gmail.com."] },
+        { title: "Privacy questions", paragraphs: ["Queries regarding personal data can be directed to hello@theheritageedit.com."] },
       ]}
     />
   );

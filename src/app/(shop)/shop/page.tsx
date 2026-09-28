@@ -97,6 +97,7 @@ function ShopPageInner() {
   const [totalProducts, setTotalProducts] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [brands, setBrands] = useState<BrandOption[]>([]);
   const [categories, setCategories] = useState<CategoryOption[]>([]);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
@@ -182,6 +183,7 @@ function ShopPageInner() {
   useEffect(() => {
     const controller = new AbortController();
     setLoading(true);
+    setLoadError(null);
 
     const fetchProducts = async () => {
       try {
@@ -202,6 +204,9 @@ function ShopPageInner() {
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
           console.error("Failed to load products:", err);
+          setProducts([]);
+          setTotalProducts(0);
+          setLoadError("We couldn't load the collection. Please try again.");
         }
       } finally {
         setLoading(false);
@@ -542,6 +547,15 @@ function ShopPageInner() {
                 {Array.from({ length: 12 }).map((_, i) => (
                   <ProductSkeleton key={i} />
                 ))}
+              </div>
+            ) : loadError ? (
+              <div className="py-24 text-center">
+                <p className="text-lg font-serif text-obsidian mb-2">The collection is temporarily unavailable</p>
+                <p className="text-sm font-sans text-neutral-400 mb-6 max-w-md mx-auto">{loadError}</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="luxury-button-secondary"
+                >Try again</button>
               </div>
             ) : products.length === 0 ? (
               /* Empty state */

@@ -64,7 +64,7 @@ export function PolicyPage({ eyebrow, title, intro, updated = "Effective immedia
               </section>
             ))}
             <div className="border border-heritage-green/20 bg-white/60 p-6 text-sm font-sans leading-7 text-obsidian/65">
-              Questions? Contact <a className="font-medium text-heritage-green underline underline-offset-4" href="mailto:officialtheheritageedit@gmail.com">officialtheheritageedit@gmail.com</a>.
+              Questions? Contact <a className="font-medium text-heritage-green underline underline-offset-4" href="mailto:hello@theheritageedit.com">hello@theheritageedit.com</a>.
             </div>
           </article>
         </div>

@@ -37,7 +37,9 @@ async function setCachedProducts(key: string, data: unknown) {
  * Admin uploads may be stored as inline data URLs. They are useful as the
  * original source, but sending several originals in a catalog response makes
  * the storefront feel blocked. Keep remote URLs untouched and create a small,
- * cached WebP thumbnail only for compact storefront listings.
+ * cached WebP thumbnail only for compact storefront listings. Keep these
+ * thumbnails deliberately small because some products are stored as inline
+ * data URLs in the database and the catalogue is used on mobile networks.
  */
 async function toListingImage(url: string): Promise<string> {
   if (!url.startsWith("data:image/")) return url;
@@ -49,8 +51,8 @@ async function toListingImage(url: string): Promise<string> {
   try {
     const input = Buffer.from(url.slice(comma + 1), "base64");
     const output = await sharp(input)
-      .resize({ width: 720, withoutEnlargement: true })
-      .webp({ quality: 72 })
+      .resize({ width: 480, withoutEnlargement: true })
+      .webp({ quality: 60, effort: 5 })
       .toBuffer();
     const thumbnail = `data:image/webp;base64,${output.toString("base64")}`;
     if (thumbnailCache.size >= 120) {

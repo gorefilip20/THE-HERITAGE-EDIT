@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Phone, MapPin, Send, Check, Clock } from "lucide-react";
+import { Mail, MapPin, Send, Check, Clock } from "lucide-react";
 
 export default function ContactPage() {
   const [formData, setFormData] = useState({
@@ -16,9 +16,7 @@ export default function ContactPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    // Simulate submission
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setSubmitted(true);
+    window.location.href = `mailto:hello@theheritageedit.com?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(`${formData.name}\n${formData.email}\n\n${formData.message}`)}`;
     setLoading(false);
   }
 
@@ -56,15 +54,6 @@ export default function ContactPage() {
                   <a href="mailto:hello@theheritageedit.com" className="text-sm text-neutral-500 hover:text-[#0D2C22] transition-colors">
                     hello@theheritageedit.com
                   </a>
-                </div>
-              </div>
-              <div className="flex items-start gap-4 p-4 rounded-xl bg-white border border-neutral-200">
-                <div className="p-2 rounded-lg bg-blue-50">
-                  <Phone size={18} className="text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-neutral-800">Phone</p>
-                  <p className="text-sm text-neutral-500">+1 (555) 000-0000</p>
                 </div>
               </div>
               <div className="flex items-start gap-4 p-4 rounded-xl bg-white border border-neutral-200">

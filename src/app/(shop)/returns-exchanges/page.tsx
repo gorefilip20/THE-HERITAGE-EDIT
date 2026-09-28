@@ -15,7 +15,7 @@ export default function ReturnsExchangesPage() {
       sections={[
         { title: "Return window", paragraphs: ["Customers may request a return or exchange within 7 days of receiving their package."] },
         { title: "Condition of returned items", items: ["Items must be unworn, unwashed, and unused.", "Items must be returned in their original packaging with all tags attached."] },
-        { title: "How to initiate a return", paragraphs: ["Contact officialtheheritageedit@gmail.com with your order number to initiate a return or exchange. Our support team will provide the next steps."] },
+        { title: "How to initiate a return", paragraphs: ["Contact hello@theheritageedit.com with your order number to initiate a return or exchange. Our support team will provide the next steps."] },
         { title: "Non-returnable items", paragraphs: ["Final sale items, swimwear, and intimate apparel are non-returnable for hygiene reasons."] },
         { title: "Return shipping costs", paragraphs: ["Return shipping costs are covered by the customer unless the item delivered was defective or incorrect."] },
       ]}
