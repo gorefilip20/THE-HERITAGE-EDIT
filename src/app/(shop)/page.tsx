@@ -50,6 +50,23 @@ const BRAND_MARQUEE = [
   "Orange Culture",
 ];
 
+const EDITORIAL_ART = [
+  "bg-[radial-gradient(circle_at_22%_25%,rgba(244,234,220,0.95)_0_10%,transparent_10.5%),radial-gradient(circle_at_78%_70%,rgba(213,164,177,0.78)_0_18%,transparent_18.5%),linear-gradient(135deg,#1a3a2a,#2e1a47_58%,#b7635f)]",
+  "bg-[radial-gradient(circle_at_70%_22%,rgba(244,234,220,0.9)_0_12%,transparent_12.5%),linear-gradient(145deg,#b7635f,#d9c4e8_52%,#1a3a2a)]",
+  "bg-[radial-gradient(circle_at_35%_72%,rgba(244,234,220,0.88)_0_14%,transparent_14.5%),linear-gradient(135deg,#2e1a47,#b7635f_52%,#d9c4e8)]",
+];
+
+const SOCIAL_ART = [
+  "bg-[linear-gradient(145deg,#1a3a2a_0%,#2e1a47_55%,#d9c4e8_55%,#e9b8a6_100%)]",
+  "bg-[radial-gradient(circle_at_30%_30%,#f4eadc_0_14%,transparent_14.5%),linear-gradient(135deg,#b7635f,#2e1a47)]",
+  "bg-[linear-gradient(35deg,#d9c4e8_0_34%,#1a3a2a_34%_68%,#e9b8a6_68%)]",
+  "bg-[radial-gradient(circle_at_70%_28%,#e9b8a6_0_18%,transparent 18.5%),linear-gradient(150deg,#1a3a2a,#b7635f)]",
+  "bg-[linear-gradient(125deg,#2e1a47_0_42%,#f4eadc_42%_67%,#1a3a2a_67%)]",
+  "bg-[radial-gradient(circle_at_25%_75%,#d9c4e8_0_18%,transparent 18.5%),linear-gradient(135deg,#b7635f,#f4eadc)]",
+  "bg-[linear-gradient(155deg,#1a3a2a,#e9b8a6_50%,#2e1a47_50%)]",
+  "bg-[radial-gradient(circle_at_68%_68%,#f4eadc_0_15%,transparent 15.5%),linear-gradient(135deg,#d9c4e8,#1a3a2a)]",
+];
+
 export default function HomePage() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [newArrivals, setNewArrivals] = useState<Product[]>([]);
@@ -220,7 +237,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           EDITORIAL TRIO — ASYMMETRIC GRID
          ═══════════════════════════════════════════ */}
-      <section className="luxury-container py-24 md:py-32">
+      <section className="luxury-container py-16 md:py-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -247,13 +264,20 @@ export default function HomePage() {
           >
             <Link href={editorialWithProducts[0].product ? `/product/${editorialWithProducts[0].product.slug}` : editorialWithProducts[0].href} className="group block">
               <div className="relative aspect-[4/5] bg-ivory overflow-hidden mb-5">
-                <Image
-                  src={editorialWithProducts[0].product?.images[0]?.url ?? getImagePlaceholder(700, 900)}
-                  alt={EDITORIAL_BLOCKS[0].title}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 58vw"
-                  className="object-cover transition-transform duration-1000 ease-luxury group-hover:scale-[1.03]"
-                />
+                {editorialWithProducts[0].product?.images[0]?.url ? (
+                  <Image
+                    src={editorialWithProducts[0].product.images[0].url}
+                    alt={EDITORIAL_BLOCKS[0].title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 58vw"
+                    className="object-cover transition-transform duration-1000 ease-luxury group-hover:scale-[1.03]"
+                  />
+                ) : (
+                  <div className={`absolute inset-0 ${EDITORIAL_ART[0]}`} aria-hidden="true">
+                    <span className="absolute left-7 top-7 border border-white/30 px-3 py-2 text-[9px] font-sans font-semibold tracking-[0.28em] uppercase text-white/75">The Edit / 01</span>
+                    <span className="absolute bottom-8 left-7 max-w-[8ch] font-serif text-4xl italic leading-[0.9] text-white md:text-6xl">Regal presence.</span>
+                  </div>
+                )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                 <div className="absolute bottom-0 left-0 right-0 p-8 translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 ease-luxury">
                   <span className="inline-flex items-center gap-2 text-[11px] font-sans font-medium tracking-[0.2em] uppercase text-white">
@@ -283,13 +307,20 @@ export default function HomePage() {
               >
                 <Link href={block.product ? `/product/${block.product.slug}` : block.href} className="group block">
                   <div className="relative aspect-[5/4] bg-ivory overflow-hidden mb-4">
-                    <Image
-                      src={block.product?.images[0]?.url ?? getImagePlaceholder(700, 900)}
-                      alt={block.title}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 40vw"
-                      className="object-cover transition-transform duration-1000 ease-luxury group-hover:scale-[1.03]"
-                    />
+                    {block.product?.images[0]?.url ? (
+                      <Image
+                        src={block.product.images[0].url}
+                        alt={block.title}
+                        fill
+                        sizes="(max-width: 768px) 100vw, 40vw"
+                        className="object-cover transition-transform duration-1000 ease-luxury group-hover:scale-[1.03]"
+                      />
+                    ) : (
+                      <div className={`absolute inset-0 ${EDITORIAL_ART[idx + 1]}`} aria-hidden="true">
+                        <span className="absolute left-5 top-5 border border-white/30 px-2 py-1 text-[8px] font-sans font-semibold tracking-[0.24em] uppercase text-white/75">The Edit / 0{idx + 2}</span>
+                        <span className="absolute bottom-5 left-5 max-w-[10ch] font-serif text-2xl italic leading-[0.95] text-white md:text-3xl">{block.subtitle}</span>
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
                   </div>
                   <p className="text-[10px] font-sans font-medium tracking-[0.2em] uppercase text-neutral-400 mb-1.5">
@@ -308,7 +339,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           NEW ARRIVALS — HORIZONTAL SCROLL
          ═══════════════════════════════════════════ */}
-      <section className="bg-ivory py-24 md:py-32">
+      <section className="bg-ivory py-16 md:py-24">
           <div className="luxury-container">
             <div className="flex items-end justify-between mb-14">
               <motion.div
@@ -365,7 +396,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           FEATURED PIECES — FULL LUXURY GRID
          ═══════════════════════════════════════════ */}
-      <section className="py-24 md:py-32">
+      <section className="py-16 md:py-24">
         <div className="luxury-container">
           <div className="flex items-end justify-between mb-14">
             <motion.div
@@ -420,15 +451,12 @@ export default function HomePage() {
           SPLIT EDITORIAL — TWO HALVES
          ═══════════════════════════════════════════ */}
       <section className="relative">
-        <div className="grid grid-cols-1 md:grid-cols-2 min-h-[600px] md:min-h-[700px]">
-          {/* Left: Image */}
-          <div className="relative aspect-square md:aspect-auto overflow-hidden">
-            <Image
-              src={getImagePlaceholder(960, 700)}
-              alt="Heritage craftsmanship"
-              fill
-              className="object-cover"
-            />
+        <div className="grid grid-cols-1 md:grid-cols-2 min-h-[360px] md:min-h-[520px]">
+          {/* Left: Branded visual */}
+          <div className="relative min-h-[300px] overflow-hidden bg-[radial-gradient(circle_at_26%_30%,rgba(244,234,220,0.95)_0_12%,transparent_12.5%),radial-gradient(circle_at_76%_70%,rgba(213,164,177,0.85)_0_20%,transparent_20.5%),linear-gradient(135deg,#2e1a47,#b7635f_52%,#1a3a2a)]">
+            <div className="absolute inset-7 border border-white/25" />
+            <p className="absolute left-8 top-8 text-[9px] font-sans font-semibold tracking-[0.3em] uppercase text-white/70">Craft / Culture / Future</p>
+            <p className="absolute bottom-8 left-8 max-w-[8ch] font-serif text-4xl italic leading-[0.9] text-white md:text-6xl">Made to be remembered.</p>
           </div>
           {/* Right: Content */}
           <div className="bg-heritage-green flex items-center">
@@ -437,7 +465,7 @@ export default function HomePage() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.7, ease }}
-              className="px-10 md:px-16 lg:px-24 py-16 md:py-0 max-w-lg"
+              className="max-w-lg px-8 py-12 md:px-12 lg:px-20 md:py-0"
             >
               <p className="text-[10px] font-sans font-medium tracking-[0.4em] uppercase text-white/30 mb-5">
                 Our Philosophy
@@ -445,7 +473,7 @@ export default function HomePage() {
               <h2 className="text-display-sm md:text-display-md font-serif italic text-white mb-6 leading-tight">
                 Every thread carries the wisdom of generations
               </h2>
-              <p className="text-[14px] font-sans text-white/50 leading-[1.9] mb-10">
+              <p className="mb-7 text-[14px] font-sans leading-[1.75] text-white/50 md:mb-10">
                 From the Kente looms of Ghana to the Adire dye pits of
                 Nigeria, every piece in our collection carries a story of
                 cultural heritage. We connect you with Africa&apos;s finest
@@ -467,7 +495,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           HERITAGE PROMISE — TRUST BAR
          ═══════════════════════════════════════════ */}
-      <section className="bg-ivory border-y border-slate-border py-16 md:py-20">
+      <section className="border-y border-slate-border bg-ivory py-10 md:py-14">
         <div className="luxury-container">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
             {[
@@ -504,7 +532,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           CUSTOMER REVIEWS — SOCIAL PROOF
          ═══════════════════════════════════════════ */}
-      <section className="py-24 md:py-32">
+      <section className="py-16 md:py-24">
         <div className="luxury-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -528,21 +556,21 @@ export default function HomePage() {
                 location: "Lagos, Nigeria",
                 rating: 5,
                 text: "The quality is exceptional. Every piece feels like an investment in my heritage. The craftsmanship is unmatched.",
-                image: getImagePlaceholder(80, 80),
+                initials: "AO",
               },
               {
                 name: "Zainab Hassan",
                 location: "London, UK",
                 rating: 5,
                 text: "I'm obsessed! The Ankara collection is stunning and the customer service is incredibly responsive. Highly recommend!",
-                image: getImagePlaceholder(80, 80),
+                initials: "ZH",
               },
               {
                 name: "Kwame Mensah",
                 location: "New York, USA",
                 rating: 5,
                 text: "Finally, a platform that celebrates African fashion with the luxury it deserves. The Heritage Edit is revolutionary.",
-                image: getImagePlaceholder(80, 80),
+                initials: "KM",
               },
             ].map((review, idx) => (
               <motion.div
@@ -562,14 +590,8 @@ export default function HomePage() {
                   "{review.text}"
                 </p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-neutral-300 overflow-hidden">
-                    <Image
-                      src={review.image}
-                      alt={review.name}
-                      width={40}
-                      height={40}
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-heritage-green text-[10px] font-sans font-semibold tracking-[0.12em] text-white">
+                    {review.initials}
                   </div>
                   <div>
                     <p className="text-[12px] font-sans font-medium text-obsidian">{review.name}</p>
@@ -585,7 +607,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           INSTAGRAM GALLERY — SOCIAL INTEGRATION
          ═══════════════════════════════════════════ */}
-      <section className="bg-ivory py-24 md:py-32">
+      <section className="bg-ivory py-16 md:py-24">
         <div className="luxury-container">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -613,18 +635,12 @@ export default function HomePage() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.05 }}
-                className="relative aspect-square bg-neutral-200 overflow-hidden group cursor-pointer"
+                className={`group relative aspect-square overflow-hidden ${SOCIAL_ART[i]}`}
               >
-                <Image
-                  src={getImagePlaceholder(400, 400)}
-                  alt={`Instagram post ${i + 1}`}
-                  fill
-                  className="object-cover group-hover:scale-110 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
-                  <span className="text-white opacity-0 group-hover:opacity-100 transition-opacity text-[12px] font-sans font-medium">
-                    View on Instagram
-                  </span>
+                <div className="absolute inset-4 border border-white/30" />
+                <div className="absolute bottom-4 left-4 right-4 flex items-end justify-between text-white">
+                  <span className="text-[9px] font-sans font-semibold tracking-[0.22em] uppercase text-white/80">Heritage / 0{i + 1}</span>
+                  <span className="text-lg font-serif italic">@theheritageedit</span>
                 </div>
               </motion.div>
             ))}
@@ -647,7 +663,7 @@ export default function HomePage() {
       {/* ═══════════════════════════════════════════
           NEWSLETTER — ELEGANT CTA
          ═══════════════════════════════════════════ */}
-      <section className="bg-heritage-purple py-24 md:py-32">
+      <section className="bg-heritage-purple py-16 md:py-24">
         <div className="luxury-container text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
