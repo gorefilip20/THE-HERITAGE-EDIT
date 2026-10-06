@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { generateOrderNumber } from "@/lib/utils";
+import { PAYSTACK_API_URL, PAYSTACK_SECRET_KEY } from "@/lib/paystack";
 import { z } from "zod";
 
-const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY ?? "";
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://heritageedit.com";
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://theheritageedit.shop";
 
 const checkoutItemSchema = z.object({
   productId: z.string().min(1),
@@ -32,7 +32,7 @@ const paystackCheckoutSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    if (!PAYSTACK_SECRET) {
+    if (!PAYSTACK_SECRET_KEY) {
       return NextResponse.json(
         { error: "Paystack is not configured" },
         { status: 503 },
@@ -164,14 +164,17 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    const amountInMinorUnit = subtotalCents;
+    // Paystack expects the smallest currency unit: NGN 1 = 100 kobo.
+    // Product and order prices are stored as major-currency cents, so this
+    // value is already the integer minor-unit amount for supported currencies.
+    const amountInMinorUnit = order.totalCents;
 
     const paystackRes = await fetch(
-      "https://api.paystack.co/transaction/initialize",
+      `${PAYSTACK_API_URL}/transaction/initialize`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${PAYSTACK_SECRET}`,
+          Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -179,7 +182,7 @@ export async function POST(request: NextRequest) {
           amount: amountInMinorUnit,
           currency,
           reference: order.orderNumber,
-          callback_url: `${APP_URL}/success?provider=paystack&order=${order.orderNumber}`,
+          callback_url: `${APP_URL}/paystack/callback?order=${encodeURIComponent(order.orderNumber)}`,
           metadata: {
             orderId: order.id,
             orderNumber: order.orderNumber,

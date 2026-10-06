@@ -1,83 +1,67 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import crypto from "crypto";
+import { capturePaidOrder, PAYSTACK_SECRET_KEY, verifyPaystackTransaction } from "@/lib/paystack";
+import { prisma } from "@/lib/db";
 
-const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY ?? "";
-
-function verifyPaystackSignature(
-  body: string,
-  signature: string,
-): boolean {
-  const hash = crypto
-    .createHmac("sha512", PAYSTACK_SECRET)
+function verifyPaystackSignature(body: string, signature: string): boolean {
+  if (!PAYSTACK_SECRET_KEY || !signature) return false;
+  const expected = crypto
+    .createHmac("sha512", PAYSTACK_SECRET_KEY)
     .update(body)
     .digest("hex");
-  return hash === signature;
+  const expectedBuffer = Buffer.from(expected, "utf8");
+  const signatureBuffer = Buffer.from(signature, "utf8");
+  return expectedBuffer.length === signatureBuffer.length && crypto.timingSafeEqual(expectedBuffer, signatureBuffer);
 }
 
 export async function POST(request: NextRequest) {
+  const rawBody = await request.text();
+  const signature = request.headers.get("x-paystack-signature") ?? "";
+
+  if (!verifyPaystackSignature(rawBody, signature)) {
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  }
+
   try {
-    const rawBody = await request.text();
-    const signature = request.headers.get("x-paystack-signature") ?? "";
+    const event = JSON.parse(rawBody) as {
+      event?: string;
+      data?: { reference?: string };
+    };
 
-    if (!verifyPaystackSignature(rawBody, signature)) {
-      return NextResponse.json(
-        { error: "Invalid signature" },
-        { status: 401 },
-      );
+    if (event.event !== "charge.success" || !event.data?.reference) {
+      return NextResponse.json({ received: true });
     }
 
-    const event = JSON.parse(rawBody);
-
-    if (event.event === "charge.success") {
-      const { reference, metadata } = event.data;
-      const orderId = metadata?.orderId;
-      const orderRef = reference as string;
-
-      const order = await prisma.order.findFirst({
-        where: orderId
-          ? { id: orderId }
-          : { orderNumber: orderRef },
-        include: { items: true },
-      });
-
-      if (!order) {
-        console.error(`[Paystack Webhook] Order not found: ${orderRef}`);
-        return NextResponse.json({ received: true });
-      }
-
-      if (order.paymentStatus === "CAPTURED") {
-        return NextResponse.json({ received: true });
-      }
-
-      await prisma.$transaction(async (tx) => {
-        await tx.order.update({
-          where: { id: order.id },
-          data: {
-            status: "CONFIRMED",
-            paymentStatus: "CAPTURED",
-            stripePaymentId: event.data.id?.toString() ?? null,
-          },
-        });
-
-        for (const item of order.items) {
-          if (item.variantId) {
-            await tx.productVariant.update({
-              where: { id: item.variantId },
-              data: { stockCount: { decrement: item.quantity } },
-            });
-          }
-        }
-      });
-
-      console.log(
-        `[Paystack Webhook] Order ${order.orderNumber} confirmed — payment successful`,
-      );
+    // Do not trust the webhook payload alone. Verify the transaction directly
+    // with Paystack before changing the order or decrementing stock.
+    const verified = await verifyPaystackTransaction(event.data.reference);
+    const payment = verified.data;
+    if (payment?.status !== "success" || payment.reference !== event.data.reference) {
+      return NextResponse.json({ error: "Transaction not successful" }, { status: 400 });
     }
 
+    const order = await prisma.order.findUnique({
+      where: { orderNumber: event.data.reference },
+      select: { id: true, totalCents: true, currency: true },
+    });
+    if (!order) {
+      console.error(`[Paystack Webhook] Order not found: ${event.data.reference}`);
+      return NextResponse.json({ received: true });
+    }
+
+    if (
+      payment.amount !== order.totalCents ||
+      (payment.currency && payment.currency !== order.currency)
+    ) {
+      console.error(`[Paystack Webhook] Amount/currency mismatch for ${event.data.reference}`);
+      return NextResponse.json({ error: "Transaction does not match order" }, { status: 400 });
+    }
+
+    await capturePaidOrder(order.id, event.data.reference);
+    console.log(`[Paystack Webhook] Order ${event.data.reference} confirmed`);
     return NextResponse.json({ received: true });
-  } catch (err) {
-    console.error("[Paystack Webhook] Error:", err);
-    return NextResponse.json({ received: true });
+  } catch (error) {
+    console.error("[Paystack Webhook] Error:", error);
+    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
   }
 }
