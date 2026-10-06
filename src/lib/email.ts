@@ -1,3 +1,4 @@
+import { formatPrice } from "@/lib/utils";
 import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY || "re_dummy_key_for_build");
@@ -22,6 +23,7 @@ interface OrderConfirmationPayload {
   taxCents: number;
   dutyCents: number;
   totalCents: number;
+  currency?: string;
   shippingAddress?: {
     name: string;
     line1: string;
@@ -34,12 +36,12 @@ interface OrderConfirmationPayload {
   shippingMethod: string;
 }
 
-function formatCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+function formatCents(cents: number, currency = "NGN"): string {
+  return formatPrice(cents, currency);
 }
 
 function buildOrderConfirmationHtml(payload: OrderConfirmationPayload): string {
-  const { orderNumber, items, subtotalCents, shippingCents, taxCents, dutyCents, totalCents, shippingAddress, shippingMethod } = payload;
+  const { orderNumber, items, subtotalCents, shippingCents, taxCents, dutyCents, totalCents, shippingAddress, shippingMethod, currency = "NGN" } = payload;
 
   const itemRows = items.map((item) => `
     <tr><td style="padding: 16px 0; border-bottom: 1px solid #f0f0f0;">
@@ -51,7 +53,7 @@ function buildOrderConfirmationHtml(payload: OrderConfirmationPayload): string {
           <p style="margin: 0; font-family: -apple-system, sans-serif; font-size: 12px; color: #999999;">Size: ${item.size} &middot; Qty: ${item.quantity}</p>
         </td>
         <td width="100" style="vertical-align: top; text-align: right;">
-          <p style="margin: 0; font-family: -apple-system, sans-serif; font-size: 14px; color: #111111;">${formatCents(item.priceCents)}</p>
+          <p style="margin: 0; font-family: -apple-system, sans-serif; font-size: 14px; color: #111111;">${formatCents(item.priceCents, currency)}</p>
         </td>
       </tr></table>
     </td></tr>`).join("");
@@ -82,12 +84,12 @@ function buildOrderConfirmationHtml(payload: OrderConfirmationPayload): string {
       <tr><td style="padding: 24px 40px;"><table cellpadding="0" cellspacing="0" border="0" width="100%">${itemRows}</table></td></tr>
       <tr><td style="padding: 0 40px 24px;"><table cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #fafaf9; border-radius: 8px;"><tr><td style="padding: 20px;">
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
-          <tr><td style="padding: 4px 0; font-size: 13px; color: #666666;">Subtotal</td><td style="padding: 4px 0; font-size: 13px; color: #333333; text-align: right;">${formatCents(subtotalCents)}</td></tr>
-          ${taxCents > 0 ? `<tr><td style="padding: 4px 0; font-size: 13px; color: #666666;">Tax</td><td style="padding: 4px 0; font-size: 13px; color: #333333; text-align: right;">${formatCents(taxCents)}</td></tr>` : ""}
-          ${dutyCents > 0 ? `<tr><td style="padding: 4px 0; font-size: 13px; color: #666666;">Import Duties</td><td style="padding: 4px 0; font-size: 13px; color: #333333; text-align: right;">${formatCents(dutyCents)}</td></tr>` : ""}
-          <tr><td style="padding: 4px 0; font-size: 13px; color: #666666;">${shippingMethod} Shipping</td><td style="padding: 4px 0; font-size: 13px; color: #333333; text-align: right;">${shippingCents === 0 ? "Complimentary" : formatCents(shippingCents)}</td></tr>
+          <tr><td style="padding: 4px 0; font-size: 13px; color: #666666;">Subtotal</td><td style="padding: 4px 0; font-size: 13px; color: #333333; text-align: right;">${formatCents(subtotalCents, currency)}</td></tr>
+          ${taxCents > 0 ? `<tr><td style="padding: 4px 0; font-size: 13px; color: #666666;">Tax</td><td style="padding: 4px 0; font-size: 13px; color: #333333; text-align: right;">${formatCents(taxCents, currency)}</td></tr>` : ""}
+          ${dutyCents > 0 ? `<tr><td style="padding: 4px 0; font-size: 13px; color: #666666;">Import Duties</td><td style="padding: 4px 0; font-size: 13px; color: #333333; text-align: right;">${formatCents(dutyCents, currency)}</td></tr>` : ""}
+          <tr><td style="padding: 4px 0; font-size: 13px; color: #666666;">${shippingMethod} Shipping</td><td style="padding: 4px 0; font-size: 13px; color: #333333; text-align: right;">${shippingCents === 0 ? "Complimentary" : formatCents(shippingCents, currency)}</td></tr>
           <tr><td colspan="2" style="padding: 8px 0 0;"><hr style="border: none; border-top: 1px solid #e5e5e5;" /></td></tr>
-          <tr><td style="padding: 12px 0 0; font-size: 15px; font-weight: 600; color: #111111;">Total</td><td style="padding: 12px 0 0; font-size: 15px; font-weight: 600; color: #111111; text-align: right;">${formatCents(totalCents)}</td></tr>
+          <tr><td style="padding: 12px 0 0; font-size: 15px; font-weight: 600; color: #111111;">Total</td><td style="padding: 12px 0 0; font-size: 15px; font-weight: 600; color: #111111; text-align: right;">${formatCents(totalCents, currency)}</td></tr>
         </table>
       </td></tr></table></td></tr>
       ${shippingAddress ? `<tr><td style="padding: 0 40px 24px;"><table cellpadding="0" cellspacing="0" border="0" width="100%"><tr>${addressBlock}</tr></table></td></tr>` : ""}
@@ -102,13 +104,13 @@ function buildOrderConfirmationHtml(payload: OrderConfirmationPayload): string {
 }
 
 function buildPlainText(payload: OrderConfirmationPayload): string {
-  const { orderNumber, items, subtotalCents, shippingCents, taxCents, dutyCents, totalCents, shippingAddress, shippingMethod } = payload;
-  const itemLines = items.map((item) => `  ${item.brand} — ${item.name}\n  Size: ${item.size} | Qty: ${item.quantity} | ${formatCents(item.priceCents)}`).join("\n\n");
-  let text = `THE HERITAGE EDIT — Order Confirmation\n\nOrder: ${orderNumber}\n\nYour Pieces:\n${itemLines}\n\n---\nSubtotal: ${formatCents(subtotalCents)}`;
-  if (taxCents > 0) text += `\nTax: ${formatCents(taxCents)}`;
-  if (dutyCents > 0) text += `\nImport Duties: ${formatCents(dutyCents)}`;
-  text += `\n${shippingMethod} Shipping: ${shippingCents === 0 ? "Complimentary" : formatCents(shippingCents)}`;
-  text += `\nTotal: ${formatCents(totalCents)}`;
+  const { orderNumber, items, subtotalCents, shippingCents, taxCents, dutyCents, totalCents, shippingAddress, shippingMethod, currency = "NGN" } = payload;
+  const itemLines = items.map((item) => `  ${item.brand} — ${item.name}\n  Size: ${item.size} | Qty: ${item.quantity} | ${formatCents(item.priceCents, currency)}`).join("\n\n");
+  let text = `THE HERITAGE EDIT — Order Confirmation\n\nOrder: ${orderNumber}\n\nYour Pieces:\n${itemLines}\n\n---\nSubtotal: ${formatCents(subtotalCents, currency)}`;
+  if (taxCents > 0) text += `\nTax: ${formatCents(taxCents, currency)}`;
+  if (dutyCents > 0) text += `\nImport Duties: ${formatCents(dutyCents, currency)}`;
+  text += `\n${shippingMethod} Shipping: ${shippingCents === 0 ? "Complimentary" : formatCents(shippingCents, currency)}`;
+  text += `\nTotal: ${formatCents(totalCents, currency)}`;
   if (shippingAddress) {
     text += `\n\nShipping To:\n${shippingAddress.name}\n${shippingAddress.line1}`;
     if (shippingAddress.line2) text += `\n${shippingAddress.line2}`;

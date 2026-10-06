@@ -138,7 +138,7 @@ function LifePageContent() {
                   brandName={product.brand.name}
                   priceCents={product.basePriceCents}
                   salePriceCents={product.salePriceCents}
-                  currency={product.currency}
+                  currency="NGN"
                   imageUrl={product.images[0]?.url ?? getImagePlaceholder(600, 800)}
                   hoverImageUrl={product.images[1]?.url}
                 />

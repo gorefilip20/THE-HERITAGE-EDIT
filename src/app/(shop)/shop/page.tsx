@@ -24,11 +24,11 @@ import type { Product, PaginatedResponse } from "@/types";
    ────────────────────────────────────────────────────────── */
 
 const PRICE_RANGES = [
-  { label: "Under $500", min: 0, max: 500 },
-  { label: "$500 – $1,000", min: 500, max: 1000 },
-  { label: "$1,000 – $2,500", min: 1000, max: 2500 },
-  { label: "$2,500 – $5,000", min: 2500, max: 5000 },
-  { label: "$5,000+", min: 5000, max: 0 },
+  { label: "Under ₦500", min: 0, max: 500 },
+  { label: "₦500 – ₦1,000", min: 500, max: 1000 },
+  { label: "₦1,000 – ₦2,500", min: 1000, max: 2500 },
+  { label: "₦2,500 – ₦5,000", min: 2500, max: 5000 },
+  { label: "₦5,000+", min: 5000, max: 0 },
 ];
 
 const SIZES = ["XXS", "XS", "S", "M", "L", "XL", "XXL", "ONE SIZE"];
@@ -294,7 +294,7 @@ function ShopPageInner() {
             ))}
             {(filters.minPrice || filters.maxPrice) && (
               <FilterPill
-                label={`${filters.minPrice ? `$${filters.minPrice}` : "$0"} – ${filters.maxPrice ? `$${filters.maxPrice}` : "∞"}`}
+                label={`${filters.minPrice ? `₦${filters.minPrice}` : "₦0"} – ${filters.maxPrice ? `₦${filters.maxPrice}` : "∞"}`}
                 onRemove={() => updateURL({ minPrice: "", maxPrice: "" })}
               />
             )}
@@ -762,11 +762,11 @@ function ShopProductCard({
               hasDiscount ? "text-heritage-purple" : "text-obsidian",
             )}
           >
-            {formatPrice(product.salePriceCents ?? product.basePriceCents, product.currency)}
+            {formatPrice(product.salePriceCents ?? product.basePriceCents, "NGN")}
           </span>
           {hasDiscount && (
             <span className="text-[13px] product-price text-neutral-300 line-through">
-              {formatPrice(product.basePriceCents, product.currency)}
+              {formatPrice(product.basePriceCents, "NGN")}
             </span>
           )}
         </div>

@@ -47,13 +47,6 @@ const COUNTRIES = [
   { code: "HK", name: "Hong Kong" },
 ];
 
-const PAYSTACK_CURRENCIES: Record<string, string> = {
-  NG: "NGN",
-  GH: "GHS",
-  KE: "KES",
-  ZA: "ZAR",
-  US: "USD",
-};
 
 type Step = 1 | 2 | 3;
 const STEP_LABELS = ["Identity", "Shipping", "Payment"] as const;
@@ -98,7 +91,7 @@ export function CheckoutForm() {
     return total;
   }, [subtotalCents, selectedShipping, taxDuty]);
 
-  const currency = PAYSTACK_CURRENCIES[address.country] ?? "USD";
+  const currency = "NGN" as const;
 
   const handleStep1Submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -607,7 +600,7 @@ export function CheckoutForm() {
                           <span className="text-sm font-sans font-medium tabular-nums text-neutral-900">
                             {opt.priceCents === 0
                               ? "Complimentary"
-                              : formatPrice(opt.priceCents)}
+                              : formatPrice(opt.priceCents, currency)}
                           </span>
                           <input
                             type="radio"
@@ -736,7 +729,7 @@ export function CheckoutForm() {
                     </p>
                   </div>
                   <span className="text-sm font-sans font-medium tabular-nums text-neutral-900 shrink-0">
-                    {formatPrice(item.priceCents * item.quantity)}
+                    {formatPrice(item.priceCents * item.quantity, currency)}
                   </span>
                 </div>
               ))}
@@ -746,7 +739,7 @@ export function CheckoutForm() {
               <div className="flex justify-between text-sm font-sans">
                 <span className="text-neutral-500">Retail Subtotal</span>
                 <span className="tabular-nums text-neutral-900">
-                  {formatPrice(subtotalCents())}
+                  {formatPrice(subtotalCents(), currency)}
                 </span>
               </div>
 
@@ -756,7 +749,7 @@ export function CheckoutForm() {
                     Tax ({taxDuty.country})
                   </span>
                   <span className="tabular-nums text-neutral-900">
-                    {formatPrice(taxDuty.taxCents)}
+                    {formatPrice(taxDuty.taxCents, currency)}
                   </span>
                 </div>
               )}
@@ -767,7 +760,7 @@ export function CheckoutForm() {
                     Import Duties ({taxDuty.country})
                   </span>
                   <span className="tabular-nums text-neutral-900">
-                    {formatPrice(taxDuty.dutyCents)}
+                    {formatPrice(taxDuty.dutyCents, currency)}
                   </span>
                 </div>
               )}
@@ -780,7 +773,7 @@ export function CheckoutForm() {
                   <span className="tabular-nums text-neutral-900">
                     {selectedShipping.priceCents === 0
                       ? "Complimentary"
-                      : formatPrice(selectedShipping.priceCents)}
+                      : formatPrice(selectedShipping.priceCents, currency)}
                   </span>
                 </div>
               )}

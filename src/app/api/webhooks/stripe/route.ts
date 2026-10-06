@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 import { prisma } from "@/lib/db";
+import { formatPrice } from "@/lib/utils";
 import { Resend } from "resend";
 
 /* ──────────────────────────────────────────────────────────
@@ -185,6 +186,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
       await sendVIPReceipt({
         to: recipientEmail,
         orderNumber: order.orderNumber,
+        currency: order.currency,
         items: order.items.map((item) => ({
           name: item.product.name,
           brand: item.product.brand.name,
@@ -283,6 +285,7 @@ interface VIPReceiptPayload {
   taxCents: number;
   dutyCents: number;
   totalCents: number;
+  currency: string;
   shippingAddress?: {
     name: string;
     line1: string;
@@ -295,11 +298,8 @@ interface VIPReceiptPayload {
   deliveryStatus: string;
 }
 
-function fmtCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
+function fmtCents(cents: number, currency = "NGN"): string {
+  return formatPrice(cents, currency);
 }
 
 async function sendVIPReceipt(payload: VIPReceiptPayload) {
@@ -312,6 +312,7 @@ async function sendVIPReceipt(payload: VIPReceiptPayload) {
     taxCents,
     dutyCents,
     totalCents,
+    currency = "NGN",
     shippingAddress,
     deliveryStatus,
   } = payload;
@@ -348,7 +349,7 @@ async function sendVIPReceipt(payload: VIPReceiptPayload) {
             <td width="100" style="vertical-align:top;text-align:right;">
               <p style="margin:0;font-family:-apple-system,Helvetica,Arial,sans-serif;
                  font-size:14px;color:#111111;font-weight:500;">
-                ${fmtCents(item.priceCents)}
+                ${fmtCents(item.priceCents, currency)}
               </p>
             </td>
           </tr>
@@ -434,21 +435,21 @@ async function sendVIPReceipt(payload: VIPReceiptPayload) {
         <table cellpadding="0" cellspacing="0" border="0" width="100%">
           <tr>
             <td style="padding:4px 0;font-size:13px;color:#666666;">Subtotal</td>
-            <td style="padding:4px 0;font-size:13px;color:#333333;text-align:right;">${fmtCents(subtotalCents)}</td>
+            <td style="padding:4px 0;font-size:13px;color:#333333;text-align:right;">${fmtCents(subtotalCents, currency)}</td>
           </tr>
-          ${taxCents > 0 ? `<tr><td style="padding:4px 0;font-size:13px;color:#666666;">Tax</td><td style="padding:4px 0;font-size:13px;color:#333333;text-align:right;">${fmtCents(taxCents)}</td></tr>` : ""}
-          ${dutyCents > 0 ? `<tr><td style="padding:4px 0;font-size:13px;color:#666666;">Import Duties</td><td style="padding:4px 0;font-size:13px;color:#333333;text-align:right;">${fmtCents(dutyCents)}</td></tr>` : ""}
+          ${taxCents > 0 ? `<tr><td style="padding:4px 0;font-size:13px;color:#666666;">Tax</td><td style="padding:4px 0;font-size:13px;color:#333333;text-align:right;">${fmtCents(taxCents, currency)}</td></tr>` : ""}
+          ${dutyCents > 0 ? `<tr><td style="padding:4px 0;font-size:13px;color:#666666;">Import Duties</td><td style="padding:4px 0;font-size:13px;color:#333333;text-align:right;">${fmtCents(dutyCents, currency)}</td></tr>` : ""}
           <tr>
             <td style="padding:4px 0;font-size:13px;color:#666666;">Shipping</td>
             <td style="padding:4px 0;font-size:13px;color:#333333;text-align:right;">
-              ${shippingCents === 0 ? "Complimentary" : fmtCents(shippingCents)}
+              ${shippingCents === 0 ? "Complimentary" : fmtCents(shippingCents, currency)}
             </td>
           </tr>
           <tr><td colspan="2" style="padding:10px 0 0;"><hr style="border:none;border-top:1px solid #e8e5e1;"/></td></tr>
           <tr>
             <td style="padding:14px 0 0;font-size:16px;font-weight:600;color:#111111;">Total</td>
             <td style="padding:14px 0 0;font-size:16px;font-weight:600;color:#111111;text-align:right;">
-              ${fmtCents(totalCents)}
+              ${fmtCents(totalCents, currency)}
             </td>
           </tr>
         </table>
@@ -493,15 +494,15 @@ async function sendVIPReceipt(payload: VIPReceiptPayload) {
     "Your Pieces:",
     ...items.map(
       (i) =>
-        `  ${i.brand} — ${i.name}\n  Size: ${i.size}${i.color ? ` / ${i.color}` : ""} | Qty: ${i.quantity} | ${fmtCents(i.priceCents)}`,
+        `  ${i.brand} — ${i.name}\n  Size: ${i.size}${i.color ? ` / ${i.color}` : ""} | Qty: ${i.quantity} | ${fmtCents(i.priceCents, currency)}`,
     ),
     "",
     "---",
-    `Subtotal: ${fmtCents(subtotalCents)}`,
-    ...(taxCents > 0 ? [`Tax: ${fmtCents(taxCents)}`] : []),
-    ...(dutyCents > 0 ? [`Import Duties: ${fmtCents(dutyCents)}`] : []),
-    `Shipping: ${shippingCents === 0 ? "Complimentary" : fmtCents(shippingCents)}`,
-    `Total: ${fmtCents(totalCents)}`,
+    `Subtotal: ${fmtCents(subtotalCents, currency)}`,
+    ...(taxCents > 0 ? [`Tax: ${fmtCents(taxCents, currency)}`] : []),
+    ...(dutyCents > 0 ? [`Import Duties: ${fmtCents(dutyCents, currency)}`] : []),
+    `Shipping: ${shippingCents === 0 ? "Complimentary" : fmtCents(shippingCents, currency)}`,
+    `Total: ${fmtCents(totalCents, currency)}`,
     "",
     ...(shippingAddress
       ? [

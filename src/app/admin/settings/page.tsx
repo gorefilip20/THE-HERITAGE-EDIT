@@ -10,9 +10,9 @@ export default function SettingsPage() {
   const [generalSettings, setGeneralSettings] = useState({
     storeName: "The Heritage Edit",
     storeEmail: "hello@theheritageedit.com",
-    currency: "USD",
+    currency: "NGN",
     timezone: "Africa/Lagos",
-    freeShippingThreshold: "500",
+    freeShippingThreshold: "50000",
   });
 
   const [paymentSettings, setPaymentSettings] = useState({
@@ -114,17 +114,11 @@ export default function SettingsPage() {
                     onChange={(e) => setGeneralSettings({ ...generalSettings, currency: e.target.value })}
                     className="w-full h-10 px-3 rounded-lg border border-neutral-200 bg-white text-sm focus:outline-none focus:border-[#0D2C22]"
                   >
-                    <option value="USD">USD - US Dollar</option>
-                    <option value="GBP">GBP - British Pound</option>
-                    <option value="EUR">EUR - Euro</option>
-                    <option value="NGN">NGN - Nigerian Naira</option>
-                    <option value="GHS">GHS - Ghanaian Cedi</option>
-                    <option value="KES">KES - Kenyan Shilling</option>
-                    <option value="ZAR">ZAR - South African Rand</option>
+                    <option value="NGN">NGN - Nigerian Naira (₦)</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-[11px] font-medium tracking-wider uppercase text-neutral-400 mb-1.5">Free Shipping Threshold ($)</label>
+                  <label className="block text-[11px] font-medium tracking-wider uppercase text-neutral-400 mb-1.5">Free Shipping Threshold (₦)</label>
                   <input
                     type="number"
                     value={generalSettings.freeShippingThreshold}

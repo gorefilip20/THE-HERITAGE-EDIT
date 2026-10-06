@@ -27,7 +27,7 @@ const paystackCheckoutSchema = z.object({
     phone: z.string().optional(),
   }),
   userId: z.string().optional(),
-  currency: z.enum(["NGN", "USD", "GHS", "ZAR", "KES"]).default("NGN"),
+  currency: z.literal("NGN").default("NGN"),
 });
 
 export async function POST(request: NextRequest) {
@@ -164,10 +164,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Paystack expects the smallest currency unit: NGN 1 = 100 kobo.
-    // Product and order prices are stored as major-currency cents, so this
-    // value is already the integer minor-unit amount for supported currencies.
-    const amountInMinorUnit = order.totalCents;
+    // Admin inputs are NGN and converted to kobo before storage. Order totals
+    // therefore already contain integer kobo; do not multiply by 100 again.
+    const amountInKobo = order.totalCents;
 
     const paystackRes = await fetch(
       `${PAYSTACK_API_URL}/transaction/initialize`,
@@ -179,7 +178,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           email,
-          amount: amountInMinorUnit,
+          amount: amountInKobo,
           currency,
           reference: order.orderNumber,
           callback_url: `${APP_URL}/paystack/callback?order=${encodeURIComponent(order.orderNumber)}`,

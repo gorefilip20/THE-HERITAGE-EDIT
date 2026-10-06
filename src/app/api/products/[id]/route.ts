@@ -96,6 +96,7 @@ export async function PATCH(
     }
 
     const updateData: Record<string, unknown> = {};
+    updateData.currency = "NGN";
     if (body.name !== undefined) updateData.name = body.name;
     if (body.description !== undefined) updateData.description = body.description;
     if (body.basePriceCents !== undefined) updateData.basePriceCents = body.basePriceCents;

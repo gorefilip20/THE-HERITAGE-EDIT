@@ -7,24 +7,24 @@ const SHIPPING_TIERS: Record<
 > = {
   US: [
     { service: "Standard Ground", carrier: "FedEx", days: 5, baseCents: 0 },
-    { service: "Express 2-Day", carrier: "FedEx", days: 2, baseCents: 2500 },
-    { service: "Priority Overnight", carrier: "FedEx", days: 1, baseCents: 4500 },
+    { service: "Express 2-Day", carrier: "FedEx", days: 2, baseCents: 250000 },
+    { service: "Priority Overnight", carrier: "FedEx", days: 1, baseCents: 450000 },
   ],
   GB: [
-    { service: "Standard International", carrier: "DHL", days: 7, baseCents: 3500 },
-    { service: "Express International", carrier: "DHL", days: 3, baseCents: 6500 },
+    { service: "Standard International", carrier: "DHL", days: 7, baseCents: 350000 },
+    { service: "Express International", carrier: "DHL", days: 3, baseCents: 650000 },
   ],
   EU: [
-    { service: "Standard International", carrier: "DHL", days: 7, baseCents: 3000 },
-    { service: "Express International", carrier: "DHL", days: 3, baseCents: 5500 },
+    { service: "Standard International", carrier: "DHL", days: 7, baseCents: 300000 },
+    { service: "Express International", carrier: "DHL", days: 3, baseCents: 550000 },
   ],
   APAC: [
-    { service: "Standard International", carrier: "DHL", days: 10, baseCents: 4500 },
-    { service: "Express International", carrier: "DHL", days: 4, baseCents: 7500 },
+    { service: "Standard International", carrier: "DHL", days: 10, baseCents: 450000 },
+    { service: "Express International", carrier: "DHL", days: 4, baseCents: 750000 },
   ],
   DEFAULT: [
-    { service: "International Standard", carrier: "DHL", days: 12, baseCents: 5000 },
-    { service: "International Express", carrier: "DHL", days: 5, baseCents: 8500 },
+    { service: "International Standard", carrier: "DHL", days: 12, baseCents: 500000 },
+    { service: "International Express", carrier: "DHL", days: 5, baseCents: 850000 },
   ],
 };
 
@@ -44,7 +44,7 @@ function getRegion(country: string): string {
   return "DEFAULT";
 }
 
-const FREE_SHIPPING_THRESHOLD_CENTS = 50000;
+const FREE_SHIPPING_THRESHOLD_CENTS = 5000000;
 
 export function getShippingOptions(
   country: string,
@@ -65,7 +65,7 @@ export function getShippingOptions(
       service: tier.service,
       estimatedDays: tier.days,
       priceCents,
-      currency: "USD",
+      currency: "NGN",
     };
   });
 }
@@ -81,7 +81,7 @@ export function calculateTaxAndDuty(
   return {
     taxCents: Math.round(subtotalCents * taxRate),
     dutyCents: Math.round(subtotalCents * dutyRate),
-    currency: "USD",
+    currency: "NGN",
     country,
   };
 }

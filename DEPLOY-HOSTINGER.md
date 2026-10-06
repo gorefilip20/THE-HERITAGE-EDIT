@@ -54,10 +54,15 @@ and `source` the virtualenv shown at the top of the Node.js app page). Then:
 
 ```bash
 npm install                 # installs deps + generates Prisma client (postinstall)
-npx prisma migrate deploy   # creates tables in your Postgres
+npx prisma db push          # syncs the Prisma schema (this repo has no migration history)
+npx prisma db execute --file scripts/migrate-currency-to-ngn.sql --schema prisma/schema.prisma
 npx tsx scripts/seed-brands.ts   # seeds brands + categories (incl. Senator/Native/Footwear/Jewelry)
 npm run build               # builds the production .next output
 ```
+
+> The currency SQL updates catalog currency codes only; monetary columns are already
+> stored as two-decimal minor units (kobo). Existing order currency codes are
+> intentionally preserved for historical receipts and order pages.
 
 ## 6. Start it
 Back on the Node.js app page click **Restart**. Visit `https://theheritageedit.shop`.

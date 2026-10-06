@@ -377,7 +377,7 @@ export default function HomePage() {
                     brandName={product.brand?.name ?? "The Heritage Edit"}
                     priceCents={product.basePriceCents}
                     salePriceCents={product.salePriceCents}
-                    currency={product.currency}
+                    currency="NGN"
                     imageUrl={product.images[0]?.url ?? getImagePlaceholder(600, 800)}
                     hoverImageUrl={product.images[1]?.url}
                   />
@@ -430,7 +430,7 @@ export default function HomePage() {
                     brandName={product.brand?.name ?? "The Heritage Edit"}
                     priceCents={product.basePriceCents}
                     salePriceCents={product.salePriceCents}
-                    currency={product.currency}
+                    currency="NGN"
                     imageUrl={product.images[0]?.url ?? getImagePlaceholder(600, 800)}
                     hoverImageUrl={product.images[1]?.url}
                   />

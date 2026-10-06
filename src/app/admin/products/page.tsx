@@ -101,6 +101,7 @@ export default function ProductsPage() {
           name: editState.name.trim(),
           basePriceCents,
           salePriceCents,
+          currency: "NGN",
           status: editState.status,
           isFeatured: editState.isFeatured,
         }),
@@ -222,8 +223,8 @@ export default function ProductsPage() {
             <div className="space-y-5 px-6 py-6">
               <label className="block"><span className="luxury-label">Product name</span><input className="luxury-input" value={editState.name} onChange={(event) => setEditState({ ...editState, name: event.target.value })} /></label>
               <div className="grid grid-cols-2 gap-4">
-                <label className="block"><span className="luxury-label">Price (USD)</span><input type="number" min="0.01" step="0.01" className="luxury-input" value={editState.basePrice} onChange={(event) => setEditState({ ...editState, basePrice: event.target.value })} /></label>
-                <label className="block"><span className="luxury-label">Sale price (optional)</span><input type="number" min="0.01" step="0.01" className="luxury-input" value={editState.salePrice} onChange={(event) => setEditState({ ...editState, salePrice: event.target.value })} /></label>
+                <label className="block"><span className="luxury-label">Price (NGN)</span><input type="number" min="0.01" step="0.01" className="luxury-input" value={editState.basePrice} onChange={(event) => setEditState({ ...editState, basePrice: event.target.value })} /></label>
+                <label className="block"><span className="luxury-label">Sale price (NGN, optional)</span><input type="number" min="0.01" step="0.01" className="luxury-input" value={editState.salePrice} onChange={(event) => setEditState({ ...editState, salePrice: event.target.value })} /></label>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <label className="block"><span className="luxury-label">Status</span><select className="luxury-input" value={editState.status} onChange={(event) => setEditState({ ...editState, status: event.target.value as Product["status"] })}><option value="PUBLISHED">Published</option><option value="DRAFT">Draft</option><option value="AI_PENDING">AI Generating</option><option value="AI_REVIEW">AI Review</option><option value="ARCHIVED">Archived</option></select></label>

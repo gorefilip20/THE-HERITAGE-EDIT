@@ -384,7 +384,7 @@ export async function POST(request: NextRequest) {
         clothingType: input.clothingType,
         basePriceCents: input.basePriceCents,
         salePriceCents: input.salePriceCents ?? null,
-        currency: input.currency,
+        currency: "NGN",
         status: input.publishImmediately ? "PUBLISHED" : "DRAFT",
         images: input.imageUrls
           ? {

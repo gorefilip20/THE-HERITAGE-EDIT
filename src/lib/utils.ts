@@ -1,30 +1,59 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 
+export const DEFAULT_CURRENCY = "NGN" as const;
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(cents: number, currency = "USD"): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
-  }).format(cents / 100);
+/** Validate external/historical currency values and fall back safely for bad data. */
+function safeCurrencyCode(currency: string): string {
+  if (!/^[A-Za-z]{3}$/.test(currency)) return DEFAULT_CURRENCY;
+  const code = currency.toUpperCase();
+  const supported =
+    typeof Intl.supportedValuesOf === "function"
+      ? Intl.supportedValuesOf("currency")
+      : ["NGN", "USD", "GBP", "EUR", "GHS", "KES", "ZAR", "CAD", "AUD", "JPY", "CHF"];
+  return supported.includes(code) ? code : DEFAULT_CURRENCY;
 }
 
-export function formatPriceCompact(cents: number, currency = "USD"): string {
-  const value = cents / 100;
-  if (value >= 1000) {
-    return new Intl.NumberFormat("en-US", {
+export function formatPrice(cents: number, currency: string = DEFAULT_CURRENCY): string {
+  const amount = Number.isFinite(cents) ? cents / 100 : 0;
+  const safeCode = safeCurrencyCode(currency);
+  try {
+    return new Intl.NumberFormat("en-NG", {
       style: "currency",
-      currency,
-      notation: "compact",
-      maximumFractionDigits: 1,
-    }).format(value);
+      currency: safeCode,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: DEFAULT_CURRENCY,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(amount);
   }
-  return formatPrice(cents, currency);
+}
+
+export function formatPriceCompact(cents: number, currency: string = DEFAULT_CURRENCY): string {
+  const value = (Number.isFinite(cents) ? cents : 0) / 100;
+  const safeCode = safeCurrencyCode(currency);
+  if (value >= 1000) {
+    try {
+      return new Intl.NumberFormat("en-NG", {
+        style: "currency",
+        currency: safeCode,
+        notation: "compact",
+        maximumFractionDigits: 1,
+      }).format(value);
+    } catch {
+      return formatPrice(cents, DEFAULT_CURRENCY);
+    }
+  }
+  return formatPrice(cents, safeCode);
 }
 
 export function slugify(text: string): string {

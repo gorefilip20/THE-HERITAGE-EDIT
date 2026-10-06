@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
 
       lineItems.push({
         price_data: {
-          currency: product.currency.toLowerCase(),
+          currency: "ngn",
           unit_amount: verifiedUnitPrice,
           product_data: {
             name: product.name,
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
         taxCents: 0,
         dutyCents: 0,
         totalCents: subtotalCents,
-        currency: "USD",
+        currency: "NGN",
         trackingNumber: null,
         notes: null,
         items: {
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: 0, currency: "usd" },
+            fixed_amount: { amount: 0, currency: "ngn" },
             display_name: "Complimentary Express Shipping",
             delivery_estimate: {
               minimum: { unit: "business_day", value: 2 },
@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
         {
           shipping_rate_data: {
             type: "fixed_amount",
-            fixed_amount: { amount: 3500, currency: "usd" },
+            fixed_amount: { amount: 350000, currency: "ngn" },
             display_name: "Priority Next-Day Delivery",
             delivery_estimate: {
               minimum: { unit: "business_day", value: 1 },

@@ -232,7 +232,7 @@ const MEGA_MENU: MegaMenuCategory[] = [
         links: [
           { label: "Gift Guide", href: "/life?category=gifts" },
           { label: "Gift Cards", href: "/gift-cards" },
-          { label: "Under $100", href: "/life?category=gifts&maxPrice=10000" },
+          { label: "Under ₦10,000", href: "/life?category=gifts&maxPrice=10000" },
           { label: "Luxury Gifts", href: "/life?category=gifts&minPrice=50000" },
         ],
       },
@@ -354,7 +354,7 @@ export function Navbar() {
         <div className="hidden lg:block border-b border-slate-border">
           <div className="luxury-container flex items-center justify-between h-8">
             <span className="text-[10px] font-sans font-medium tracking-[0.2em] uppercase text-neutral-400">
-              Complimentary shipping on orders over $500
+              Complimentary shipping on orders over ₦50,000
             </span>
             <div className="flex items-center gap-6">
               <Link

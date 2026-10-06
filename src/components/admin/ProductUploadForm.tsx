@@ -90,6 +90,7 @@ export function ProductUploadForm({
           brandId: formData.brandId || undefined,
           categoryId: formData.categoryId,
           basePriceCents: Math.round(parseFloat(formData.basePriceCents) * 100),
+          currency: "NGN",
           variants: activeVariants.map((v) => ({
             size: v.size,
             stockCount: parseInt(v.stockCount),
@@ -199,7 +200,7 @@ export function ProductUploadForm({
         </div>
 
         <div>
-          <label className="luxury-label">Base Price (USD)</label>
+          <label className="luxury-label">Base Price (NGN)</label>
           <input
             type="number"
             step="0.01"

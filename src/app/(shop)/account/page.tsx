@@ -399,7 +399,7 @@ function WishlistPanel() {
             </Link>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[13px] font-medium tabular-nums text-obsidian">
-                {formatPrice(price, w.product.currency)}
+                {formatPrice(price, "NGN")}
               </span>
               <button
                 onClick={() => addToBag(w)}

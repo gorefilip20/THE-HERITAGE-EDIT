@@ -124,7 +124,7 @@ const CLOTHING_OPTIONS: Record<string, Array<{ value: string; label: string; cat
     { value: "Hair Care", label: "Hair Care", categorySlug: "hair-care" },
     { value: "Gift Guide", label: "Gift Guide", categorySlug: "gifts" },
     { value: "Gift Cards", label: "Gift Cards", categorySlug: "gift-cards" },
-    { value: "Under $100", label: "Under $100", categorySlug: "gifts" },
+    { value: "Under ₦10,000", label: "Under ₦10,000", categorySlug: "gifts" },
     { value: "Luxury Gifts", label: "Luxury Gifts", categorySlug: "gifts" },
     { value: "Travel", label: "Travel", categorySlug: "travel" },
   ],
@@ -513,11 +513,11 @@ export default function NewProductPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-[11px] font-sans font-medium tracking-[0.12em] uppercase text-neutral-400 mb-1.5">
-                  Base Price (USD)
+                  Base Price (NGN)
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-neutral-400">
-                    $
+                    ₦
                   </span>
                   <input
                     type="number"

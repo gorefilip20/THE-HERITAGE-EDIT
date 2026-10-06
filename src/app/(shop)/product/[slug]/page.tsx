@@ -372,14 +372,14 @@ export default function ProductDetailPage() {
                   isOnSale ? "text-heritage-purple" : "text-obsidian",
                 )}
               >
-                {formatPrice(finalPrice, product.currency)}
+                {formatPrice(finalPrice, "NGN")}
               </span>
               {isOnSale && (
                 <span className="text-sm font-sans text-neutral-300 line-through tabular-nums">
                   {formatPrice(
                     product.basePriceCents +
                       (selectedVariant?.priceDeltaCents ?? 0),
-                    product.currency,
+                    "NGN",
                   )}
                 </span>
               )}
@@ -501,7 +501,7 @@ export default function ProductDetailPage() {
                                 )}
                                 {v.priceDeltaCents > 0 && (
                                   <span className="text-[11px] font-sans text-neutral-400">
-                                    +{formatPrice(v.priceDeltaCents, product.currency)}
+                                    +{formatPrice(v.priceDeltaCents, "NGN")}
                                   </span>
                                 )}
                                 {isSelected && (
@@ -570,7 +570,7 @@ export default function ProductDetailPage() {
               ) : (
                 <>
                   <ShoppingBag size={16} />
-                  Add to Bag — {formatPrice(finalPrice * quantity, product.currency)}
+                  Add to Bag — {formatPrice(finalPrice * quantity, "NGN")}
                 </>
               )}
             </button>

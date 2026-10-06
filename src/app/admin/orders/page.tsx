@@ -253,7 +253,7 @@ export default function OrdersPage() {
                         </div>
                         <div className="text-right">
                           <p className="text-neutral-600">x{item.quantity}</p>
-                          <p className="font-medium">{formatPrice(item.unitPriceCents)}</p>
+                          <p className="font-medium">{formatPrice(item.unitPriceCents, selectedOrder.currency)}</p>
                         </div>
                       </div>
                     ))}

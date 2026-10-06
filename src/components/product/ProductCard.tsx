@@ -25,7 +25,7 @@ export function ProductCard({
   brandName,
   priceCents,
   salePriceCents,
-  currency = "USD",
+  currency = "NGN",
   imageUrl,
   hoverImageUrl,
   imageAlt,
@@ -118,11 +118,11 @@ export function ProductCard({
         </Link>
         <div className="flex items-center gap-2 pt-0.5">
           <span className={`text-[13px] font-sans font-medium ${hasDiscount ? "text-red-600" : "text-obsidian"}`}>
-            {formatPrice(salePriceCents ?? priceCents, currency)}
+            {formatPrice(salePriceCents ?? priceCents, "NGN")}
           </span>
           {hasDiscount && (
             <span className="text-[13px] font-sans text-neutral-400 line-through">
-              {formatPrice(priceCents, currency)}
+              {formatPrice(priceCents, "NGN")}
             </span>
           )}
         </div>
