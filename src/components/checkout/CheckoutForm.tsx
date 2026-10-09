@@ -171,6 +171,30 @@ export function CheckoutForm() {
     }
   };
 
+  const handleFlutterwaveCheckout = async () => {
+    setIsProcessing(true);
+    setPaymentError(null);
+
+    try {
+      const res = await fetch("/api/checkout/flutterwave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ amount: totalCents, email, phone: address.phone }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.link) {
+        setPaymentError(data.error ?? "Flutterwave payment initialization failed");
+        return;
+      }
+      clearCart();
+      window.location.href = data.link;
+    } catch {
+      setPaymentError("Network error — please try again");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   const handleStripeCheckout = async () => {
     setIsProcessing(true);
     setPaymentError(null);
@@ -652,6 +676,16 @@ export function CheckoutForm() {
                           Pay {formatPrice(totalCents, currency)} with Paystack
                         </>
                       )}
+                    </button>
+
+                    {/* Flutterwave — Alternative NGN checkout */}
+                    <button
+                      onClick={handleFlutterwaveCheckout}
+                      disabled={isProcessing}
+                      className="w-full h-14 border border-[#F5A623] bg-[#FFF9EF] text-[#7A4A00] text-sm font-sans font-semibold tracking-wide flex items-center justify-center gap-3 hover:bg-[#FFF1D6] transition-all active:scale-[0.98] disabled:opacity-50"
+                    >
+                      {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <Globe size={15} />}
+                      Pay {formatPrice(totalCents, currency)} with Flutterwave
                     </button>
 
                     <div className="relative flex items-center gap-4">
