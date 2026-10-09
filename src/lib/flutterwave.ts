@@ -24,7 +24,10 @@ export function validFlutterwaveWebhookHash(received: string | null): boolean {
 }
 
 export async function verifyFlutterwaveTransaction(transactionId: string): Promise<FlutterwaveVerification> {
-  const key = process.env.FLUTTERWAVE_SECRET_KEY;
+  const key = (process.env.FLUTTERWAVE_SECRET_KEY ?? "")
+    .trim()
+    .replace(/^['"]|['"]$/g, "")
+    .replace(/^Bearer\s+/i, "");
   if (!key) throw new Error("Flutterwave is not configured on the server");
 
   const response = await fetch(

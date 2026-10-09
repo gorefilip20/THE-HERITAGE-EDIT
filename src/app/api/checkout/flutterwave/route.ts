@@ -14,7 +14,10 @@ const initializeSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const flutterwaveKey = process.env.FLUTTERWAVE_SECRET_KEY;
+    const flutterwaveKey = (process.env.FLUTTERWAVE_SECRET_KEY ?? "")
+      .trim()
+      .replace(/^['"]|['"]$/g, "")
+      .replace(/^Bearer\s+/i, "");
     if (!flutterwaveKey) {
       return NextResponse.json({ error: "Flutterwave is not configured on the server" }, { status: 500 });
     }

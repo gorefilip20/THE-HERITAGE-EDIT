@@ -84,8 +84,12 @@ export async function POST(request: NextRequest) {
       const product = productMap.get(item.productId);
       if (!product) {
         return NextResponse.json(
-          { error: `Product not found or unavailable: ${item.productId}` },
-          { status: 400 },
+          {
+            error: "One or more items in your bag are no longer available. Your bag needs to be refreshed.",
+            code: "STALE_CART",
+            productId: item.productId,
+          },
+          { status: 409 },
         );
       }
 

@@ -156,6 +156,12 @@ export function CheckoutForm() {
       const data = await res.json();
 
       if (!res.ok) {
+        if (data.code === "STALE_CART") {
+          clearCart();
+          window.alert("One item in your bag is no longer available. Your bag has been refreshed.");
+          window.location.href = "/shop";
+          return;
+        }
         setPaymentError(data.error ?? "Payment initialization failed");
         return;
       }
