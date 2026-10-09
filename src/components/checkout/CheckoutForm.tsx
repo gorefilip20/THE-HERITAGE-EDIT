@@ -195,44 +195,6 @@ export function CheckoutForm() {
     }
   };
 
-  const handleStripeCheckout = async () => {
-    setIsProcessing(true);
-    setPaymentError(null);
-
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          items: items.map((item) => ({
-            productId: item.productId,
-            variantId: item.variantId,
-            quantity: item.quantity,
-          })),
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setPaymentError(data.error ?? "Payment initialization failed");
-        return;
-      }
-
-      checkout.setOrderNumber(data.orderNumber);
-      clearCart();
-
-      if (data.sessionUrl) {
-        window.location.href = data.sessionUrl;
-      }
-    } catch {
-      setPaymentError("Network error — please try again");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   if (items.length === 0 && !orderComplete) {
     return (
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-24 text-center">
@@ -686,24 +648,6 @@ export function CheckoutForm() {
                     >
                       {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <Globe size={15} />}
                       Pay {formatPrice(totalCents, currency)} with Flutterwave
-                    </button>
-
-                    <div className="relative flex items-center gap-4">
-                      <div className="flex-1 h-px bg-neutral-200" />
-                      <span className="text-[10px] font-sans font-medium tracking-[0.15em] uppercase text-neutral-300">
-                        or
-                      </span>
-                      <div className="flex-1 h-px bg-neutral-200" />
-                    </div>
-
-                    {/* Stripe — Secondary */}
-                    <button
-                      onClick={handleStripeCheckout}
-                      disabled={isProcessing}
-                      className="w-full h-12 border border-neutral-200 bg-white text-obsidian text-sm font-sans font-medium tracking-wide flex items-center justify-center gap-3 hover:bg-neutral-50 transition-all active:scale-[0.98] disabled:opacity-50"
-                    >
-                      <CreditCard size={14} className="text-neutral-400" />
-                      Pay with Card (Stripe)
                     </button>
 
                     <div className="flex items-center gap-3 pt-2">

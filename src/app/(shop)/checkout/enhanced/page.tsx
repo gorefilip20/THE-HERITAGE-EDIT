@@ -54,7 +54,6 @@ const SHIPPING_OPTIONS: ShippingOption[] = [
 const PAYMENT_METHODS = [
   { id: "paystack", name: "Paystack", icon: "💳", description: "Card, Bank Transfer, Mobile Money" },
   { id: "flutterwave", name: "Flutterwave", icon: "🌊", description: "Multiple payment options" },
-  { id: "stripe", name: "Stripe", icon: "🎯", description: "International cards" },
 ];
 
 export default function EnhancedCheckout() {
