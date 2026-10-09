@@ -39,7 +39,11 @@ export async function verifyPaystackTransaction(reference: string): Promise<Pays
   return payload;
 }
 
-export async function capturePaidOrder(orderId: string, reference: string) {
+export async function capturePaidOrder(
+  orderId: string,
+  reference: string,
+  provider = "Paystack",
+) {
   const order = await prisma.order.findUnique({
     where: { id: orderId },
     include: { items: true },
@@ -64,7 +68,7 @@ export async function capturePaidOrder(orderId: string, reference: string) {
         paymentStatus: "CAPTURED",
         // The current schema predates a dedicated Paystack reference column.
         // Keep the reference in notes until the next controlled DB migration.
-        notes: `${current.notes ?? ""}${current.notes ? "\n" : ""}Paystack reference: ${reference}`,
+        notes: `${current.notes ?? ""}${current.notes ? "\n" : ""}${provider} reference: ${reference}`,
         stripePaymentId: current.stripePaymentId ?? reference,
       },
     });
@@ -81,4 +85,3 @@ export async function capturePaidOrder(orderId: string, reference: string) {
 
   return { found: true, captured: true };
 }
-

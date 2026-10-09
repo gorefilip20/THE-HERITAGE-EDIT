@@ -109,16 +109,17 @@ export default function EnhancedCheckout() {
         const response = await fetch("/api/checkout/flutterwave", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount: total,
-            email: "customer@example.com",
-            phone: "+234XXXXXXXXXX",
-          }),
-        });
-        const data = await response.json();
-        if (data.link) {
-          window.location.href = data.link;
-        }
+            body: JSON.stringify({
+              amount: total * 100,
+              email: "customer@example.com",
+              phone: "+2348000000000",
+            }),
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error ?? "Flutterwave could not initialize this payment");
+          if (data.link) {
+            window.location.href = data.link;
+          }
       }
     } catch (error) {
       console.error("Payment error:", error);

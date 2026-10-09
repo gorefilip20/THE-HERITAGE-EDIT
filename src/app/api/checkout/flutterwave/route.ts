@@ -1,88 +1,76 @@
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
+import { DEFAULT_CURRENCY } from "@/lib/utils";
+
+const FLUTTERWAVE_PAYMENTS_URL = "https://api.flutterwave.com/v3/payments";
+const appUrl = () => (process.env.NEXT_PUBLIC_APP_URL ?? "https://theheritageedit.shop").replace(/\/$/, "");
+
+const initializeSchema = z.object({
+  amount: z.number().finite().positive(),
+  email: z.string().email(),
+  phone: z.string().trim().min(7).max(30).optional(),
+  orderId: z.string().trim().min(1).max(120).optional(),
+});
 
 export async function POST(request: NextRequest) {
   try {
-    const { amount, email, phone, orderId } = await request.json();
-
     const flutterwaveKey = process.env.FLUTTERWAVE_SECRET_KEY;
     if (!flutterwaveKey) {
-      return NextResponse.json(
-        { error: "Flutterwave not configured" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Flutterwave is not configured on the server" }, { status: 500 });
     }
 
-    // Initialize Flutterwave payment
-    const response = await fetch("https://api.flutterwave.com/v3/payments", {
+    const parsed = initializeSchema.safeParse(await request.json());
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid payment request", issues: parsed.error.issues }, { status: 400 });
+    }
+
+    const { amount, email, phone, orderId } = parsed.data;
+    // The application stores money in kobo/cents. Flutterwave receives major NGN.
+    const amountNgn = Math.round(amount) / 100;
+    const txRef = `HE-${orderId ?? Date.now()}-${crypto.randomUUID().slice(0, 8)}`;
+    const response = await fetch(FLUTTERWAVE_PAYMENTS_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${flutterwaveKey}`,
       },
       body: JSON.stringify({
-        tx_ref: `order_${orderId || Date.now()}`,
-        amount: amount / 100, // Convert cents to naira
-        currency: "NGN",
-        redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/checkout/success`,
-        customer: {
-          email,
-          phone_number: phone,
-        },
+        tx_ref: txRef,
+        amount: amountNgn,
+        currency: DEFAULT_CURRENCY,
+        payment_options: "card,banktransfer,ussd",
+        redirect_url: `${appUrl()}/checkout/success`,
+        customer: { email, ...(phone ? { phonenumber: phone } : {}) },
         customizations: {
           title: "The Heritage Edit",
           description: "Premium African Fashion",
-          logo: `${process.env.NEXT_PUBLIC_APP_URL}/logo.png`,
+          logo: `${appUrl()}/icon.jpg`,
         },
+        meta: { orderId: orderId ?? null },
       }),
+      cache: "no-store",
     });
 
-    const data = await response.json();
+    const data = (await response.json().catch(() => null)) as {
+      status?: string;
+      message?: string;
+      data?: { link?: string };
+    } | null;
 
-    if (data.status === "success") {
-      return NextResponse.json({
-        success: true,
-        link: data.data.link,
+    if (!response.ok || data?.status !== "success" || !data.data?.link) {
+      console.error("Flutterwave initialization rejected", {
+        status: response.status,
+        message: data?.message ?? "No provider message",
       });
-    } else {
       return NextResponse.json(
-        { error: "Failed to initialize payment" },
-        { status: 400 }
+        { error: data?.message ?? "Flutterwave could not initialize this payment" },
+        { status: 502 },
       );
     }
+
+    return NextResponse.json({ success: true, link: data.data.link, txRef });
   } catch (error) {
-    console.error("Flutterwave error:", error);
-    return NextResponse.json(
-      { error: "Payment processing failed" },
-      { status: 500 }
-    );
-  }
-}
-
-// Webhook handler for Flutterwave
-export async function PUT(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const flutterwaveHash = request.headers.get("verif-hash");
-    const secretHash = process.env.FLUTTERWAVE_SECRET_HASH;
-
-    if (flutterwaveHash !== secretHash) {
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-    }
-
-    const { status, txRef, amount } = body;
-
-    if (status === "successful") {
-      // Update order status in database
-      console.log(`Payment successful for order ${txRef}: ₦${amount}`);
-      // TODO: Update order in database
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Webhook error:", error);
-    return NextResponse.json(
-      { error: "Webhook processing failed" },
-      { status: 500 }
-    );
+    console.error("Flutterwave initialization error:", error);
+    return NextResponse.json({ error: "Payment processing failed" }, { status: 500 });
   }
 }
