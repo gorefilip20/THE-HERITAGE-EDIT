@@ -5,7 +5,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Heart, ShoppingBag } from "lucide-react";
-import { formatPrice, getImagePlaceholder } from "@/lib/utils";
+import { getImagePlaceholder } from "@/lib/utils";
+import { LocalizedPrice } from "@/components/currency/LocalizedPrice";
 
 interface ProductCardProps {
   slug: string;
@@ -118,11 +119,11 @@ export function ProductCard({
         </Link>
         <div className="flex items-center gap-2 pt-0.5">
           <span className={`text-[13px] font-sans font-medium ${hasDiscount ? "text-red-600" : "text-obsidian"}`}>
-            {formatPrice(salePriceCents ?? priceCents, "NGN")}
+            <LocalizedPrice cents={salePriceCents ?? priceCents} />
           </span>
           {hasDiscount && (
             <span className="text-[13px] font-sans text-neutral-400 line-through">
-              {formatPrice(priceCents, "NGN")}
+              <LocalizedPrice cents={priceCents} />
             </span>
           )}
         </div>

@@ -94,6 +94,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (err) {
     console.error("Admin products listing error:", err);
+    if (err instanceof Error && err.message === "Unauthorized") {
+      return NextResponse.json({ error: "Admin session required" }, { status: 401 });
+    }
     return NextResponse.json(
       { error: "Failed to fetch products" },
       { status: 500 },

@@ -61,14 +61,23 @@ export default function ProductsPage() {
     setIsLoading(true);
     setLoadError(null);
     try {
+      const controller = new AbortController();
+      const timeout = window.setTimeout(() => controller.abort(), 15000);
       const response = await fetch("/api/admin/products?pageSize=100&sort=newest", {
         cache: "no-store",
-      });
+        credentials: "include",
+        signal: controller.signal,
+      }).finally(() => window.clearTimeout(timeout));
       const data = await response.json();
+      if (response.status === 401) {
+        throw new Error("Your admin session has expired. Please log in again at /auth/login?redirect=/admin/products.");
+      }
       if (!response.ok) throw new Error(data.error ?? "Could not load products");
       setProducts(data.data ?? []);
     } catch (error) {
-      setLoadError(error instanceof Error ? error.message : "Could not load products");
+      setLoadError(error instanceof DOMException && error.name === "AbortError"
+        ? "The product list took too long to respond. Please try again."
+        : error instanceof Error ? error.message : "Could not load products");
     } finally {
       setIsLoading(false);
     }
@@ -238,4 +247,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-

@@ -16,7 +16,8 @@ import {
   Globe,
   CreditCard,
 } from "lucide-react";
-import { cn, formatPrice } from "@/lib/utils";
+import { cn } from "@/lib/utils";
+import { LocalizedPrice } from "@/components/currency/LocalizedPrice";
 import { useCartStore } from "@/store/cart-store";
 import { useCheckoutStore } from "@/store/checkout-store";
 
@@ -592,7 +593,7 @@ export function CheckoutForm() {
                           <span className="text-sm font-sans font-medium tabular-nums text-neutral-900">
                             {opt.priceCents === 0
                               ? "Complimentary"
-                              : formatPrice(opt.priceCents, currency)}
+                              : <LocalizedPrice cents={opt.priceCents} />}
                           </span>
                           <input
                             type="radio"
@@ -641,7 +642,7 @@ export function CheckoutForm() {
                       ) : (
                         <>
                           <Lock size={14} />
-                          Pay {formatPrice(totalCents, currency)} with Paystack
+                          Pay <LocalizedPrice cents={totalCents} /> with Paystack
                         </>
                       )}
                     </button>
@@ -653,7 +654,7 @@ export function CheckoutForm() {
                       className="w-full h-14 border border-[#F5A623] bg-[#FFF9EF] text-[#7A4A00] text-sm font-sans font-semibold tracking-wide flex items-center justify-center gap-3 hover:bg-[#FFF1D6] transition-all active:scale-[0.98] disabled:opacity-50"
                     >
                       {isProcessing ? <Loader2 size={16} className="animate-spin" /> : <Globe size={15} />}
-                      Pay {formatPrice(totalCents, currency)} with Flutterwave
+                      Pay <LocalizedPrice cents={totalCents} /> with Flutterwave
                     </button>
 
                     <div className="flex items-center gap-3 pt-2">
@@ -713,7 +714,7 @@ export function CheckoutForm() {
                     </p>
                   </div>
                   <span className="text-sm font-sans font-medium tabular-nums text-neutral-900 shrink-0">
-                    {formatPrice(item.priceCents * item.quantity, currency)}
+                    <LocalizedPrice cents={item.priceCents * item.quantity} />
                   </span>
                 </div>
               ))}
@@ -723,7 +724,7 @@ export function CheckoutForm() {
               <div className="flex justify-between text-sm font-sans">
                 <span className="text-neutral-500">Retail Subtotal</span>
                 <span className="tabular-nums text-neutral-900">
-                  {formatPrice(subtotalCents(), currency)}
+                  <LocalizedPrice cents={subtotalCents()} />
                 </span>
               </div>
 
@@ -733,7 +734,7 @@ export function CheckoutForm() {
                     Tax ({taxDuty.country})
                   </span>
                   <span className="tabular-nums text-neutral-900">
-                    {formatPrice(taxDuty.taxCents, currency)}
+                    <LocalizedPrice cents={taxDuty.taxCents} />
                   </span>
                 </div>
               )}
@@ -744,7 +745,7 @@ export function CheckoutForm() {
                     Import Duties ({taxDuty.country})
                   </span>
                   <span className="tabular-nums text-neutral-900">
-                    {formatPrice(taxDuty.dutyCents, currency)}
+                    <LocalizedPrice cents={taxDuty.dutyCents} />
                   </span>
                 </div>
               )}
@@ -757,7 +758,7 @@ export function CheckoutForm() {
                   <span className="tabular-nums text-neutral-900">
                     {selectedShipping.priceCents === 0
                       ? "Complimentary"
-                      : formatPrice(selectedShipping.priceCents, currency)}
+                      : <LocalizedPrice cents={selectedShipping.priceCents} />}
                   </span>
                 </div>
               )}
@@ -767,7 +768,7 @@ export function CheckoutForm() {
                   Total
                 </span>
                 <span className="text-lg font-sans font-semibold tabular-nums text-neutral-900">
-                  {formatPrice(totalCents, currency)}
+                  <LocalizedPrice cents={totalCents} />
                 </span>
               </div>
             </div>

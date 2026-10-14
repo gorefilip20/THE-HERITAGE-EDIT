@@ -6,7 +6,8 @@ import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Minus, Plus, ShoppingBag, ArrowRight } from "lucide-react";
 import { useCartStore } from "@/store/cart-store";
-import { formatPrice, getImagePlaceholder } from "@/lib/utils";
+import { getImagePlaceholder } from "@/lib/utils";
+import { LocalizedPrice } from "@/components/currency/LocalizedPrice";
 
 export function CartDrawer() {
   const {
@@ -149,7 +150,7 @@ export function CartDrawer() {
                         </div>
 
                         <span className="product-price text-sm">
-                          {formatPrice(item.priceCents * item.quantity)}
+                          <LocalizedPrice cents={item.priceCents * item.quantity} />
                         </span>
                       </div>
                     </div>
@@ -175,7 +176,7 @@ export function CartDrawer() {
                     Subtotal
                   </span>
                   <span className="product-price text-lg font-medium">
-                    {formatPrice(subtotal)}
+                    <LocalizedPrice cents={subtotal} />
                   </span>
                 </div>
                 <p className="text-[11px] font-sans text-neutral-400">
