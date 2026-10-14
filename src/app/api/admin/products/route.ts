@@ -49,16 +49,31 @@ export async function GET(request: NextRequest) {
         break;
     }
 
-    const [products, total, statusCounts] = await Promise.all([
+    const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
         orderBy,
         skip: (page - 1) * pageSize,
         take: pageSize,
-        include: {
+        select: {
+          id: true,
+          sku: true,
+          name: true,
+          slug: true,
+          department: true,
+          clothingType: true,
+          basePriceCents: true,
+          salePriceCents: true,
+          currency: true,
+          status: true,
+          isFeatured: true,
           brand: { select: { id: true, name: true, slug: true } },
           category: { select: { id: true, name: true, slug: true } },
-          images: { orderBy: { sortOrder: "asc" }, take: 1 },
+          images: {
+            orderBy: { sortOrder: "asc" },
+            take: 1,
+            select: { id: true, url: true, alt: true },
+          },
           variants: {
             select: { id: true, size: true, stockCount: true },
             orderBy: { size: "asc" },
@@ -69,16 +84,7 @@ export async function GET(request: NextRequest) {
         },
       }),
       prisma.product.count({ where }),
-      prisma.product.groupBy({
-        by: ["status"],
-        _count: { id: true },
-      }),
     ]);
-
-    const counts: Record<string, number> = {};
-    for (const s of statusCounts) {
-      counts[s.status] = s._count.id;
-    }
 
     return NextResponse.json({
       data: products.map((p) => ({
@@ -90,7 +96,6 @@ export async function GET(request: NextRequest) {
       page,
       pageSize,
       totalPages: Math.ceil(total / pageSize),
-      statusCounts: counts,
     });
   } catch (err) {
     console.error("Admin products listing error:", err);

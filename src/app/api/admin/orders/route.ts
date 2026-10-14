@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
         (where.createdAt as Record<string, Date>).lte = new Date(dateTo);
     }
 
-    const [orders, total, statusAgg, revenueAgg] = await Promise.all([
+    const [orders, total] = await Promise.all([
       prisma.order.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -59,21 +59,7 @@ export async function GET(request: NextRequest) {
         },
       }),
       prisma.order.count({ where }),
-      prisma.order.groupBy({
-        by: ["status"],
-        _count: { id: true },
-      }),
-      prisma.order.aggregate({
-        where: { paymentStatus: "CAPTURED" },
-        _sum: { totalCents: true },
-        _count: { id: true },
-      }),
     ]);
-
-    const statusCounts: Record<string, number> = {};
-    for (const s of statusAgg) {
-      statusCounts[s.status] = s._count.id;
-    }
 
     return NextResponse.json({
       data: orders,
@@ -81,11 +67,6 @@ export async function GET(request: NextRequest) {
       page,
       pageSize,
       totalPages: Math.ceil(total / pageSize),
-      statusCounts,
-      summary: {
-        capturedRevenueCents: revenueAgg._sum.totalCents ?? 0,
-        capturedOrderCount: revenueAgg._count.id,
-      },
     });
   } catch (err) {
     console.error("Admin orders listing error:", err);
