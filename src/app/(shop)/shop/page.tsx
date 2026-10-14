@@ -16,7 +16,8 @@ import {
   Heart,
   Loader2,
 } from "lucide-react";
-import { cn, formatPrice, getImagePlaceholder } from "@/lib/utils";
+import { cn, getImagePlaceholder } from "@/lib/utils";
+import { LocalizedPrice } from "@/components/currency/LocalizedPrice";
 import type { Product, PaginatedResponse } from "@/types";
 
 /* ──────────────────────────────────────────────────────────
@@ -762,11 +763,11 @@ function ShopProductCard({
               hasDiscount ? "text-heritage-purple" : "text-obsidian",
             )}
           >
-            {formatPrice(product.salePriceCents ?? product.basePriceCents, "NGN")}
+            <LocalizedPrice cents={product.salePriceCents ?? product.basePriceCents} />
           </span>
           {hasDiscount && (
             <span className="text-[13px] product-price text-neutral-300 line-through">
-              {formatPrice(product.basePriceCents, "NGN")}
+              <LocalizedPrice cents={product.basePriceCents} />
             </span>
           )}
         </div>

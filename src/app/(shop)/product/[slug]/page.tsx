@@ -19,7 +19,8 @@ import {
   Check,
   X,
 } from "lucide-react";
-import { cn, formatPrice, getImagePlaceholder } from "@/lib/utils";
+import { cn, getImagePlaceholder } from "@/lib/utils";
+import { LocalizedPrice } from "@/components/currency/LocalizedPrice";
 import { useCartStore } from "@/store/cart-store";
 import type { Product, ProductVariant } from "@/types";
 
@@ -372,15 +373,11 @@ export default function ProductDetailPage() {
                   isOnSale ? "text-heritage-purple" : "text-obsidian",
                 )}
               >
-                {formatPrice(finalPrice, "NGN")}
+                <LocalizedPrice cents={finalPrice} />
               </span>
               {isOnSale && (
                 <span className="text-sm font-sans text-neutral-300 line-through tabular-nums">
-                  {formatPrice(
-                    product.basePriceCents +
-                      (selectedVariant?.priceDeltaCents ?? 0),
-                    "NGN",
-                  )}
+                  <LocalizedPrice cents={product.basePriceCents + (selectedVariant?.priceDeltaCents ?? 0)} />
                 </span>
               )}
             </div>
@@ -501,7 +498,7 @@ export default function ProductDetailPage() {
                                 )}
                                 {v.priceDeltaCents > 0 && (
                                   <span className="text-[11px] font-sans text-neutral-400">
-                                    +{formatPrice(v.priceDeltaCents, "NGN")}
+                                    +<LocalizedPrice cents={v.priceDeltaCents} />
                                   </span>
                                 )}
                                 {isSelected && (
@@ -570,7 +567,7 @@ export default function ProductDetailPage() {
               ) : (
                 <>
                   <ShoppingBag size={16} />
-                  Add to Bag — {formatPrice(finalPrice * quantity, "NGN")}
+                  Add to Bag — <LocalizedPrice cents={finalPrice * quantity} />
                 </>
               )}
             </button>
