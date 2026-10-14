@@ -181,7 +181,19 @@ export default function ProductsPage() {
                   <tr key={i}><td colSpan={7} className="px-4 py-4"><div className="h-8 skeleton w-full" /></td></tr>
                 ))
               : loadError
-                ? <tr><td colSpan={7} className="px-4 py-16 text-center text-sm text-red-600">{loadError}</td></tr>
+                ? <tr><td colSpan={7} className="px-4 py-16 text-center">
+                    <p className="text-sm text-red-600">{loadError}</p>
+                    <div className="mt-4 flex justify-center gap-3">
+                      {loadError.includes("admin session") && (
+                        <Link href="/auth/login?redirect=/admin/products" className="luxury-button-primary">
+                          Log in again
+                        </Link>
+                      )}
+                      <button type="button" onClick={() => void loadProducts()} className="luxury-button-secondary">
+                        Try again
+                      </button>
+                    </div>
+                  </td></tr>
                 : products.length === 0
                   ? <tr><td colSpan={7} className="px-4 py-16 text-center text-sm text-neutral-400">No products have been uploaded yet.</td></tr>
                   : products.map((product) => {

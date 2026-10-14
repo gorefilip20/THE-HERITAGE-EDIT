@@ -44,20 +44,28 @@ export default function AdminLayout({
   const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [adminUser, setAdminUser] = useState<{ firstName: string; email: string } | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
-    fetch("/api/auth/me")
+    fetch("/api/auth/me", { credentials: "include", cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
-        if (d.user) setAdminUser(d.user);
+        if (d.user && (d.user.role === "ADMIN" || d.user.role === "SUPER_ADMIN")) {
+          setAdminUser(d.user);
+        } else {
+          router.replace(`/auth/login?redirect=${encodeURIComponent(pathname)}`);
+        }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => router.replace(`/auth/login?redirect=${encodeURIComponent(pathname)}`))
+      .finally(() => setAuthChecked(true));
+  }, [pathname, router]);
 
   const handleLogout = async () => {
     await fetch("/api/auth/me", { method: "DELETE" });
     router.push("/auth/login");
   };
+
+  if (authChecked && !adminUser) return null;
 
   return (
     <div className="min-h-screen bg-[#F8F9FA]">
